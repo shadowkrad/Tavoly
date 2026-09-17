@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Area {
+  id          String   @id @default(cuid())
+  name        String   // es. "Sala Interna", "Dehors Giardino", "Terrazza Panoramica"
+  description String?
+  orderIndex  Int      @default(0)
+  tables      Table[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Table {
+  id           String        @id @default(cuid())
+  number       String        // es. "1", "12", "D1", "T4"
+  capacity     Int           @default(2)
+  status       String        @default("LIBERO") // LIBERO, OCCUPATO, PRENOTATO, CONTO
+  areaId       String
+  area         Area          @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([areaId, number])
+}
+
+model Reservation {
+  id          String    @id @default(cuid())
+  customerName String
+  phoneNumber String
+  email       String?
+  guestCount  Int       @default(2)
+  timeSlot    String    // es. "12:30", "13:15", "20:00", "21:30"
+  date        DateTime  @default(now())
+  status      String    @default("CONFERMATA") // IN_ATTESA, CONFERMATA, SEDUTI, COMPLETATA, ANNULLATA
+  notes       String?   // es. "Allergia glutine, tavolo vista giardino"
+  tableId     String?
+  table       Table?    @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  whatsappSent Boolean  @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model LocalSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-primary-dark: #1e40af;
+  --brand-accent: #f97316;
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+}
+
+body {
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a; /* text-slate-900 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Taaaac Design System Standard Classes */
+  .taaaac-card {
+    @apply bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs;
+  }
+
+  .taaaac-btn-primary {
+    @apply rounded-xl font-semibold transition-all cursor-pointer px-4 py-2.5 text-white inline-flex items-center justify-center gap-2 shadow-sm;
+    background-color: var(--brand-primary);
+  }
+
+  .taaaac-btn-primary:hover {
+    background-color: var(--brand-primary-hover);
+    transform: translateY(-1px);
+  }
+
+  .taaaac-btn-secondary {
+    @apply rounded-xl font-semibold transition-all cursor-pointer px-4 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 inline-flex items-center justify-center gap-2 shadow-xs;
+  }
+
+  .taaaac-btn-secondary:hover {
+    transform: translateY(-1px);
+  }
+
+  .taaaac-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+}
