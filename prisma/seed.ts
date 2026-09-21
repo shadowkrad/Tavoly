@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Avvio seeding database Tavoly...");
+  console.log("🌱 Avvio seeding database Tavoly con coordinate lavagna...");
 
   // Pulisce tabelle
   await prisma.reservation.deleteMany({});
@@ -14,7 +14,7 @@ async function main() {
   const salaInterna = await prisma.area.create({
     data: {
       name: "Sala Interna Elegance",
-      description: "Ambiente climatizzato con musica soffusa",
+      description: "Ambiente climatizzato con musica soffusa e bancone bar",
       orderIndex: 1,
     },
   });
@@ -35,40 +35,163 @@ async function main() {
     },
   });
 
-  // Creazione Tavoli Sala Interna
+  // Creazione Tavoli Sala Interna (con coordinate X/Y in percentuale per la lavagna)
   const t1 = await prisma.table.create({
-    data: { number: "1", capacity: 2, status: "OCCUPATO", areaId: salaInterna.id },
+    data: {
+      number: "1",
+      capacity: 2,
+      seatedCount: 2,
+      status: "OCCUPATO",
+      shape: "ROUND",
+      posX: 18,
+      posY: 22,
+      areaId: salaInterna.id,
+    },
   });
+
   const t2 = await prisma.table.create({
-    data: { number: "2", capacity: 4, status: "LIBERO", areaId: salaInterna.id },
+    data: {
+      number: "2",
+      capacity: 4,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "RECTANGLE",
+      posX: 50,
+      posY: 22,
+      areaId: salaInterna.id,
+    },
   });
+
   const t3 = await prisma.table.create({
-    data: { number: "3", capacity: 6, status: "PRENOTATO", areaId: salaInterna.id },
+    data: {
+      number: "3",
+      capacity: 6,
+      seatedCount: 0,
+      status: "PRENOTATO",
+      shape: "RECTANGLE",
+      posX: 82,
+      posY: 22,
+      areaId: salaInterna.id,
+    },
   });
+
   const t4 = await prisma.table.create({
-    data: { number: "4", capacity: 2, status: "CONTO", areaId: salaInterna.id },
+    data: {
+      number: "4",
+      capacity: 2,
+      seatedCount: 2,
+      status: "CONTO",
+      shape: "ROUND",
+      posX: 18,
+      posY: 68,
+      areaId: salaInterna.id,
+    },
   });
+
   const t5 = await prisma.table.create({
-    data: { number: "5", capacity: 8, status: "LIBERO", areaId: salaInterna.id },
+    data: {
+      number: "5",
+      capacity: 8,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "RECTANGLE",
+      posX: 52,
+      posY: 68,
+      areaId: salaInterna.id,
+    },
+  });
+
+  const b1 = await prisma.table.create({
+    data: {
+      number: "B1",
+      capacity: 1,
+      seatedCount: 1,
+      status: "OCCUPATO",
+      shape: "BAR",
+      posX: 85,
+      posY: 60,
+      areaId: salaInterna.id,
+    },
+  });
+
+  const b2 = await prisma.table.create({
+    data: {
+      number: "B2",
+      capacity: 1,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "BAR",
+      posX: 85,
+      posY: 76,
+      areaId: salaInterna.id,
+    },
   });
 
   // Tavoli Dehors
   const d1 = await prisma.table.create({
-    data: { number: "D1", capacity: 4, status: "LIBERO", areaId: dehors.id },
+    data: {
+      number: "D1",
+      capacity: 4,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "ROUND",
+      posX: 25,
+      posY: 35,
+      areaId: dehors.id,
+    },
   });
+
   const d2 = await prisma.table.create({
-    data: { number: "D2", capacity: 4, status: "OCCUPATO", areaId: dehors.id },
+    data: {
+      number: "D2",
+      capacity: 4,
+      seatedCount: 3,
+      status: "OCCUPATO",
+      shape: "RECTANGLE",
+      posX: 65,
+      posY: 35,
+      areaId: dehors.id,
+    },
   });
+
   const d3 = await prisma.table.create({
-    data: { number: "D3", capacity: 2, status: "PRENOTATO", areaId: dehors.id },
+    data: {
+      number: "D3",
+      capacity: 2,
+      seatedCount: 0,
+      status: "PRENOTATO",
+      shape: "ROUND",
+      posX: 45,
+      posY: 75,
+      areaId: dehors.id,
+    },
   });
 
   // Tavoli Veranda
   const v1 = await prisma.table.create({
-    data: { number: "V1", capacity: 2, status: "LIBERO", areaId: veranda.id },
+    data: {
+      number: "V1",
+      capacity: 2,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "ROUND",
+      posX: 30,
+      posY: 50,
+      areaId: veranda.id,
+    },
   });
+
   const v2 = await prisma.table.create({
-    data: { number: "V2", capacity: 4, status: "LIBERO", areaId: veranda.id },
+    data: {
+      number: "V2",
+      capacity: 4,
+      seatedCount: 0,
+      status: "LIBERO",
+      shape: "RECTANGLE",
+      posX: 70,
+      posY: 50,
+      areaId: veranda.id,
+    },
   });
 
   // Creazione Prenotazioni di Esempio
@@ -86,6 +209,7 @@ async function main() {
       notes: "Compleanno, richiesta torta",
       tableId: t3.id,
       whatsappSent: true,
+      isWalkIn: false,
     },
   });
 
@@ -101,6 +225,7 @@ async function main() {
       notes: "Tavolo romantico, preferenza finestra",
       tableId: d3.id,
       whatsappSent: true,
+      isWalkIn: false,
     },
   });
 
@@ -116,6 +241,7 @@ async function main() {
       notes: "Intolleranza al lattosio per 1 ospite",
       tableId: t1.id,
       whatsappSent: true,
+      isWalkIn: false,
     },
   });
 
@@ -130,6 +256,22 @@ async function main() {
       notes: "Pranzo di lavoro, richiesta fattura elettronica",
       tableId: t5.id,
       whatsappSent: false,
+      isWalkIn: false,
+    },
+  });
+
+  await prisma.reservation.create({
+    data: {
+      customerName: "Cliente Al Volo (Walk-In)",
+      phoneNumber: "+39 333 1122334",
+      guestCount: 1,
+      timeSlot: "19:45",
+      date: today,
+      status: "SEDUTI",
+      notes: "Caffè e prosecco al bancone",
+      tableId: b1.id,
+      whatsappSent: false,
+      isWalkIn: true,
     },
   });
 

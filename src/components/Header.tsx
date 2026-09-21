@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { UtensilsCrossed, MessageSquare, Award, RefreshCw, CheckCircle2, ShieldAlert, AlertCircle } from "lucide-react";
 import { TenantConfigResponse, AddonModule } from "@/types/taaaac";
 
@@ -78,6 +79,33 @@ export function Header({ tenantConfig }: HeaderProps) {
               </div>
             );
           })}
+
+          {/* Quick links & Logout */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 ml-1">
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              title="Apri vetrina clienti"
+            >
+              Vetrina
+            </Link>
+            <form action="/api/auth/logout" method="POST">
+              <button
+                type="submit"
+                formAction={async () => {
+                  "use server";
+                  const { logoutStaffAction } = await import("@/app/actions");
+                  await logoutStaffAction();
+                }}
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                title="Chiudi sessione staff"
+              >
+                Esci
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </header>

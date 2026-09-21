@@ -22,7 +22,11 @@ model Table {
   id           String        @id @default(cuid())
   number       String        // es. "1", "12", "D1", "T4"
   capacity     Int           @default(2)
-  status       String        @default("LIBERO") // LIBERO, OCCUPATO, PRENOTATO, CONTO
+  seatedCount  Int           @default(0)        // numero persone effettivamente sedute per i pallini grafici
+  status       String        @default("LIBERO") // LIBERO, OCCUPATO, PRENOTATO, CONTO, DA_PULIRE
+  shape        String        @default("RECTANGLE") // RECTANGLE, ROUND, BAR
+  posX         Float         @default(50)       // posizione percentuale X sulla lavagna (0-100)
+  posY         Float         @default(50)       // posizione percentuale Y sulla lavagna (0-100)
   areaId       String
   area         Area          @relation(fields: [areaId], references: [id], onDelete: Cascade)
   reservations Reservation[]
@@ -46,6 +50,7 @@ model Reservation {
   tableId     String?
   table       Table?    @relation(fields: [tableId], references: [id], onDelete: SetNull)
   whatsappSent Boolean  @default(false)
+  isWalkIn    Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
