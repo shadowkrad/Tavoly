@@ -43,6 +43,7 @@ interface TaaaacLogoProps {
   textSize?: string;
   showBadge?: boolean;
   badgeText?: string;
+  dark?: boolean;
 }
 
 export function TaaaacLogo({
@@ -51,18 +52,38 @@ export function TaaaacLogo({
   textSize = "text-base",
   showBadge = true,
   badgeText = "Tavoly",
+  dark = false,
 }: TaaaacLogoProps) {
   return (
     <div className={`inline-flex items-center gap-2 min-w-0 ${className}`}>
-      <div className="relative shrink-0 flex items-center justify-center p-1 rounded-xl bg-blue-50 border border-blue-100 shadow-2xs">
+      <div
+        className={`relative shrink-0 flex items-center justify-center p-1 rounded-xl transition-all shadow-xs ${
+          dark
+            ? "bg-white border border-white/20"
+            : "bg-blue-50 border border-blue-100 shadow-2xs"
+        }`}
+      >
         <TaaaacIcon size={iconSize} />
       </div>
       <div className="flex items-center gap-1.5 min-w-0">
-        <span className={`font-black tracking-tight text-slate-900 shrink-0 ${textSize}`}>
-          taaaac<span className="text-emerald-600">.eu</span>
+        <span
+          className={`font-black tracking-tight shrink-0 transition-colors ${textSize} ${
+            dark ? "text-white" : "text-slate-900"
+          }`}
+        >
+          taaaac
+          <span className={dark ? "text-emerald-400" : "text-emerald-600"}>
+            .eu
+          </span>
         </span>
         {showBadge && badgeText && (
-          <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 tracking-wider">
+          <span
+            className={`text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded-md shrink-0 tracking-wider border transition-colors ${
+              dark
+                ? "bg-emerald-900 text-emerald-200 border-emerald-600/70"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+            }`}
+          >
             {badgeText}
           </span>
         )}

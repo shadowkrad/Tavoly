@@ -15,6 +15,7 @@ interface NotificaItem {
 
 interface Props {
   placement?: "sidebar" | "topbar";
+  dark?: boolean;
 }
 
 const READ_IDS_KEY = "tavoly_notifiche_read_ids";
@@ -38,7 +39,7 @@ function saveLocalReadIds(ids: string[]) {
   }
 }
 
-export default function NotificationBell({ placement = "sidebar" }: Props) {
+export default function NotificationBell({ placement = "sidebar", dark = false }: Props) {
   const [open, setOpen] = useState(false);
   const [notifiche, setNotifiche] = useState<NotificaItem[]>([
     {
@@ -102,12 +103,20 @@ export default function NotificationBell({ placement = "sidebar" }: Props) {
     <div className="relative inline-block" ref={popoverRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+        className={`relative p-2 rounded-xl transition-colors cursor-pointer ${
+          dark
+            ? "text-emerald-200 hover:text-white hover:bg-emerald-900/80"
+            : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+        }`}
         aria-label="Notifiche"
       >
-        <Bell className="w-5 h-5 text-slate-700" />
+        <Bell className={`w-5 h-5 ${dark ? "text-emerald-200" : "text-slate-700"}`} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-600 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white animate-pulse">
+          <span
+            className={`absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center animate-pulse ring-2 ${
+              dark ? "ring-emerald-950" : "ring-white"
+            }`}
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

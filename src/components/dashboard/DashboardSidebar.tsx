@@ -78,13 +78,13 @@ export default function DashboardSidebar() {
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between px-4 py-2.5 bg-emerald-950 text-white border-b border-emerald-800 sticky top-0 z-40">
         <Link href="/dashboard" className="flex items-center gap-1.5 min-w-0">
-          <TaaaacLogo iconSize={20} textSize="text-base" showBadge={true} badgeText="Tavoly" />
+          <TaaaacLogo iconSize={20} textSize="text-base" showBadge={true} badgeText="Tavoly" dark={true} />
         </Link>
         <div className="flex items-center gap-1.5">
-          <NotificationBell placement="topbar" />
+          <NotificationBell placement="topbar" dark={true} />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-lg text-slate-300 hover:bg-emerald-900"
+            className="p-2 rounded-lg text-emerald-200 hover:text-white hover:bg-emerald-900 transition-colors"
             aria-label="Menu"
           >
             {mobileOpen ? "✕" : "☰"}
@@ -109,13 +109,13 @@ export default function DashboardSidebar() {
         {/* Brand */}
         <div className="px-4 py-4 border-b border-emerald-800/80 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-1.5 min-w-0 flex-1">
-            <TaaaacLogo iconSize={22} textSize="text-base" showBadge={true} badgeText="Tavoly" />
+            <TaaaacLogo iconSize={22} textSize="text-base" showBadge={true} badgeText="Tavoly" dark={true} />
           </Link>
           <div className="flex items-center gap-1 shrink-0">
-            <NotificationBell placement="sidebar" />
+            <NotificationBell placement="sidebar" dark={true} />
             <button
               onClick={() => setMobileOpen(false)}
-              className="md:hidden text-emerald-300 hover:text-white p-1 rounded-lg"
+              className="md:hidden text-emerald-200 hover:text-white p-1 rounded-lg hover:bg-emerald-900 transition-colors"
             >
               ✕
             </button>
@@ -131,13 +131,13 @@ export default function DashboardSidebar() {
             <p className="text-xs font-bold text-white truncate">
               {config?.nomeAttivita || "Trattoria San Marco"}
             </p>
-            <p className="text-[10px] text-emerald-300 font-mono">Sala & Ristorazione</p>
+            <p className="text-[10px] text-emerald-200 font-mono">Sala & Ristorazione</p>
           </div>
         </div>
 
         {/* Links Navigation */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80 px-3 pb-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 px-3 pb-1">
             Servizio di Sala
           </p>
           {baseNavLinks.map((link) => {
@@ -163,9 +163,9 @@ export default function DashboardSidebar() {
           {/* Add-ons Section */}
           {activeAddons.length > 0 && (
             <div className="pt-4 pb-1 px-3">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80 flex items-center justify-between mb-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center justify-between mb-1">
                 <span>Moduli Attivi</span>
-                <span className="text-emerald-300 font-extrabold text-[9px] bg-emerald-900 border border-emerald-700 px-1.5 py-0.2 rounded-full">
+                <span className="text-emerald-200 font-extrabold text-[9px] bg-emerald-900 border border-emerald-700 px-1.5 py-0.2 rounded-full">
                   ⚡ Taaaac
                 </span>
               </div>
@@ -188,7 +188,7 @@ export default function DashboardSidebar() {
                         <Icon className="w-4 h-4 shrink-0" />
                         <span>{item.label}</span>
                       </div>
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-900 text-emerald-300">
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-900 text-emerald-200 border border-emerald-700/60">
                         {item.badge}
                       </span>
                     </Link>
@@ -200,7 +200,7 @@ export default function DashboardSidebar() {
 
           {/* Core Footer Section */}
           <div className="pt-4 pb-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80 px-3 pb-1">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 px-3 pb-1">
               Configurazione
             </p>
             <Link
@@ -223,15 +223,15 @@ export default function DashboardSidebar() {
           <Link
             href="/"
             target="_blank"
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-900/80 text-emerald-200 hover:text-white text-xs transition"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-900/90 text-emerald-200 hover:text-white text-xs font-medium transition border border-emerald-800"
           >
             <span className="flex items-center gap-2">
-              <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-300" />
               Vedi Vetrina Pubblica
             </span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
-          <div className="text-[10px] text-emerald-400/60 text-center font-mono">
+          <div className="text-[10px] text-emerald-300 text-center font-mono font-medium">
             Tavoly Core · Taaaac Engine
           </div>
         </div>
