@@ -1,34 +1,42 @@
-version: "3.8"
-
 services:
-  tavoly-app:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tavoly_${SUBDOMAIN:-demo}
-    restart: unless-stopped
+    restart: always
+    expose:
+      - "3000"
+    ports:
+      - "${PORT_BIND:-3002}:3000"
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=file:/app/data/tavoly.db
-      - TAAAAC_CORE_URL=https://taaaac.eu
-      - TAAAAC_DOMAIN=${SUBDOMAIN:-demo}.taaaac.eu
-      - TAAAAC_TOKEN=${TAAAAC_TOKEN:-demo-secret-token}
       - NODE_ENV=production
-      - PORT=3000
+      - DATABASE_URL=file:/app/data/app.db
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://${TENANT_DOMAIN:-tavoly.taaaac.eu}}
+      - TAAAAC_TENANT_DOMAIN=${TENANT_DOMAIN:-tavoly.taaaac.eu}
+      - TAAAAC_CORE_API_URL=${TAAAAC_CORE_API_URL:-https://taaaac.eu}
     volumes:
       - tavoly_data:/app/data
-    networks:
-      - traefik-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.tavoly-${SUBDOMAIN:-demo}.rule=Host(`${SUBDOMAIN:-demo}.taaaac.eu`)"
-      - "traefik.http.routers.tavoly-${SUBDOMAIN:-demo}.entrypoints=websecure"
-      - "traefik.http.routers.tavoly-${SUBDOMAIN:-demo}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.tavoly-${SUBDOMAIN:-demo}.loadbalancer.server.port=3000"
+      - "traefik.docker.network=taaaac-network"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}-http.rule=Host(`${TENANT_DOMAIN:-tavoly.taaaac.eu}`)"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}-http.entrypoints=web"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}.rule=Host(`${TENANT_DOMAIN:-tavoly.taaaac.eu}`)"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}.entrypoints=websecure"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}.tls=true"
+      - "traefik.http.routers.tavoly-${TENANT_ID:-demo}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.tavoly-${TENANT_ID:-demo}.loadbalancer.server.port=3000"
+    networks:
+      - default
+      - taaaac-network
 
 volumes:
   tavoly_data:
-    name: tavoly_data_${SUBDOMAIN:-demo}
 
 networks:
-  traefik-net:
+  default:
+  taaaac-network:
     external: true
