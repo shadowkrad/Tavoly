@@ -6,6 +6,9 @@ async function main() {
   console.log("🌱 Avvio seeding database Tavoly con coordinate lavagna...");
 
   // Pulisce tabelle
+  await prisma.takeawayOrder.deleteMany({});
+  await prisma.customerProfile.deleteMany({});
+  await prisma.serviceShift.deleteMany({});
   await prisma.reservation.deleteMany({});
   await prisma.table.deleteMany({});
   await prisma.area.deleteMany({});
@@ -273,6 +276,96 @@ async function main() {
       whatsappSent: false,
       isWalkIn: true,
     },
+  });
+
+  // Creazione Turni e Servizi (Issue #7)
+  await prisma.serviceShift.createMany({
+    data: [
+      {
+        name: "Pranzo",
+        timeSlotsJson: JSON.stringify(["12:30", "13:00", "13:30", "14:00"]),
+        maxGuests: 40,
+        avgDurationMinutes: 60,
+        isActive: true,
+        orderIndex: 1,
+      },
+      {
+        name: "Aperitivo al Bar",
+        timeSlotsJson: JSON.stringify(["18:30", "19:00", "19:30"]),
+        maxGuests: 30,
+        avgDurationMinutes: 45,
+        isActive: true,
+        orderIndex: 2,
+      },
+      {
+        name: "Cena 1° Turno",
+        timeSlotsJson: JSON.stringify(["20:00", "20:30"]),
+        maxGuests: 45,
+        avgDurationMinutes: 90,
+        isActive: true,
+        orderIndex: 3,
+      },
+      {
+        name: "Cena 2° Turno",
+        timeSlotsJson: JSON.stringify(["21:30", "22:00"]),
+        maxGuests: 45,
+        avgDurationMinutes: 90,
+        isActive: true,
+        orderIndex: 4,
+      },
+    ],
+  });
+
+  // Creazione Schede Clienti Abituali (Issue #9)
+  await prisma.customerProfile.createMany({
+    data: [
+      {
+        name: "Marco Rossi",
+        phoneNumber: "+39 347 1234567",
+        email: "marco.rossi@example.com",
+        notes: "Preferisce tavolo tondo, allergico ai crostacei. Ricorrenza compleanno a settembre.",
+        visitCount: 5,
+        loyaltyPoints: 50,
+      },
+      {
+        name: "Elena Bianchi",
+        phoneNumber: "+39 338 9876543",
+        email: "elena.b@example.com",
+        notes: "Gradisce tavolo finestra vista giardino. Ama bollicine metodo classico.",
+        visitCount: 3,
+        loyaltyPoints: 30,
+      },
+      {
+        name: "Luca Moretti",
+        phoneNumber: "+39 320 5554321",
+        email: "luca.moretti@example.com",
+        notes: "Cliente abituale pausa pranzo business. Intolleranza severa al lattosio.",
+        visitCount: 8,
+        loyaltyPoints: 85,
+      },
+    ],
+  });
+
+  // Creazione Ordini Asporto Banco / Vendoly Channel Manager (Issue #9)
+  await prisma.takeawayOrder.createMany({
+    data: [
+      {
+        customerName: "Mario Galli",
+        phoneNumber: "+39 333 9988771",
+        pickupTime: "19:45",
+        itemsSummary: "2x Spritz Campari, 1x Tagliere Salumi & Formaggi, 1x Pinsa Romana",
+        totalAmount: 26.5,
+        status: "IN_PREPARAZIONE",
+      },
+      {
+        customerName: "Silvia Parodi",
+        phoneNumber: "+39 340 5544332",
+        pickupTime: "20:15",
+        itemsSummary: "3x Burger Gourmet Black Angus, 2x Patate Dippers al Tartufo",
+        totalAmount: 52.0,
+        status: "PRONTO",
+      },
+    ],
   });
 
   console.log("✅ Seeding completato con successo!");

@@ -3,14 +3,23 @@ import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { StatsCards } from "@/components/StatsCards";
 import { TableCanvasBoard, TableItem } from "@/components/dashboard/TableCanvasBoard";
-import { ReservationsList } from "@/components/ReservationsList";
-import { NewReservationModal } from "@/components/NewReservationModal";
-import { Calendar, Sparkles } from "lucide-react";
+import { ReservationsList, CustomerProfileMapItem } from "@/components/ReservationsList";
+import { DashboardHeaderActions } from "@/components/dashboard/DashboardHeaderActions";
+import { Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [tenantConfig, areas, rawTables, reservations] = await Promise.all([
+  const [
+    tenantConfig,
+    areas,
+    rawTables,
+    reservations,
+    serviceShifts,
+    customerProfilesList,
+    takeawayOrders,
+    paletteSetting,
+  ] = await Promise.all([
     getTenantConfig(),
     prisma.area.findMany({
       orderBy: { orderIndex: "asc" },
@@ -31,7 +40,29 @@ export default async function DashboardPage() {
       },
       orderBy: { timeSlot: "asc" },
     }),
+    prisma.serviceShift.findMany({
+      orderBy: { orderIndex: "asc" },
+    }),
+    prisma.customerProfile.findMany({}),
+    prisma.takeawayOrder.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.localSetting.findUnique({
+      where: { key: "active_palette_id" },
+    }),
   ]);
+
+  // Lookup map per profili clienti per numero di telefono
+  const customerProfiles: Record<string, CustomerProfileMapItem> = {};
+  customerProfilesList.forEach((c) => {
+    customerProfiles[c.phoneNumber] = {
+      phoneNumber: c.phoneNumber,
+      name: c.name,
+      notes: c.notes,
+      visitCount: c.visitCount,
+      loyaltyPoints: c.loyaltyPoints,
+    };
+  });
 
   const tables: TableItem[] = rawTables.map((t) => ({
     id: t.id,
@@ -68,11 +99,12 @@ export default async function DashboardPage() {
   }));
 
   const hasWhatsAppModule = tenantConfig.enabledModules.includes("WHATSAPP_REMINDERS");
+  const hasVendolyModule = tenantConfig.enabledModules.includes("VENDOLY_CHANNEL_MANAGER");
 
   return (
     <div className="space-y-6">
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <span>Gestione Sala & Tavoli</span>
@@ -86,13 +118,19 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-xs">
             <Calendar className="w-4 h-4 text-slate-400" />
             <span>Oggi, {new Date().toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" })}</span>
           </div>
 
-          <NewReservationModal tables={tableOptions} />
+          <DashboardHeaderActions
+            tableOptions={tableOptions}
+            shifts={serviceShifts}
+            takeawayOrders={takeawayOrders}
+            currentPaletteId={paletteSetting?.value || "ROYAL_BLUE"}
+            hasVendolyModule={hasVendolyModule}
+          />
         </div>
       </div>
 
@@ -115,6 +153,8 @@ export default async function DashboardPage() {
           <ReservationsList
             reservations={reservations}
             hasWhatsAppModule={hasWhatsAppModule}
+            customerProfiles={customerProfiles}
+            restaurantName={tenantConfig.theme.restaurantName}
           />
         </div>
       </div>

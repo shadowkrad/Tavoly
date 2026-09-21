@@ -1,8 +1,9 @@
 import React from "react";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
-import { PublicBookingWidget } from "@/components/public/PublicBookingWidget";
+import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
 import {
   UtensilsCrossed,
   Coffee,
@@ -21,8 +22,40 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function PublicShowcasePage() {
-  const tenantConfig = await getTenantConfig();
+  const [tenantConfig, rawShifts, todayReservations] = await Promise.all([
+    getTenantConfig(),
+    prisma.serviceShift.findMany({
+      where: { isActive: true },
+      orderBy: { orderIndex: "asc" },
+    }),
+    prisma.reservation.findMany({
+      where: {
+        date: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+        status: { not: "ANNULLATA" },
+      },
+    }),
+  ]);
+
   const { theme } = tenantConfig;
+
+  // Calcolo dinamico coperti prenotati per ogni turno
+  const shifts: PublicShiftData[] = rawShifts.map((s) => {
+    const slots: string[] = JSON.parse(s.timeSlotsJson || "[]");
+    const currentBooked = todayReservations
+      .filter((r) => slots.includes(r.timeSlot))
+      .reduce((sum, r) => sum + r.guestCount, 0);
+
+    return {
+      id: s.id,
+      name: s.name,
+      slots,
+      maxGuests: s.maxGuests,
+      isActive: s.isActive,
+      currentBooked,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -191,7 +224,7 @@ export default async function PublicShowcasePage() {
       {/* Sezione Prenota il tuo Tavolo (Widget) */}
       <section id="prenota" className="py-16 bg-slate-100/70 border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PublicBookingWidget />
+          <PublicBookingWidget shifts={shifts} />
         </div>
       </section>
 

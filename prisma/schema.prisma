@@ -60,3 +60,40 @@ model LocalSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model ServiceShift {
+  id                 String   @id @default(cuid())
+  name               String   // es. "Pranzo", "Aperitivo al Bar", "Cena 1° Turno", "Cena 2° Turno"
+  timeSlotsJson      String   // JSON string di orari, es. '["12:30","13:00","13:30"]'
+  maxGuests          Int      @default(50)
+  avgDurationMinutes Int      @default(90)
+  isActive           Boolean  @default(true)
+  orderIndex         Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model CustomerProfile {
+  id            String   @id @default(cuid())
+  phoneNumber   String   @unique
+  name          String
+  email         String?
+  notes         String?  // preferenze, intolleranze, tavolo favorito
+  visitCount    Int      @default(1)
+  loyaltyPoints Int      @default(10)
+  lastVisitAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TakeawayOrder {
+  id           String   @id @default(cuid())
+  customerName String
+  phoneNumber  String
+  pickupTime   String   // es. "19:45"
+  itemsSummary String   // es. "2x Spritz, 1x Tagliere Misto, 2x Burger Gourmet"
+  totalAmount  Float    @default(0.0)
+  status       String   @default("IN_PREPARAZIONE") // IN_PREPARAZIONE, PRONTO, RITIRATO
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

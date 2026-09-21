@@ -1,28 +1,54 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Users, Calendar, Clock, Phone, User, Mail, MessageSquare, CheckCircle2, AlertCircle } from "lucide-react";
+import { Users, Calendar, Clock, Phone, User, Mail, MessageSquare, CheckCircle2, AlertCircle, Ban } from "lucide-react";
 import { createPublicReservationAction } from "@/app/actions";
 
-const TIME_SLOTS = [
-  { shift: "Pranzo", slots: ["12:30", "13:00", "13:30", "14:00"] },
-  { shift: "Aperitivo al Bar", slots: ["18:30", "19:00", "19:30"] },
-  { shift: "Cena", slots: ["20:00", "20:30", "21:00", "21:30", "22:00"] },
+export interface PublicShiftData {
+  id: string;
+  name: string;
+  slots: string[];
+  maxGuests: number;
+  isActive: boolean;
+  currentBooked?: number;
+}
+
+const DEFAULT_SHIFTS: PublicShiftData[] = [
+  { id: "1", name: "Pranzo", slots: ["12:30", "13:00", "13:30", "14:00"], maxGuests: 40, isActive: true, currentBooked: 10 },
+  { id: "2", name: "Aperitivo al Bar", slots: ["18:30", "19:00", "19:30"], maxGuests: 30, isActive: true, currentBooked: 5 },
+  { id: "3", name: "Cena 1° Turno", slots: ["20:00", "20:30"], maxGuests: 45, isActive: true, currentBooked: 24 },
+  { id: "4", name: "Cena 2° Turno", slots: ["21:30", "22:00"], maxGuests: 45, isActive: true, currentBooked: 8 },
 ];
 
-export function PublicBookingWidget() {
+interface PublicBookingWidgetProps {
+  shifts?: PublicShiftData[];
+}
+
+export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWidgetProps) {
+  const activeShifts = shifts.filter((s) => s.isActive);
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedShift, setSelectedShift] = useState("Cena");
-  const [selectedSlot, setSelectedSlot] = useState("20:30");
+
+  const initialShift = activeShifts[0] || DEFAULT_SHIFTS[0];
+  const [selectedShiftId, setSelectedShiftId] = useState(initialShift.id);
+  const [selectedSlot, setSelectedSlot] = useState(initialShift.slots[0] || "20:30");
   const [guestCount, setGuestCount] = useState(2);
 
   const todayStr = new Date().toISOString().split("T")[0];
 
+  const currentShift = activeShifts.find((s) => s.id === selectedShiftId) || activeShifts[0];
+  const isShiftFull = currentShift && (currentShift.currentBooked || 0) >= currentShift.maxGuests;
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    if (isShiftFull) {
+      setErrorMsg(`Ci dispiace, il turno "${currentShift.name}" è al completo per questa data.`);
+      return;
+    }
+
     const form = e.currentTarget;
     const formData = new FormData(form);
     formData.set("timeSlot", selectedSlot);
@@ -60,15 +86,13 @@ export function PublicBookingWidget() {
         <button
           type="button"
           onClick={() => setIsSuccess(false)}
-          className="mt-6 taaaac-btn-secondary text-xs px-6 py-2.5 mx-auto"
+          className="mt-6 taaaac-btn-secondary text-xs px-6 py-2.5 mx-auto cursor-pointer"
         >
           Effettua un&apos;altra prenotazione
         </button>
       </div>
     );
   }
-
-  const currentSlots = TIME_SLOTS.find((s) => s.shift === selectedShift)?.slots || TIME_SLOTS[0].slots;
 
   return (
     <div className="taaaac-card max-w-xl mx-auto bg-white p-6 sm:p-8 shadow-sm">
@@ -97,24 +121,32 @@ export function PublicBookingWidget() {
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
             1. Momento del Giorno
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {TIME_SLOTS.map((t) => (
-              <button
-                key={t.shift}
-                type="button"
-                onClick={() => {
-                  setSelectedShift(t.shift);
-                  setSelectedSlot(t.slots[0]);
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedShift === t.shift
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                }`}
-              >
-                {t.shift}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {activeShifts.map((t) => {
+              const isFull = (t.currentBooked || 0) >= t.maxGuests;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedShiftId(t.id);
+                    if (t.slots[0]) setSelectedSlot(t.slots[0]);
+                  }}
+                  className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer text-center relative ${
+                    selectedShiftId === t.id
+                      ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  <span>{t.name}</span>
+                  {isFull && (
+                    <span className="block text-[9px] text-red-300 font-normal">
+                      Esaurito
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -170,7 +202,7 @@ export function PublicBookingWidget() {
             4. Orario di Arrivo
           </label>
           <div className="flex flex-wrap gap-2">
-            {currentSlots.map((slot) => (
+            {currentShift?.slots.map((slot) => (
               <button
                 key={slot}
                 type="button"
@@ -254,10 +286,14 @@ export function PublicBookingWidget() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isPending}
-          className="taaaac-btn-primary w-full py-3 text-sm font-bold shadow-md cursor-pointer disabled:opacity-50"
+          disabled={isPending || isShiftFull}
+          className="taaaac-btn-primary w-full py-3 text-sm font-bold shadow-md cursor-pointer disabled:opacity-40"
         >
-          {isPending ? "Invio prenotazione..." : `Conferma Prenotazione (${selectedSlot} - ${guestCount} persone)`}
+          {isPending
+            ? "Invio prenotazione..."
+            : isShiftFull
+            ? "Turno Esaurito - Scegli un altro orario"
+            : `Conferma Prenotazione (${selectedSlot} - ${guestCount} persone)`}
         </button>
       </form>
     </div>

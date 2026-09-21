@@ -81,6 +81,32 @@ export async function createPublicReservationAction(formData: FormData) {
       });
     }
 
+    // Aggiornamento o creazione Scheda Cliente (Issue #9)
+    try {
+      await prisma.customerProfile.upsert({
+        where: { phoneNumber },
+        create: {
+          phoneNumber,
+          name: customerName,
+          email: email || null,
+          notes: notes || null,
+          visitCount: 1,
+          loyaltyPoints: 10,
+          lastVisitAt: new Date(),
+        },
+        update: {
+          name: customerName,
+          email: email || undefined,
+          notes: notes ? notes : undefined,
+          visitCount: { increment: 1 },
+          loyaltyPoints: { increment: 10 },
+          lastVisitAt: new Date(),
+        },
+      });
+    } catch {
+      // opzionale
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/");
     return { success: true };
@@ -305,3 +331,73 @@ export async function updateReservationStatus(reservationId: string, status: str
     return { success: false, error: "Impossibile aggiornare la prenotazione" };
   }
 }
+
+// --- CUSTOMER PROFILE ACTIONS (Issue #9) ---
+export async function updateCustomerNotesAction(phoneNumber: string, notes: string, loyaltyDelta: number = 0) {
+  try {
+    const updated = await prisma.customerProfile.update({
+      where: { phoneNumber },
+      data: {
+        notes,
+        ...(loyaltyDelta !== 0 ? { loyaltyPoints: { increment: loyaltyDelta } } : {}),
+      },
+    });
+    revalidatePath("/dashboard");
+    return { success: true, customer: updated };
+  } catch (error) {
+    console.error("Errore aggiornamento note cliente:", error);
+    return { success: false, error: "Impossibile aggiornare la scheda cliente" };
+  }
+}
+
+// --- TAKEAWAY ORDER ACTIONS (Issue #9 - Vendoly Channel Manager) ---
+export async function updateTakeawayStatusAction(orderId: string, status: string) {
+  try {
+    await prisma.takeawayOrder.update({
+      where: { id: orderId },
+      data: { status },
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore aggiornamento ordine asporto:", error);
+    return { success: false, error: "Impossibile aggiornare lo stato dell'ordine" };
+  }
+}
+
+// --- SERVICE SHIFTS ACTIONS (Issue #7) ---
+export async function updateServiceShiftAction(shiftId: string, maxGuests: number, isActive: boolean) {
+  try {
+    await prisma.serviceShift.update({
+      where: { id: shiftId },
+      data: {
+        maxGuests,
+        isActive,
+      },
+    });
+    revalidatePath("/dashboard");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore aggiornamento turno di servizio:", error);
+    return { success: false, error: "Impossibile aggiornare le impostazioni del turno" };
+  }
+}
+
+// --- THEME PALETTE ACTIONS (Issue #2) ---
+export async function updateThemePaletteAction(paletteId: string) {
+  try {
+    await prisma.localSetting.upsert({
+      where: { key: "active_palette_id" },
+      create: { key: "active_palette_id", value: paletteId },
+      update: { value: paletteId },
+    });
+    revalidatePath("/");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore aggiornamento tema:", error);
+    return { success: false, error: "Impossibile salvare la palette del tema" };
+  }
+}
+
