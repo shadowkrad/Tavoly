@@ -83,13 +83,13 @@ export default async function PublicShowcasePage() {
               </p>
 
               <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                <a
-                  href="#prenota"
-                  className="taaaac-btn-primary px-6 py-3.5 text-sm sm:text-base font-bold shadow-md"
+                <Link
+                  href="/prenotazione"
+                  className="taaaac-btn-primary px-6 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center gap-2"
                 >
                   <span>Prenota il tuo Tavolo</span>
                   <ArrowRight className="w-4 h-4" />
-                </a>
+                </Link>
                 <a
                   href="#servizi"
                   className="taaaac-btn-secondary px-6 py-3.5 text-sm sm:text-base font-bold"
@@ -221,10 +221,27 @@ export default async function PublicShowcasePage() {
         </div>
       </section>
 
-      {/* Sezione Prenota il tuo Tavolo (Widget) */}
-      <section id="prenota" className="py-16 bg-slate-100/70 border-y border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PublicBookingWidget shifts={shifts} />
+      {/* Sezione Prenota il tuo Tavolo (Stile Schedly: SOLO IL TASTO, form nella pagina dedicata /prenotazione) */}
+      <section className="py-16 bg-slate-100/70 border-y border-slate-200/80">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mx-auto text-2xl shadow-xs">
+            🍽️
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Prenota il tuo Tavolo in pochi secondi
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+            Scegli il turno, l&apos;orario e i coperti desiderati. Riceverai la conferma immediata della sala e il promemoria su WhatsApp.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/prenotazione"
+              className="taaaac-btn-primary px-8 py-3.5 text-sm font-bold shadow-md inline-flex items-center gap-2"
+            >
+              <span>Apri Form Prenotazione</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

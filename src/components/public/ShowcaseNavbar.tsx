@@ -38,9 +38,9 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
           <a href="#servizi" className="hover:text-blue-600 transition-colors">
             I Nostri Servizi
           </a>
-          <a href="#prenota" className="hover:text-blue-600 transition-colors">
+          <Link href="/prenotazione" className="hover:text-blue-600 transition-colors">
             Prenota un Tavolo
-          </a>
+          </Link>
           <a href="#contatti" className="hover:text-blue-600 transition-colors">
             Orari & Contatti
           </a>
@@ -48,13 +48,13 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
 
         {/* CTA & Discreet Login Link */}
         <div className="flex items-center gap-3">
-          <a
-            href="#prenota"
+          <Link
+            href="/prenotazione"
             className="taaaac-btn-primary text-xs sm:text-sm px-4 py-2"
           >
             <CalendarCheck className="w-4 h-4" />
             <span>Prenota Ora</span>
-          </a>
+          </Link>
 
           {/* Discreet Staff Login */}
           <Link
