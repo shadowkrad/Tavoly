@@ -140,9 +140,11 @@ export default function LoginPage() {
           {isPending ? "Verifica in corso..." : "Entra nella Dashboard"}
         </button>
 
-        <p className="text-[11px] text-slate-400 mt-4">
-          PIN predefinito demo: <strong className="text-slate-600">1234</strong>
-        </p>
+        {process.env.NEXT_PUBLIC_IS_DEMO !== "false" && (
+          <p className="text-[11px] text-slate-400 mt-4">
+            PIN predefinito demo: <strong className="text-slate-600">1234</strong>
+          </p>
+        )}
       </div>
     </div>
   );

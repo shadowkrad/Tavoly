@@ -13,6 +13,17 @@ async function main() {
   await prisma.table.deleteMany({});
   await prisma.area.deleteMany({});
 
+  // Verifica modalità Produzione vs Demo (Issue #21)
+  const isDemo = process.env.IS_DEMO === "true" || (process.env.NODE_ENV !== "production" && process.env.IS_DEMO !== "false");
+
+  if (!isDemo) {
+    console.log("🔒 Modalità PRODUZIONE rilevata (IS_DEMO=false): database vergine inizializzato senza piatti, sale o tavoli demo.");
+    console.log("✅ Seed completato con successo (Zero Mock Data per produzione GDPR compliant)!");
+    return;
+  }
+
+  console.log("✨ Modalità DEMO attiva: inserimento sale, tavoli, menu e prenotazioni di prova...");
+
   // Creazione Aree / Sale
   const salaInterna = await prisma.area.create({
     data: {

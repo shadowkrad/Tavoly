@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 
 const STAFF_COOKIE_NAME = "tavoly_staff_session";
-const DEFAULT_STAFF_PIN = process.env.STAFF_PIN || "1234";
+const DEFAULT_STAFF_PIN =
+  process.env.STAFF_PIN ||
+  process.env.ADMIN_PIN ||
+  process.env.INITIAL_ADMIN_PIN ||
+  process.env.INITIAL_ADMIN_PASSWORD ||
+  "1234";
 
 export async function isStaffAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
