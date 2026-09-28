@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sendNotificationMail } from "@/lib/taaaac-mailer";
 import { setStaffSession, clearStaffSession, verifyStaffPin } from "@/lib/auth";
 import {
   publicReservationSchema,
@@ -73,6 +74,35 @@ export async function createPublicReservationAction(formData: FormData) {
         tableId: tableId === "" ? null : tableId,
       },
     });
+
+    // Invio notifica email automatica (se email presente)
+    if (email) {
+      const formattedDate = reservationDate.toLocaleDateString("it-IT", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      sendNotificationMail({
+        to: email,
+        subject: `Prenotazione Tavolo Confermata — Tavoly Restaurant`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #fed7aa; border-radius: 16px; background: #ffffff;">
+            <h2 style="color: #ea580c; margin-top: 0;">🍽️ Prenotazione Confermata!</h2>
+            <p style="color: #334155; font-size: 15px;">Gentile <strong>${customerName}</strong>,</p>
+            <p style="color: #475569; font-size: 14px;">Il tuo tavolo presso <strong>Tavoly Restaurant</strong> è stato confermato con successo.</p>
+            <div style="background: #fff7ed; border-left: 4px solid #ea580c; padding: 14px 18px; border-radius: 8px; margin: 20px 0; font-size: 14px;">
+              <p style="margin: 4px 0; color: #9a3412;"><strong>Data:</strong> ${formattedDate}</p>
+              <p style="margin: 4px 0; color: #9a3412;"><strong>Orario:</strong> ${timeSlot}</p>
+              <p style="margin: 4px 0; color: #9a3412;"><strong>Numero Ospiti:</strong> ${guestCount} persone</p>
+              ${notes ? `<p style="margin: 4px 0; color: #9a3412;"><strong>Note:</strong> ${notes}</p>` : ""}
+            </div>
+            <p style="color: #64748b; font-size: 13px;">Se desideri disdire o apportare modifiche alla prenotazione, rispondi direttamente a questa email.</p>
+          </div>
+        `,
+        senderName: "Tavoly Restaurant",
+      }).catch((mailErr) => console.error("Errore invio email Tavoly:", mailErr));
+    }
 
     if (tableId) {
       await prisma.table.update({
