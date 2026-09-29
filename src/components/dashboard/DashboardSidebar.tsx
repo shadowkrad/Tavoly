@@ -21,6 +21,7 @@ import {
   ExternalLink,
   ChevronRight,
 } from "lucide-react";
+import SidebarPwaInstall from "@/components/dashboard/SidebarPwaInstall";
 
 const baseNavLinks = [
   { href: "/dashboard", label: "Mappa Tavoli", icon: LayoutGrid },
@@ -220,6 +221,7 @@ export default function DashboardSidebar() {
 
         {/* Bottom Bar: Link Vetrina & Info */}
         <div className="p-3 border-t border-emerald-800/80 bg-emerald-900/60 space-y-2">
+          <SidebarPwaInstall onAction={() => setMobileOpen(false)} />
           <Link
             href="/"
             target="_blank"

@@ -7,8 +7,20 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${config.theme.restaurantName || "Tavoly"} | Tavoli & Prenotazioni Taaaac`,
     description: config.theme.tagline || "Modulo gestionale sale e coperti parte dell'ecosistema Taaaac.",
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Tavoly",
+    },
   };
 }
+
+export const viewport = {
+  themeColor: "#059669",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default async function RootLayout({
   children,
