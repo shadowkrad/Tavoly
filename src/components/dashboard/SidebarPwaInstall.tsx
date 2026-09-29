@@ -122,7 +122,7 @@ export default function SidebarPwaInstall({ onAction }: { onAction?: () => void 
                   1
                 </span>
                 <span>
-                  Tocca l'icona <strong>Condividi</strong> nella barra di Safari (il quadratino con la freccia in alto <span className="inline-block px-1 bg-slate-800 rounded border border-slate-700">⎋</span> o <span className="inline-block px-1 bg-slate-800 rounded border border-slate-700">⬆</span>).
+                  Tocca l&apos;icona <strong>Condividi</strong> nella barra di Safari (il quadratino con la freccia in alto <span className="inline-block px-1 bg-slate-800 rounded border border-slate-700">⎋</span> o <span className="inline-block px-1 bg-slate-800 rounded border border-slate-700">⬆</span>).
                 </span>
               </div>
               <div className="flex items-start gap-2.5">
@@ -130,7 +130,7 @@ export default function SidebarPwaInstall({ onAction }: { onAction?: () => void 
                   2
                 </span>
                 <span>
-                  Scorri l'elenco e tocca <strong>"Aggiungi alla schermata Home"</strong>.
+                  Scorri l&apos;elenco e tocca <strong>&quot;Aggiungi alla schermata Home&quot;</strong>.
                 </span>
               </div>
               <div className="flex items-start gap-2.5">
@@ -138,7 +138,7 @@ export default function SidebarPwaInstall({ onAction }: { onAction?: () => void 
                   3
                 </span>
                 <span>
-                  Premi <strong>Aggiungi</strong> in alto a destra: troverai l'icona sul display pronta per essere aperta istantaneamente!
+                  Premi <strong>Aggiungi</strong> in alto a destra: troverai l&apos;icona sul display pronta per essere aperta istantaneamente!
                 </span>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function SidebarPwaInstall({ onAction }: { onAction?: () => void 
                   2
                 </span>
                 <span>
-                  Clicca sull'icona <strong>"Installa app"</strong> (un monitor con freccia verso il basso) oppure apri il menu dei 3 puntini ➔ <strong>"Installa Tavoly"</strong>.
+                  Clicca sull&apos;icona <strong>&quot;Installa app&quot;</strong> (un monitor con freccia verso il basso) oppure apri il menu dei 3 puntini ➔ <strong>&quot;Installa Tavoly&quot;</strong>.
                 </span>
               </div>
             </div>

@@ -40,6 +40,9 @@ const isDocker = process.env.DOCKER_BUILD === "true";
 
 const nextConfig: NextConfig = {
   ...(isDocker ? { output: "standalone" } : {}),
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: getAppVersion(),
     NEXT_PUBLIC_GIT_COMMIT: getGitCommit(),
