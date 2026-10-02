@@ -15,10 +15,12 @@ import {
   QrCode,
   MapPin,
   Phone,
+  Smartphone,
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
+import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
 
-type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "aspetto";
+type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "dispositivi" | "aspetto";
 
 interface TabItem {
   id: SettingsTab;
@@ -56,6 +58,13 @@ const TABS: TabItem[] = [
     shortLabel: "WhatsApp",
     icon: "💬",
     description: "Notifiche automatiche WhatsApp di conferma tavolo e stato comande",
+  },
+  {
+    id: "dispositivi",
+    label: "Dispositivi & Palmari PWA",
+    shortLabel: "Dispositivi",
+    icon: "📱",
+    description: "Accesso biometrico FaceID/PIN e revoca/disconnessione palmari da remoto",
   },
   {
     id: "aspetto",
@@ -122,7 +131,7 @@ export default function TavolyImpostazioniPage() {
             Impostazioni Tavoly
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Configura orari di servizio, capienza massima coperti, notifiche e stile del menù digitale.
+            Configura orari di servizio, capienza massima coperti, palmari PWA e notifiche.
           </p>
         </div>
 
@@ -393,7 +402,14 @@ export default function TavolyImpostazioniPage() {
         </div>
       )}
 
-      {/* TAB 5: ASPETTO & MENÙ QR */}
+      {/* TAB 5: DISPOSITIVI & PALMARI PWA */}
+      {activeTab === "dispositivi" && (
+        <div className="space-y-4">
+          <RegisteredDevicesCard />
+        </div>
+      )}
+
+      {/* TAB 6: ASPETTO & MENÙ QR */}
       {activeTab === "aspetto" && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

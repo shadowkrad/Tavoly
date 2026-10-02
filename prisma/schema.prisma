@@ -97,3 +97,32 @@ model TakeawayOrder {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// Dispositivi PWA FIDO2 / Biometrici autorizzati per avvio rapido con PIN/Impronta (es. palmari camerieri o smartphone titolare)
+model RegisteredDevice {
+  id           String    @id @default(cuid())
+  deviceName   String    // Es. "Palmare Cameriere Sala 1", "iPhone Titolare"
+  deviceType   String    @default("mobile") // mobile, tablet, desktop
+  credentialId String    @unique // ID univoco generato dal chip hardware Secure Enclave
+  publicKey    String    // Chiave pubblica FIDO2 codificata base64url
+  counter      BigInt    @default(0) // Contatore anti-clonazione
+  transports   String    @default("[]") // internal, usb, ble, nfc (JSON string)
+  status       String    @default("ACTIVE") // ACTIVE | REVOKED
+  lastUsedAt   DateTime?
+  lastIp       String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// Sfide crittografiche monouso per registrazione e login WebAuthn
+model WebAuthnChallenge {
+  challenge String   @id
+  type      String   // registration | authentication
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}

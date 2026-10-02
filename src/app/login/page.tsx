@@ -1,16 +1,70 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, ArrowLeft, Delete, KeyRound, ShieldCheck, AlertCircle } from "lucide-react";
+import { Lock, ArrowLeft, Delete, KeyRound, ShieldCheck, AlertCircle, Fingerprint, Smartphone } from "lucide-react";
 import { loginStaffAction } from "@/app/actions";
+import { startAuthentication, browserSupportsWebAuthn } from "@simplewebauthn/browser";
 
 export default function LoginPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [supportsWebAuthn, setSupportsWebAuthn] = useState<boolean>(false);
+  const [biometricLoading, setBiometricLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSupportsWebAuthn(browserSupportsWebAuthn());
+  }, []);
+
+  const handleBiometricLogin = async () => {
+    setErrorMsg(null);
+    setBiometricLoading(true);
+
+    try {
+      // 1. Richiedi opzioni challenge
+      const optRes = await fetch("/api/auth/device/login-options", {
+        method: "POST",
+      });
+
+      if (!optRes.ok) {
+        const err = await optRes.json();
+        throw new Error(err.error || "Nessun dispositivo registrato su questo browser.");
+      }
+
+      const options = await optRes.json();
+
+      // 2. Chiedi al chip biometrico o PIN del dispositivo di firmare la challenge
+      const authResp = await startAuthentication(options);
+
+      // 3. Invia la firma al server per verifica crittografica
+      const verifyRes = await fetch("/api/auth/device/login-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: authResp }),
+      });
+
+      if (!verifyRes.ok) {
+        const err = await verifyRes.json();
+        throw new Error(err.error || "Autenticazione biometrica fallita");
+      }
+
+      // Login completato! Vai alla dashboard
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: any) {
+      console.error("Errore login biometrico:", err);
+      if (err.name === "NotAllowedError") {
+        setErrorMsg("Riconoscimento biometrico annullato.");
+      } else {
+        setErrorMsg(err.message || "Accesso biometrico non riuscito.");
+      }
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   const handleKeyClick = (val: string) => {
     if (pin.length < 6) {
@@ -71,8 +125,28 @@ export default function LoginPage() {
           Digita il PIN operatore per gestire tavoli e comande
         </p>
 
+        {/* Pulsante rapido Accesso Biometrico PWA / Palmare */}
+        {supportsWebAuthn && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={biometricLoading || isPending}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 active:scale-98 text-white font-bold py-3 px-4 rounded-2xl text-xs sm:text-sm transition shadow-xs cursor-pointer disabled:opacity-60"
+            >
+              <Fingerprint className="w-4 h-4" />
+              <span>{biometricLoading ? "Verifica biometrica in corso..." : "Accedi con FaceID / Impronta / PIN"}</span>
+            </button>
+            <div className="flex items-center gap-3 py-3">
+              <div className="flex-1 h-px bg-slate-200" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">oppure con PIN numerico</span>
+              <div className="flex-1 h-px bg-slate-200" />
+            </div>
+          </div>
+        )}
+
         {errorMsg && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 text-left font-medium">
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 text-left font-medium">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
