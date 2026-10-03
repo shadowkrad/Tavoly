@@ -8,6 +8,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${config.theme.restaurantName || "Tavoly"} | Tavoli & Prenotazioni Taaaac`,
     description: config.theme.tagline || "Modulo gestionale sale e coperti parte dell'ecosistema Taaaac.",
     manifest: "/manifest.webmanifest",
+    icons: {
+      icon: config.theme.faviconUrl || "/icon.svg",
+      apple: config.theme.faviconUrl || "/icon.svg",
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",
@@ -39,6 +43,10 @@ export default async function RootLayout({
 
   return (
     <html lang="it" className="scroll-smooth">
+      <head>
+        <link rel="icon" href={theme.faviconUrl || "/icon.svg"} />
+        <link rel="apple-touch-icon" href={theme.faviconUrl || "/icon.svg"} />
+      </head>
       <body style={brandStyle} className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
         {children}
       </body>

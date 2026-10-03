@@ -57,16 +57,35 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
 
   // 1. Verifica se presente override locale tema su SQLite
   let localThemeOverride: TenantTheme | null = null;
+  let brandLogoUrl: string | undefined;
+  let brandFaviconUrl: string | undefined;
   try {
-    const themeSetting = await prisma.localSetting.findUnique({
-      where: { key: "active_palette_id" },
-    });
+    const [themeSetting, logoSetting, faviconSetting] = await Promise.all([
+      prisma.localSetting.findUnique({ where: { key: "active_palette_id" } }),
+      prisma.localSetting.findUnique({ where: { key: "brand_logo_url" } }),
+      prisma.localSetting.findUnique({ where: { key: "brand_favicon_url" } }),
+    ]);
     if (themeSetting?.value && THEME_PALETTES[themeSetting.value]) {
       localThemeOverride = THEME_PALETTES[themeSetting.value];
     }
+    if (logoSetting?.value) brandLogoUrl = logoSetting.value;
+    if (faviconSetting?.value) brandFaviconUrl = faviconSetting.value;
   } catch {
     // silenzioso se db in inizializzazione
   }
+
+  const applyBrandOverrides = (cfg: TenantConfigResponse) => {
+    if (localThemeOverride) {
+      cfg.theme = { ...cfg.theme, ...localThemeOverride };
+    }
+    if (brandLogoUrl !== undefined) {
+      cfg.theme.logoUrl = brandLogoUrl;
+    }
+    if (brandFaviconUrl !== undefined) {
+      cfg.theme.faviconUrl = brandFaviconUrl;
+    }
+    return cfg;
+  };
 
   try {
     const url = `${coreUrl}/api/public/tenant-config?domain=${encodeURIComponent(
@@ -83,10 +102,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     if (res.ok) {
       const data = await res.json();
       if (data && data.success) {
-        const config = data as TenantConfigResponse;
-        if (localThemeOverride) {
-          config.theme = { ...config.theme, ...localThemeOverride };
-        }
+        const config = applyBrandOverrides(data as TenantConfigResponse);
         // Salva in cache SQLite
         try {
           await prisma.localSetting.upsert({
@@ -114,10 +130,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     });
     if (cached?.value) {
       const parsed = JSON.parse(cached.value) as TenantConfigResponse;
-      if (localThemeOverride) {
-        parsed.theme = { ...parsed.theme, ...localThemeOverride };
-      }
-      return parsed;
+      return applyBrandOverrides(parsed);
     }
   } catch {
     // fallback successivo
@@ -125,8 +138,5 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
 
   // 3. Fallback predefinito
   const fallback = { ...DEFAULT_MOCK_CONFIG };
-  if (localThemeOverride) {
-    fallback.theme = { ...fallback.theme, ...localThemeOverride };
-  }
-  return fallback;
+  return applyBrandOverrides(fallback);
 }

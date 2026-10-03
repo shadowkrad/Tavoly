@@ -12,6 +12,7 @@ export interface TenantTheme {
   accentColor: string;
   primaryHover?: string;
   logoUrl?: string;
+  faviconUrl?: string;
   restaurantName: string;
   tagline?: string;
 }
