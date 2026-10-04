@@ -1,15 +1,16 @@
-# 🍽️ Tavoly — Release Notes v1.0.1
+# 🍽️ Tavoly — Release Notes v1.0.2
 
-## Novità della Versione 1.0.1
+## Novità della Versione 1.0.2
 
-### 1. 📲 Shortcut App per Tablet di Sala & Smartphone (PWA)
-- Aggiunta la voce *"📲 Installa App · Aggiungi a Home / Desktop"* nel menu laterale (`☰`), senza banner invasivi sulla mappa dei tavoli.
-- Modale guidato a schermo intero (`createPortal` su `document.body`, `z-[9999]`) con istruzioni dedicate per iPad Safari, prompt 1-click per Android e scorciatoia per browser Desktop.
+### 1. 🎨 Personalizzazione Brand: Logo Ristorante & Favicon Menù
+- Possibilità di caricare il logo del ristorante da *Dashboard > Impostazioni > Aspetto & Brand* con compressione automatica WebP.
+- Favicon 128x128 personalizzata applicata alla scheda del browser e visibile durante la consultazione del menù digitale QR da smartphone dei clienti.
+- Live preview in tempo reale sia dell'header della vetrina sia della tab del browser.
 
-### 2. ⚙️ Impostazioni Modulari a 5 Schede
-- Riorganizzazione della sezione `/dashboard/impostazioni` con navigazione a schede:
-  - 🍽️ **Ristorante & Sede**: Insegna locale, ragione sociale, P.IVA, indirizzo e recapiti;
-  - ⏰ **Turni & Coperti**: Turni (Pranzo e Cena), capienza massima coperti, durata media tavolo e tolleranza ritardo;
-  - 📧 **Email & Prenotazioni**: Casella Taaaac Mail Engine e notifiche;
-  - 💬 **WhatsApp & Tavoli**: Notifiche automatiche e promemoria tavolo;
-  - 🎨 **Aspetto & Menù QR**: Personalizzazione grafica del menù digitale e logo del ristorante.
+### 2. ⚙️ Impostazioni Moderne a 2 Colonne (Stile Stripe)
+- Riorganizzazione della gestione ristorante con interfaccia pulita a due colonne, icone Lucide e navigazione per sezioni tematiche.
+- Configurazione semplificata di turni (pranzo/cena), capienza massima coperti, durata media tavolo e tolleranza ritardo arrivo clienti.
+
+### 3. 📲 Accesso Biometrico PWA & Gestione Dispositivi (WebAuthn)
+- Login rapido con impronta digitale / Face ID su tablet comande di sala e smartphone del personale senza digitare password.
+- Pannello di controllo dei dispositivi autorizzati con revoca accessi in 1 click.
