@@ -16,6 +16,7 @@ import {
   MapPin,
   Phone,
   Smartphone,
+  ChevronRight,
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
 import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
@@ -26,7 +27,8 @@ interface TabItem {
   id: SettingsTab;
   label: string;
   shortLabel: string;
-  icon: string;
+  iconComponent: React.ElementType;
+  shortDescription: string;
   description: string;
 }
 
@@ -35,42 +37,48 @@ const TABS: TabItem[] = [
     id: "ristorante",
     label: "Ristorante & Sede",
     shortLabel: "Ristorante",
-    icon: "🍽️",
+    iconComponent: UtensilsCrossed,
+    shortDescription: "Anagrafica, P.IVA e recapiti",
     description: "Anagrafica locale, P.IVA, recapiti e indirizzo per i clienti",
   },
   {
     id: "turni",
     label: "Turni & Coperti",
     shortLabel: "Turni",
-    icon: "⏰",
+    iconComponent: Clock,
+    shortDescription: "Pranzo, cena e tolleranza",
     description: "Orari di servizio pranzo/cena, capienza sale e tolleranza ritardo",
   },
   {
     id: "email",
-    label: "Email & Prenotazioni",
+    label: "Email & Notifiche",
     shortLabel: "Email",
-    icon: "📧",
+    iconComponent: Mail,
+    shortDescription: "Taaaac Engine e conferme",
     description: "Canale email Taaaac Mail Engine e conferme prenotazione tavolo",
   },
   {
     id: "whatsapp",
     label: "WhatsApp & Tavoli",
     shortLabel: "WhatsApp",
-    icon: "💬",
+    iconComponent: MessageSquare,
+    shortDescription: "Notifiche comande e tavoli",
     description: "Notifiche automatiche WhatsApp di conferma tavolo e stato comande",
   },
   {
     id: "dispositivi",
-    label: "Dispositivi & Palmari PWA",
+    label: "Dispositivi & Palmari",
     shortLabel: "Dispositivi",
-    icon: "📱",
+    iconComponent: Smartphone,
+    shortDescription: "Biometria e palmari sala",
     description: "Accesso biometrico FaceID/PIN e revoca/disconnessione palmari da remoto",
   },
   {
     id: "aspetto",
     label: "Aspetto & Menù QR",
     shortLabel: "Aspetto",
-    icon: "🎨",
+    iconComponent: Palette,
+    shortDescription: "Tema sala, colori e menù QR",
     description: "Personalizzazione tema tavoli, menù digitale QR e logo locale",
   },
 ];
@@ -215,9 +223,10 @@ export default function TavolyImpostazioniPage() {
   };
 
   const currentTab = TABS.find((t) => t.id === activeTab);
+  const ActiveIcon = currentTab?.iconComponent || UtensilsCrossed;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Intestazione Principale */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -277,43 +286,87 @@ export default function TavolyImpostazioniPage() {
         </div>
       )}
 
-      {/* SOTTOMENU / TABS BAR */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-1.5 sm:p-2 shadow-xs">
-        <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth" aria-label="Impostazioni Tavoly">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-emerald-600 text-white font-bold shadow-xs shadow-emerald-600/30"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                <span className="text-base">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.shortLabel}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      {/* LAYOUT A 2 COLONNE: NAVIGAZIONE VERTICALE A SINISTRA + CONTENUTI A DESTRA */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* COLONNA SINISTRA: MENU SEZIONI IMPOSTAZIONI */}
+        <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6 space-y-3">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-2 sm:p-2.5 shadow-xs">
+            <div className="px-3 py-2 border-b border-slate-100 hidden lg:block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Sezioni Impostazioni
+              </span>
+            </div>
 
-      {/* Intestazione Sottomenu Corrente */}
-      {currentTab && (
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>{currentTab.icon}</span>
-              <span>{currentTab.label}</span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">{currentTab.description}</p>
+            <nav
+              className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible no-scrollbar pt-1 lg:pt-2"
+              aria-label="Sezioni Impostazioni Tavoly"
+            >
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const IconComp = tab.iconComponent;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`group flex items-center justify-between w-full p-2.5 sm:p-3 rounded-xl text-left transition-all cursor-pointer shrink-0 lg:shrink ${
+                      isActive
+                        ? "bg-emerald-50 text-emerald-950 font-semibold border border-emerald-200/80 shadow-xs"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          isActive
+                            ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/30"
+                            : "bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
+                        }`}
+                      >
+                        <IconComp className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-semibold truncate flex items-center gap-1.5">
+                          <span className="hidden sm:inline">{tab.label}</span>
+                          <span className="sm:hidden">{tab.shortLabel}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-normal truncate hidden lg:block">
+                          {tab.shortDescription}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight
+                      className={`w-4 h-4 shrink-0 transition-transform hidden lg:block ${
+                        isActive
+                          ? "text-emerald-600 translate-x-0.5"
+                          : "text-slate-300 opacity-0 group-hover:opacity-100"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-        </div>
-      )}
+        </aside>
+
+        {/* COLONNA DESTRA: PANNELLO CONTENUTI */}
+        <main className="lg:col-span-8 xl:col-span-9 space-y-6">
+          {/* Header contestuale scheda attiva */}
+          {currentTab && (
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
+                  <ActiveIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-slate-900">
+                    {currentTab.label}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{currentTab.description}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
       {/* CONTENUTO SCHEDE */}
 
@@ -814,6 +867,8 @@ export default function TavolyImpostazioniPage() {
           </div>
         </div>
       )}
+        </main>
+      </div>
     </div>
   );
 }
