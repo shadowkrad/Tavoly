@@ -4,9 +4,14 @@ import { getTenantConfig } from "@/lib/taaaac-core";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getTenantConfig();
+  const brand = config.theme.restaurantName || "Ristorante";
+  const slogan = config.theme.tagline || "Prenotazione Tavoli & Menù";
   return {
-    title: `${config.theme.restaurantName || "Tavoly"} | Tavoli & Prenotazioni Taaaac`,
-    description: config.theme.tagline || "Modulo gestionale sale e coperti parte dell'ecosistema Taaaac.",
+    title: {
+      default: `${brand} — ${slogan}`,
+      template: `%s | ${brand}`,
+    },
+    description: `Prenotazione tavoli e menù online per ${brand}`,
     manifest: "/manifest.webmanifest",
     icons: {
       icon: config.theme.faviconUrl || "/icon.svg",
@@ -15,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",
-      title: config.theme.restaurantName || "Tavoly",
+      title: brand,
     },
   };
 }

@@ -285,7 +285,7 @@ export default async function PublicShowcasePage() {
             </div>
             <div className="text-xs text-slate-600 space-y-1 pl-13">
               <p><strong>Telefono / WhatsApp:</strong> +39 02 1234567</p>
-              <p><strong>Email info:</strong> prenotazioni@taaaac.eu</p>
+              <p><strong>Email info:</strong> info@prenotazioniristorante.it</p>
               <p className="text-slate-400">Rispondiamo rapidamente durante gli orari di servizio.</p>
             </div>
           </div>
@@ -297,28 +297,19 @@ export default async function PublicShowcasePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <UtensilsCrossed className="w-4 h-4 text-blue-600" />
-            <span className="font-bold text-slate-800">{theme.restaurantName || "Tavoly"}</span>
-            <span>• Modulo gestito dall&apos;ecosistema</span>
-            <a
-              href="https://taaaac.eu"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 font-bold hover:underline"
-            >
-              Taaaac.eu
-            </a>
+            <span className="font-bold text-slate-800">{theme.restaurantName || "Ristorante"}</span>
+            <span>— © {new Date().getFullYear()} Tutti i diritti riservati.</span>
           </div>
 
           {/* Accesso Staff Discreto */}
           <div className="flex items-center gap-4">
-            <span>© {new Date().getFullYear()} Tutti i diritti riservati</span>
             <Link
               href="/login"
               className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-700 py-1 px-2.5 rounded-lg hover:bg-slate-100 transition-colors"
-              title="Accesso Gestione Tavoli per Staff"
+              title="Accesso Area Riservata per Staff"
             >
               <Lock className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-medium">Accesso Staff</span>
+              <span className="text-[11px] font-medium">Area Riservata Staff</span>
             </Link>
           </div>
         </div>
