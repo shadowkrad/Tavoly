@@ -9,6 +9,14 @@ export interface TenantTheme {
   surfaceColor?: string;
 }
 
+export interface ActiveMaintenanceConfig {
+  id: string;
+  adminNome: string;
+  adminEmail: string;
+  motivo: string;
+  startedAt: string;
+}
+
 export interface TenantConfig {
   id: string;
   nomeAttivita: string;
@@ -20,6 +28,7 @@ export interface TenantConfig {
   moduliAttivi: string[];
   tokenDisponibili: number;
   theme?: TenantTheme;
+  activeMaintenance?: ActiveMaintenanceConfig | null;
 }
 
 export const TAAAAC_ADDONS = {
