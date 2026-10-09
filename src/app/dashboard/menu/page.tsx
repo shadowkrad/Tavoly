@@ -11,13 +11,22 @@ export default async function TavolyMenuDashboardPage() {
     getTenantConfig(),
     prisma.menuItem.findMany({
       orderBy: [{ category: "asc" }, { orderIndex: "asc" }, { name: "asc" }],
+    }).catch((err) => {
+      console.error("[Dashboard Menu] Errore caricamento piatti:", err);
+      return [];
     }),
     prisma.localSetting.findUnique({
       where: { key: "menu_show_dish_images" },
+    }).catch((err) => {
+      console.error("[Dashboard Menu] Errore caricamento impostazioni:", err);
+      return null;
     }),
     prisma.table.findMany({
       include: { area: true },
       orderBy: [{ area: { orderIndex: "asc" } }, { number: "asc" }],
+    }).catch((err) => {
+      console.error("[Dashboard Menu] Errore caricamento tavoli:", err);
+      return [];
     }),
   ]);
 

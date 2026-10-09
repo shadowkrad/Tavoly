@@ -27,9 +27,15 @@ export default async function PublicMenuPage({ searchParams }: PageProps) {
     getTenantConfig(),
     prisma.menuItem.findMany({
       orderBy: [{ category: "asc" }, { orderIndex: "asc" }, { name: "asc" }],
+    }).catch((err) => {
+      console.error("[Public Menu] Errore caricamento piatti:", err);
+      return [];
     }),
     prisma.localSetting.findUnique({
       where: { key: "menu_show_dish_images" },
+    }).catch((err) => {
+      console.error("[Public Menu] Errore caricamento impostazioni:", err);
+      return null;
     }),
   ]);
 

@@ -5,19 +5,32 @@ import path from "path";
 function getDatabaseUrl(): string {
   if (process.env.VERCEL) {
     const tmpDbPath = path.join("/tmp", "tavoly.db");
-    if (!fs.existsSync(tmpDbPath)) {
-      const templatePath = path.join(process.cwd(), "prisma", "template.db");
-      if (fs.existsSync(templatePath)) {
-        try {
-          fs.copyFileSync(templatePath, tmpDbPath);
-          console.log("[Vercel SQLite] Inizializzato database SQLite in /tmp/tavoly.db");
-        } catch (err) {
-          console.error("[Vercel SQLite] Errore copia template.db in /tmp:", err);
+    const templatePath = path.join(process.cwd(), "prisma", "template.db");
+
+    let shouldCopy = !fs.existsSync(tmpDbPath);
+    if (!shouldCopy && fs.existsSync(templatePath)) {
+      try {
+        const templateStat = fs.statSync(templatePath);
+        const tmpStat = fs.statSync(tmpDbPath);
+        if (templateStat.mtimeMs > tmpStat.mtimeMs || templateStat.size !== tmpStat.size) {
+          shouldCopy = true;
         }
-      } else {
-        console.warn("[Vercel SQLite] template.db non trovato in", templatePath);
+      } catch {
+        shouldCopy = true;
       }
     }
+
+    if (shouldCopy && fs.existsSync(templatePath)) {
+      try {
+        fs.copyFileSync(templatePath, tmpDbPath);
+        console.log("[Vercel SQLite] Inizializzato/aggiornato database SQLite in /tmp/tavoly.db");
+      } catch (err) {
+        console.error("[Vercel SQLite] Errore copia template.db in /tmp:", err);
+      }
+    } else if (!fs.existsSync(templatePath)) {
+      console.warn("[Vercel SQLite] template.db non trovato in", templatePath);
+    }
+
     const resolvedUrl = `file:${tmpDbPath}`;
     process.env.DATABASE_URL = resolvedUrl;
     return resolvedUrl;
