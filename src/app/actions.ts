@@ -431,3 +431,127 @@ export async function updateThemePaletteAction(paletteId: string) {
   }
 }
 
+// --- AREAS / STANZE ACTIONS ---
+export async function createAreaAction(formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  const description = (formData.get("description") as string)?.trim() || null;
+
+  if (!name || name.length < 2) {
+    return { success: false, error: "Il nome della sala deve contenere almeno 2 caratteri" };
+  }
+
+  try {
+    const existing = await prisma.area.findFirst({
+      where: { name: { equals: name } },
+    });
+    if (existing) {
+      return { success: false, error: "Esiste già una sala con questo nome" };
+    }
+
+    const lastArea = await prisma.area.findFirst({
+      orderBy: { orderIndex: "desc" },
+    });
+    const orderIndex = lastArea ? lastArea.orderIndex + 1 : 0;
+
+    const newArea = await prisma.area.create({
+      data: {
+        name,
+        description,
+        orderIndex,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/");
+    return { success: true, area: newArea };
+  } catch (error) {
+    console.error("Errore creazione sala:", error);
+    return { success: false, error: "Impossibile creare la sala" };
+  }
+}
+
+export async function updateAreaAction(areaId: string, name: string, description?: string | null) {
+  const trimmedName = name?.trim();
+  if (!trimmedName || trimmedName.length < 2) {
+    return { success: false, error: "Il nome della sala deve contenere almeno 2 caratteri" };
+  }
+
+  try {
+    const existing = await prisma.area.findFirst({
+      where: {
+        name: { equals: trimmedName },
+        id: { not: areaId },
+      },
+    });
+    if (existing) {
+      return { success: false, error: "Esiste già un'altra sala con questo nome" };
+    }
+
+    await prisma.area.update({
+      where: { id: areaId },
+      data: {
+        name: trimmedName,
+        description: description?.trim() || null,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore modifica sala:", error);
+    return { success: false, error: "Impossibile modificare la sala" };
+  }
+}
+
+export async function deleteAreaAction(areaId: string) {
+  try {
+    const totalAreas = await prisma.area.count();
+    if (totalAreas <= 1) {
+      return { success: false, error: "Non puoi eliminare l'unica sala presente. Deve esserci almeno una sala attiva." };
+    }
+
+    // Controlla se ci sono tavoli con servizio attivo (OCCUPATO o CONTO)
+    const activeTable = await prisma.table.findFirst({
+      where: {
+        areaId,
+        status: { in: ["OCCUPATO", "CONTO"] },
+      },
+    });
+
+    if (activeTable) {
+      return {
+        success: false,
+        error: "Impossibile eliminare la sala: ci sono tavoli attualmente occupati o con conto in corso.",
+      };
+    }
+
+    // Scollega i tavoli di quest'area dalle prenotazioni per mantenere lo storico
+    const areaTables = await prisma.table.findMany({
+      where: { areaId },
+      select: { id: true },
+    });
+    const tableIds = areaTables.map((t) => t.id);
+
+    if (tableIds.length > 0) {
+      await prisma.reservation.updateMany({
+        where: { tableId: { in: tableIds } },
+        data: { tableId: null },
+      });
+    }
+
+    // Elimina la sala (e i suoi tavoli via cascade)
+    await prisma.area.delete({
+      where: { id: areaId },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore cancellazione sala:", error);
+    return { success: false, error: "Impossibile eliminare la sala" };
+  }
+}
+
+

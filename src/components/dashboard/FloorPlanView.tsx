@@ -9,6 +9,7 @@ import {
   Palette,
   Plus,
   CalendarCheck2,
+  Layers,
 } from "lucide-react";
 import { TableCanvasBoard, TableItem } from "./TableCanvasBoard";
 import { ReservationsDrawer } from "./ReservationsDrawer";
@@ -16,11 +17,14 @@ import { NewReservationModal } from "@/components/NewReservationModal";
 import { ShiftsManagementModal, ServiceShiftItem } from "./ShiftsManagementModal";
 import { TakeawayPanel, TakeawayItem } from "./TakeawayPanel";
 import { ThemeSelectorModal } from "./ThemeSelectorModal";
+import { AreasManagementModal } from "./AreasManagementModal";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
 
 interface Area {
   id: string;
   name: string;
+  description?: string | null;
+  orderIndex?: number;
 }
 
 interface ReservationItem {
@@ -73,6 +77,7 @@ export function FloorPlanView({
   const [isTakeawayOpen, setIsTakeawayOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
+  const [isAreasOpen, setIsAreasOpen] = useState(false);
 
   // Calcoli metriche compatti
   const totalTables = tables.length;
@@ -86,6 +91,11 @@ export function FloorPlanView({
     (r) => r.status !== "ANNULLATA" && r.status !== "COMPLETATA"
   ).length;
   const pendingTakeawayCount = takeawayOrders.filter((o) => o.status !== "RITIRATO").length;
+
+  const tablesCountByArea = tables.reduce((acc, t) => {
+    acc[t.areaId] = (acc[t.areaId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const tableOptions = tables.map((t) => ({
     id: t.id,
@@ -189,6 +199,16 @@ export function FloorPlanView({
             </button>
           )}
 
+          {/* Gestione Stanze / Sale */}
+          <button
+            type="button"
+            onClick={() => setIsAreasOpen(true)}
+            className="p-2 bg-white border border-slate-200/90 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+            title="Gestisci Stanze & Sale (Crea, Rinomina, Elimina)"
+          >
+            <Layers className="w-4 h-4 text-blue-600" />
+          </button>
+
           {/* Palette */}
           <button
             type="button"
@@ -218,6 +238,7 @@ export function FloorPlanView({
           tables={tables}
           areas={areas}
           reservations={reservations}
+          onOpenAreasModal={() => setIsAreasOpen(true)}
         />
       </div>
 
@@ -241,6 +262,13 @@ export function FloorPlanView({
       />
 
       {/* MODALI AUSILIARI */}
+      <AreasManagementModal
+        areas={areas}
+        tablesCountByArea={tablesCountByArea}
+        isOpen={isAreasOpen}
+        onClose={() => setIsAreasOpen(false)}
+      />
+
       <ShiftsManagementModal
         shifts={serviceShifts}
         isOpen={isShiftsOpen}

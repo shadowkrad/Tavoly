@@ -12,16 +12,20 @@ import {
   Sparkles,
   Receipt,
   UserCheck,
+  Layers,
 } from "lucide-react";
 import {
   updateTablePositionAction,
 } from "@/app/actions";
 import { AddTableModal } from "./AddTableModal";
 import { TableDetailModal } from "./TableDetailModal";
+import { AreasManagementModal } from "./AreasManagementModal";
 
 interface Area {
   id: string;
   name: string;
+  description?: string | null;
+  orderIndex?: number;
 }
 
 export interface TableItem {
@@ -53,6 +57,7 @@ interface TableCanvasBoardProps {
   tables: TableItem[];
   areas: Area[];
   reservations?: ReservationItem[];
+  onOpenAreasModal?: () => void;
 }
 
 const STATUS_THEMES: Record<
@@ -100,12 +105,19 @@ export function TableCanvasBoard({
   tables,
   areas,
   reservations = [],
+  onOpenAreasModal,
 }: TableCanvasBoardProps) {
   const [selectedAreaId, setSelectedAreaId] = useState<string>(areas[0]?.id || "ALL");
   const [isEditMode, setIsEditMode] = useState(false);
   const [viewMode, setViewMode] = useState<"CANVAS" | "GRID">("CANVAS");
   const [selectedTableForDetail, setSelectedTableForDetail] = useState<TableItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAreasModalOpen, setIsAreasModalOpen] = useState(false);
+
+  const tablesCountByArea = tables.reduce((acc, t) => {
+    acc[t.areaId] = (acc[t.areaId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const [isPending, startTransition] = useTransition();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -189,6 +201,17 @@ export function TableCanvasBoard({
               </button>
             );
           })}
+
+          {/* Tasto Gestione Sale / Stanze */}
+          <button
+            type="button"
+            onClick={() => (onOpenAreasModal ? onOpenAreasModal() : setIsAreasModalOpen(true))}
+            className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs ml-1 shrink-0"
+            title="Gestisci Stanze & Sale (Crea, Rinomina, Elimina)"
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-600" />
+            <span>Gestisci Sale</span>
+          </button>
         </div>
 
         {/* Controlli Vista & Editor Pianta */}
@@ -474,6 +497,19 @@ export function TableCanvasBoard({
         activeAreaId={selectedAreaId}
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+      />
+
+      {/* MODAL GESTIONE STANZE & SALE */}
+      <AreasManagementModal
+        areas={areas}
+        tablesCountByArea={tablesCountByArea}
+        isOpen={isAreasModalOpen}
+        onClose={() => setIsAreasModalOpen(false)}
+        onAreaDeleted={(deletedId) => {
+          if (selectedAreaId === deletedId) {
+            setSelectedAreaId("ALL");
+          }
+        }}
       />
     </div>
   );
