@@ -13,10 +13,11 @@ import {
   MessageCircle,
   DollarSign,
   Trash2,
-  Filter,
   Check,
   Flame,
-  ArrowRight
+  ArrowRight,
+  TrendingUp,
+  CreditCard
 } from "lucide-react";
 import {
   updateTakeawayOrderStatusAction,
@@ -179,79 +180,77 @@ export function TakeawayManagementView({
   const openWhatsAppNotification = (order: TakeawayOrderData) => {
     const cleanPhone = order.phoneNumber.replace(/[^0-9]/g, "");
     if (!cleanPhone) {
-      alert("Nessun numero di telefono registrato per questo cliente.");
+      alert("Nessun numero di telefono valido per questo cliente.");
       return;
     }
-    // Aggiungi prefisso 39 se assente e numero italiano a 10 cifre
     const phoneWithCountry = cleanPhone.startsWith("39") ? cleanPhone : `39${cleanPhone}`;
     const text = `Ciao ${order.customerName}! 👋 Il tuo ordine da ${restaurantName} è PRONTO al banco per il ritiro! Ti aspettiamo per consegnartelo caldo. 🍽️`;
     const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   };
 
-  // Calcolo tempo relativo (es. "tra 15 min", "Adesso!", "In ritardo")
+  // Calcolo tempo relativo intelligente
   const getTimeUrgency = (pickupTime: string, status: string) => {
     if (status === "RITIRATO" || status === "ANNULLATO") return null;
     const [hh, mm] = pickupTime.split(":").map(Number);
     if (isNaN(hh) || isNaN(mm)) return null;
 
     const now = new Date();
-    const target = new Date();
-    target.setHours(hh, mm, 0, 0);
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    const targetMins = hh * 60 + mm;
+    const diff = targetMins - currentMins;
 
-    const diffMinutes = Math.round((target.getTime() - now.getTime()) / (1000 * 60));
+    // Se l'orario è molto distante (es. oltre 4 ore nel futuro o nel passato), omette il countdown
+    if (Math.abs(diff) > 240) {
+      return null;
+    }
 
-    if (diffMinutes < -15) {
-      return { text: `In ritardo di ${Math.abs(diffMinutes)} min`, color: "text-rose-700 bg-rose-50 border-rose-300 font-bold" };
+    if (diff < -15) {
+      return { text: `In ritardo (${Math.abs(diff)}m)`, color: "text-rose-700 bg-rose-50 border-rose-200 font-bold" };
     }
-    if (diffMinutes < 0) {
-      return { text: "Orario superato!", color: "text-rose-600 bg-rose-50 border-rose-200 font-bold" };
+    if (diff < 0) {
+      return { text: "Orario superato", color: "text-rose-600 bg-rose-50 border-rose-200 font-bold" };
     }
-    if (diffMinutes <= 15) {
-      return { text: `Tra ${diffMinutes} min`, color: "text-amber-700 bg-amber-50 border-amber-300 font-bold animate-pulse" };
+    if (diff <= 15) {
+      return { text: `Tra ${diff}m`, color: "text-amber-800 bg-amber-100 border-amber-300 font-bold animate-pulse" };
     }
-    if (diffMinutes <= 45) {
-      return { text: `Tra ${diffMinutes} min`, color: "text-emerald-700 bg-emerald-50 border-emerald-200" };
+    if (diff <= 60) {
+      return { text: `Tra ${diff}m`, color: "text-emerald-700 bg-emerald-50 border-emerald-200 font-semibold" };
     }
-    const diffHours = Math.round(diffMinutes / 60);
-    return { text: `Tra circa ${diffHours} h`, color: "text-slate-600 bg-slate-100 border-slate-200" };
+    return null;
   };
 
   return (
     <div className="space-y-6">
-      {/* 1. Header con Azioni & Metriche Chiave */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                Ordini Asporto & Takeaway
-              </h1>
-              <p className="text-xs text-slate-500">
-                Flusso comande semplificato: presa ordine rapida, avanzamento cucina e avviso clienti al banco.
-              </p>
-            </div>
+      {/* 1. Header con Titolo & Bottone Principale */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs">
+            <ShoppingBag className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Ordini Asporto & Takeaway
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Gestione semplificata comande: presa ordini rapida, monitoraggio cucina e ritiro al banco.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsNewOrderModalOpen(true)}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nuovo Ordine Asporto</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsNewOrderModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Nuovo Ordine Asporto</span>
+        </button>
       </div>
 
-      {/* 2. Metriche Rapide (4 Card a colpo d'occhio) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+      {/* 2. Metriche Rapide (4 Card con spaziatura bilanciata) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
             <span>In Coda</span>
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
@@ -260,7 +259,7 @@ export function TakeawayManagementView({
           <div className="text-[11px] text-slate-400">Da avviare in cucina</div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
             <span>In Preparazione</span>
             <Flame className="w-4 h-4 text-orange-500" />
@@ -269,10 +268,12 @@ export function TakeawayManagementView({
           <div className="text-[11px] text-slate-400">Attualmente ai fornelli</div>
         </div>
 
-        <div className={`p-4 rounded-2xl border shadow-2xs space-y-1 transition ${
-          stats.pronti > 0 ? "bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-200" : "bg-white border-slate-200"
+        <div className={`p-4.5 rounded-2xl border shadow-2xs space-y-1.5 transition ${
+          stats.pronti > 0
+            ? "bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-200"
+            : "bg-white border-slate-200/90"
         }`}>
-          <div className="flex items-center justify-between text-emerald-800 text-xs font-bold">
+          <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
             <span>Pronti al Banco!</span>
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
           </div>
@@ -280,7 +281,7 @@ export function TakeawayManagementView({
           <div className="text-[11px] text-emerald-700 font-medium">In attesa del cliente</div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
             <span>Incasso Totale</span>
             <DollarSign className="w-4 h-4 text-emerald-600" />
@@ -294,7 +295,7 @@ export function TakeawayManagementView({
 
       {/* 3. Semaforo di Saturazione Oraria Cucina */}
       {uniqueActiveSlots.length > 0 && (
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-2.5">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs space-y-2.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-slate-800 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-600" />
@@ -304,9 +305,9 @@ export function TakeawayManagementView({
               <button
                 type="button"
                 onClick={() => setSelectedSlotFilter(null)}
-                className="text-xs text-rose-600 hover:text-rose-700 font-bold underline"
+                className="text-xs text-rose-600 hover:text-rose-700 font-bold underline cursor-pointer"
               >
-                Rimuovi filtro orario ({selectedSlotFilter})
+                Rimuovi filtro ({selectedSlotFilter})
               </button>
             )}
           </div>
@@ -315,11 +316,13 @@ export function TakeawayManagementView({
             {uniqueActiveSlots.map((slot) => {
               const count = slotCounts[slot] || 0;
               const isSelected = selectedSlotFilter === slot;
-              let badgeColor = "bg-emerald-50 text-emerald-800 border-emerald-200";
+              let badgeColor = "bg-slate-50 text-slate-700 border-slate-200 hover:border-emerald-300";
               if (count >= 4) {
-                badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-black";
+                badgeColor = "bg-rose-50 text-rose-800 border-rose-300 font-black";
               } else if (count >= 2) {
-                badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-bold";
+                badgeColor = "bg-amber-50 text-amber-800 border-amber-300 font-bold";
+              } else if (count === 1) {
+                badgeColor = "bg-emerald-50 text-emerald-800 border-emerald-200 font-medium";
               }
 
               return (
@@ -327,13 +330,15 @@ export function TakeawayManagementView({
                   key={slot}
                   type="button"
                   onClick={() => setSelectedSlotFilter(isSelected ? null : slot)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-mono shrink-0 transition flex items-center gap-2 ${
-                    isSelected ? "ring-2 ring-emerald-600 font-bold bg-emerald-600 text-white border-emerald-600" : badgeColor
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-mono shrink-0 transition flex items-center gap-2 cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-emerald-600 font-bold bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                      : badgeColor
                   }`}
                 >
                   <span className="font-bold">{slot}</span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isSelected ? "bg-white text-emerald-800" : "bg-black/10 text-slate-800 font-bold"
+                    isSelected ? "bg-white text-emerald-800 font-bold" : "bg-black/5 text-slate-700 font-bold"
                   }`}>
                     {count} {count === 1 ? "ordine" : "ordini"}
                   </span>
@@ -345,15 +350,15 @@ export function TakeawayManagementView({
       )}
 
       {/* 4. Barra Filtri Stato & Ricerca Rapida */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Tab Fasi */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        {/* Tab Fasi ben distanziate */}
         <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl overflow-x-auto scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveTab("ATTIVI")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
               activeTab === "ATTIVI"
-                ? "bg-white text-slate-900 shadow-2xs"
+                ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -362,9 +367,9 @@ export function TakeawayManagementView({
           <button
             type="button"
             onClick={() => setActiveTab("IN_CODA")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
               activeTab === "IN_CODA"
-                ? "bg-amber-500 text-white font-bold shadow-2xs"
+                ? "bg-amber-500 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -373,9 +378,9 @@ export function TakeawayManagementView({
           <button
             type="button"
             onClick={() => setActiveTab("IN_PREPARAZIONE")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
               activeTab === "IN_PREPARAZIONE"
-                ? "bg-orange-500 text-white font-bold shadow-2xs"
+                ? "bg-orange-500 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -384,9 +389,9 @@ export function TakeawayManagementView({
           <button
             type="button"
             onClick={() => setActiveTab("PRONTO")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
               activeTab === "PRONTO"
-                ? "bg-emerald-600 text-white font-bold shadow-2xs"
+                ? "bg-emerald-600 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -395,9 +400,9 @@ export function TakeawayManagementView({
           <button
             type="button"
             onClick={() => setActiveTab("RITIRATO")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer ${
               activeTab === "RITIRATO"
-                ? "bg-slate-800 text-white font-bold shadow-2xs"
+                ? "bg-slate-900 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -406,38 +411,38 @@ export function TakeawayManagementView({
         </div>
 
         {/* Ricerca per Nome / Telefono */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative w-full lg:w-72">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Cerca cliente, tel o piatto..."
+            placeholder="Cerca per cliente, telefono o piatto..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            className="w-full pl-9.5 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white shadow-2xs"
           />
         </div>
       </div>
 
-      {/* 5. Griglia Ordini Asporto */}
+      {/* 5. Griglia Ordini Asporto (Card ampie, pulite e ben distanziate) */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-3">
+        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-2xs space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <h3 className="text-base font-bold text-slate-900">Nessuna comanda in questa vista</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Tutte le comande sono state evase oppure non ci sono ordini per i filtri selezionati.
+            Tutte le comande sono state completate oppure non ci sono ordini corrispondenti ai filtri.
           </p>
           <button
             type="button"
             onClick={() => setIsNewOrderModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition cursor-pointer shadow-xs"
           >
             <Plus className="w-4 h-4" /> Inserisci Nuovo Ordine
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredOrders.map((ord) => {
             const urgency = getTimeUrgency(ord.pickupTime, ord.status);
             const isBusy = loadingOrderId === ord.id;
@@ -445,52 +450,65 @@ export function TakeawayManagementView({
             return (
               <div
                 key={ord.id}
-                className={`bg-white rounded-2xl border p-4.5 shadow-2xs space-y-3.5 transition flex flex-col justify-between ${
+                className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex flex-col justify-between ${
                   ord.status === "PRONTO"
-                    ? "border-emerald-300 ring-2 ring-emerald-100/80 bg-emerald-50/15"
+                    ? "border-emerald-300/90 ring-2 ring-emerald-200/70 bg-emerald-50/10"
                     : ord.status === "IN_PREPARAZIONE"
                     ? "border-orange-200 bg-orange-50/10"
                     : "border-slate-200/90 hover:border-slate-300"
                 }`}
               >
-                {/* Header Card: Orario Cubitale & Badge Stato */}
+                {/* Parte Superiore: Orario, Urgenza e Azioni Rapide */}
                 <div>
                   <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="font-mono text-base font-black px-2.5 py-1 rounded-xl bg-slate-900 text-white tracking-wide">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="font-mono text-base font-black px-2.5 py-1 rounded-xl bg-slate-900 text-white tracking-wide shrink-0">
                         {ord.pickupTime}
                       </div>
                       {urgency && (
-                        <span className={`text-[11px] px-2 py-0.5 rounded-lg border ${urgency.color}`}>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-lg border truncate ${urgency.color}`}>
                           {urgency.text}
                         </span>
                       )}
                     </div>
 
-                    {/* Stato Ordine Badge */}
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
-                        ord.status === "PRONTO"
-                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                          : ord.status === "IN_PREPARAZIONE"
-                          ? "bg-orange-100 text-orange-800 border-orange-300"
-                          : ord.status === "IN_CODA"
-                          ? "bg-amber-100 text-amber-800 border-amber-300"
-                          : "bg-slate-100 text-slate-700 border-slate-200"
-                      }`}
-                    >
-                      {ord.status === "IN_CODA" && "🟡 In Coda"}
-                      {ord.status === "IN_PREPARAZIONE" && "👨‍🍳 In Cucina"}
-                      {ord.status === "PRONTO" && "📦 Pronto al Banco"}
-                      {ord.status === "RITIRATO" && "✓ Ritirato"}
-                      {ord.status === "ANNULLATO" && "✕ Annullato"}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {/* Badge Stato */}
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                          ord.status === "PRONTO"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                            : ord.status === "IN_PREPARAZIONE"
+                            ? "bg-orange-100 text-orange-800 border-orange-300"
+                            : ord.status === "IN_CODA"
+                            ? "bg-amber-100 text-amber-800 border-amber-300"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {ord.status === "IN_CODA" && "🟡 In Coda"}
+                        {ord.status === "IN_PREPARAZIONE" && "👨‍🍳 In Cucina"}
+                        {ord.status === "PRONTO" && "📦 Pronto al Banco"}
+                        {ord.status === "RITIRATO" && "✓ Ritirato"}
+                        {ord.status === "ANNULLATO" && "✕ Annullato"}
+                      </span>
+
+                      {/* Cestino eliminazione comanda */}
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => handleDelete(ord.id)}
+                        className="p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        title="Elimina comanda"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Informazioni Cliente */}
-                  <div className="pt-2.5 flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-bold text-sm text-slate-900">{ord.customerName}</h3>
+                  {/* Informazioni Cliente & Pagamento */}
+                  <div className="pt-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-sm text-slate-900 truncate">{ord.customerName}</h3>
                       {ord.phoneNumber ? (
                         <a
                           href={`tel:${ord.phoneNumber}`}
@@ -500,7 +518,7 @@ export function TakeawayManagementView({
                           <span>{ord.phoneNumber}</span>
                         </a>
                       ) : (
-                        <span className="text-[11px] text-slate-400">Nessun recapito telefonico</span>
+                        <span className="text-[11px] text-slate-400">Nessun recapito</span>
                       )}
                     </div>
 
@@ -509,118 +527,111 @@ export function TakeawayManagementView({
                       type="button"
                       disabled={isBusy}
                       onClick={() => handlePaymentToggle(ord.id, ord.paymentStatus)}
-                      title="Clicca per invertire stato pagamento"
-                      className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer shrink-0 ${
+                      title="Clicca per modificare stato pagamento"
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition cursor-pointer shrink-0 flex items-center gap-1 ${
                         ord.paymentStatus === "PAGATO"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                           : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
                       }`}
                     >
-                      {ord.paymentStatus === "PAGATO" ? "Saldato ✓" : "Da Pagare"}
+                      <CreditCard className="w-3 h-3" />
+                      <span>{ord.paymentStatus === "PAGATO" ? "Saldato ✓" : "Da Pagare"}</span>
                     </button>
                   </div>
 
-                  {/* Contenuto Ordine */}
-                  <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                    <div className="text-xs text-slate-800 font-medium whitespace-pre-line leading-relaxed">
-                      {ord.itemsSummary}
-                    </div>
+                  {/* Lista Piatti Ordinati (Formattati riga per riga per massima leggibilità) */}
+                  <div className="mt-3 rounded-xl bg-slate-50/90 border border-slate-200/80 p-3 space-y-1.5">
+                    {ord.itemsSummary.split(",").map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+                        <span className="font-medium leading-relaxed">{item.trim()}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Eventuali Note */}
+                  {/* Note Speciali */}
                   {ord.notes && (
-                    <div className="mt-2 text-[11px] text-amber-900 bg-amber-50/80 p-2 rounded-lg border border-amber-200 flex items-start gap-1.5">
+                    <div className="mt-2.5 text-[11px] text-amber-900 bg-amber-50/90 p-2.5 rounded-xl border border-amber-200 flex items-start gap-2">
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                      <span>{ord.notes}</span>
+                      <span className="leading-snug">{ord.notes}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Footer Card: Totale & Pulsanti Azione Rapida */}
-                <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                {/* Footer Card: Totale e Pulsantiera di Avanzamento Spaziosa */}
+                <div className="pt-4 border-t border-slate-100 mt-4 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400 font-medium">Totale comanda:</span>
-                    <strong className="font-mono text-base font-black text-emerald-800">
+                    <strong className="font-mono text-base font-black text-slate-900">
                       {ord.totalAmount.toFixed(2)} €
                     </strong>
                   </div>
 
-                  {/* Pulsantiera di Avanzamento Stato */}
-                  <div className="flex items-center gap-2">
-                    {/* Se In Coda -> Metti in Preparazione */}
+                  {/* Tasti di Avanzamento a tutta larghezza e ben respirati */}
+                  <div className="space-y-2">
+                    {/* 1. Se In Coda -> Metti in Preparazione */}
                     {ord.status === "IN_CODA" && (
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleStatusChange(ord.id, "IN_PREPARAZIONE")}
-                        className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                        className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                       >
-                        <ChefHat className="w-3.5 h-3.5" />
-                        <span>Inizia Preparazione</span>
+                        <ChefHat className="w-4 h-4" />
+                        <span>Metti in Lavorazione Cucina</span>
                       </button>
                     )}
 
-                    {/* Se In Preparazione -> Pronto al Banco */}
+                    {/* 2. Se In Preparazione -> Pronto al Banco */}
                     {ord.status === "IN_PREPARAZIONE" && (
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleStatusChange(ord.id, "PRONTO")}
-                        className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                        className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Pronto al Banco!</span>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Segna come Pronto al Banco!</span>
                       </button>
                     )}
 
-                    {/* Se Pronto al Banco -> WhatsApp + Ritirato */}
+                    {/* 3. Se Pronto al Banco -> Tasto WhatsApp dedicato sopra + Tasto Ritiro ben evidente */}
                     {ord.status === "PRONTO" && (
-                      <>
+                      <div className="space-y-2">
                         {ord.phoneNumber && (
                           <button
                             type="button"
                             onClick={() => openWhatsAppNotification(ord)}
-                            className="py-2 px-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold transition flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
-                            title="Avvisa il cliente su WhatsApp che l'ordine è pronto"
+                            className="w-full py-2 px-3 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/40 text-[#128C7E] hover:text-[#075E54] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+                            title="Apri WhatsApp con messaggio precompilato per il cliente"
                           >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">WhatsApp</span>
+                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                            <span>Avvisa Cliente su WhatsApp</span>
                           </button>
                         )}
                         <button
                           type="button"
                           disabled={isBusy}
                           onClick={() => handleStatusChange(ord.id, "RITIRATO")}
-                          className="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                          className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                         >
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Ritirato & Saldato</span>
+                          <Check className="w-4 h-4 text-emerald-400" />
+                          <span>Consegna & Segna Ritirato</span>
                         </button>
-                      </>
+                      </div>
                     )}
 
-                    {/* Se Ritirato -> Tasto per riaprire se necessario */}
+                    {/* 4. Se Ritirato -> Tasto per ripristinare se errore */}
                     {ord.status === "RITIRATO" && (
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleStatusChange(ord.id, "PRONTO")}
-                        className="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
+                        className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium transition cursor-pointer"
                       >
-                        Riporta a Pronto
+                        Riporta tra i Pronti al Banco
                       </button>
                     )}
-
-                    {/* Tasto Cancella */}
-                    <button
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => handleDelete(ord.id)}
-                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                      title="Elimina comanda"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -637,7 +648,6 @@ export function TakeawayManagementView({
         existingCustomers={existingCustomers}
         existingOrdersSlots={slotCounts}
         onOrderCreated={() => {
-          // Re-fetch o ricarica dinamica
           window.location.reload();
         }}
       />
