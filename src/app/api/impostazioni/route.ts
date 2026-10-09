@@ -15,6 +15,7 @@ export async function GET() {
             "contact_email",
             "contact_phone",
             "address",
+            "menu_show_dish_images",
           ],
         },
       },
@@ -34,6 +35,7 @@ export async function GET() {
       email: map["contact_email"] || "prenotazioni@osteriatavoli.it",
       telefono: map["contact_phone"] || "+39 0575 654321",
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
+      menuShowImages: map["menu_show_dish_images"] !== "false",
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -44,7 +46,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { nomeRistorante, logoUrl, faviconUrl, colorePrimario, coloreAccento, email, telefono, indirizzo } = body;
+    const { nomeRistorante, logoUrl, faviconUrl, colorePrimario, coloreAccento, email, telefono, indirizzo, menuShowImages } = body;
 
     const upserts = [
       nomeRistorante !== undefined && { key: "restaurant_name", value: String(nomeRistorante) },
@@ -55,6 +57,7 @@ export async function PUT(req: NextRequest) {
       email !== undefined && { key: "contact_email", value: String(email) },
       telefono !== undefined && { key: "contact_phone", value: String(telefono) },
       indirizzo !== undefined && { key: "address", value: String(indirizzo) },
+      menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {

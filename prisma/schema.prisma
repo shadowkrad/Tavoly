@@ -126,3 +126,21 @@ model WebAuthnChallenge {
 
   @@index([expiresAt])
 }
+
+// Menù Digitale Ristorante
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float    @default(0.0)
+  category    String   // es. "Antipasti", "Primi", "Secondi", "Contorni", "Dolci", "Pizze", "Bevande"
+  allergens   String   @default("[]") // JSON string array es. '["Glutine","Latticini"]'
+  imageUrl    String?  // URL fotografia del piatto
+  isAvailable Boolean  @default(true) // disponibile o esaurito
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+

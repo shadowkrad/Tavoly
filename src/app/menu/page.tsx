@@ -1,23 +1,35 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
-import { MenuManagementView } from "@/components/dashboard/MenuManagementView";
+import { PublicMenuView } from "@/components/public/PublicMenuView";
 import { MenuItemData } from "@/components/dashboard/MenuItemModal";
+import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export default async function TavolyMenuDashboardPage() {
-  const [tenantConfig, rawMenuItems, showImagesSetting, rawTables] = await Promise.all([
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getTenantConfig();
+  return {
+    title: `Menù Digitale — ${config.theme.restaurantName}`,
+    description: `Consulta il menù digitale, i prezzi e gli allergeni di ${config.theme.restaurantName}`,
+  };
+}
+
+interface PageProps {
+  searchParams: Promise<{ tavolo?: string }>;
+}
+
+export default async function PublicMenuPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const tableNumber = resolvedParams?.tavolo || null;
+
+  const [tenantConfig, rawMenuItems, showImagesSetting] = await Promise.all([
     getTenantConfig(),
     prisma.menuItem.findMany({
       orderBy: [{ category: "asc" }, { orderIndex: "asc" }, { name: "asc" }],
     }),
     prisma.localSetting.findUnique({
       where: { key: "menu_show_dish_images" },
-    }),
-    prisma.table.findMany({
-      include: { area: true },
-      orderBy: [{ area: { orderIndex: "asc" } }, { number: "asc" }],
     }),
   ]);
 
@@ -32,23 +44,16 @@ export default async function TavolyMenuDashboardPage() {
     isAvailable: m.isAvailable,
   }));
 
-  const tables = rawTables.map((t) => ({
-    id: t.id,
-    number: t.number,
-    areaName: t.area?.name,
-  }));
-
-  // Default a true per le immagini se non esplicitamente "false"
   const showImages = showImagesSetting ? showImagesSetting.value === "true" : true;
 
   return (
-    <MenuManagementView
-      initialMenuItems={menuItems}
-      initialShowImages={showImages}
+    <PublicMenuView
+      menuItems={menuItems}
+      showImages={showImages}
       restaurantName={tenantConfig.theme.restaurantName}
       tagline={tenantConfig.theme.tagline}
       logoUrl={tenantConfig.theme.logoUrl}
-      tables={tables}
+      tableNumber={tableNumber}
     />
   );
 }

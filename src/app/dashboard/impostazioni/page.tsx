@@ -107,6 +107,7 @@ export default function TavolyImpostazioniPage() {
     coloreAccento: "#059669",
     logoUrl: "",
     faviconUrl: "",
+    menuShowImages: true,
   });
 
   // Brand Assets State & Refs
@@ -131,6 +132,7 @@ export default function TavolyImpostazioniPage() {
             email: data.email || f.email,
             telefono: data.telefono || f.telefono,
             indirizzo: data.indirizzo || f.indirizzo,
+            menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
           }));
         }
       })
@@ -206,6 +208,7 @@ export default function TavolyImpostazioniPage() {
           email: form.email,
           telefono: form.telefono,
           indirizzo: form.indirizzo,
+          menuShowImages: form.menuShowImages,
         }),
       });
 
@@ -863,6 +866,38 @@ export default function TavolyImpostazioniPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Layout & Fotografie Menù Digitale QR */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span>🍽️</span> Layout & Fotografie Menù Digitale QR
+              </h3>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Novità v1.0.4
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+              <div className="space-y-1">
+                <label 
+                  htmlFor="menuShowImagesCheckbox" 
+                  className="text-xs font-bold text-slate-900 block cursor-pointer"
+                >
+                  Mostra fotografie dei piatti nel menù digitale
+                </label>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Se attivo, i piatti mostrano la fotografia in evidenza sia sul gestionale che per i clienti. Se disattivato, il menù pubblico si reimposta automaticamente su un layout tipografico elegante stile bistrot/carta d&apos;alta ristorazione senza spazi vuoti.
+                </p>
+              </div>
+              <input
+                id="menuShowImagesCheckbox"
+                type="checkbox"
+                checked={form.menuShowImages}
+                onChange={(e) => setForm({ ...form, menuShowImages: e.target.checked })}
+                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
+              />
             </div>
           </div>
         </div>

@@ -615,4 +615,135 @@ export async function deleteAreaAction(areaId: string) {
   }
 }
 
+// --- MENU ACTIONS ---
+export async function createMenuItemAction(formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  const category = (formData.get("category") as string)?.trim() || "Primi";
+  const priceRaw = parseFloat(formData.get("price") as string);
+  const price = isNaN(priceRaw) ? 0.0 : Math.max(0, priceRaw);
+  const description = (formData.get("description") as string)?.trim() || null;
+  const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
+  const allergens = (formData.get("allergens") as string)?.trim() || "[]";
+  const isAvailable = formData.get("isAvailable") !== "false";
+
+  if (!name || name.length < 2) {
+    return { success: false, error: "Il nome del piatto deve contenere almeno 2 caratteri" };
+  }
+
+  try {
+    const lastItem = await prisma.menuItem.findFirst({
+      where: { category },
+      orderBy: { orderIndex: "desc" },
+    });
+    const orderIndex = lastItem ? lastItem.orderIndex + 1 : 0;
+
+    const item = await prisma.menuItem.create({
+      data: {
+        name,
+        category,
+        price,
+        description,
+        imageUrl,
+        allergens,
+        isAvailable,
+        orderIndex,
+      },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/menu");
+    return { success: true, item };
+  } catch (error) {
+    console.error("Errore creazione piatto:", error);
+    return { success: false, error: "Impossibile creare il piatto" };
+  }
+}
+
+export async function updateMenuItemAction(id: string, formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  const category = (formData.get("category") as string)?.trim() || "Primi";
+  const priceRaw = parseFloat(formData.get("price") as string);
+  const price = isNaN(priceRaw) ? 0.0 : Math.max(0, priceRaw);
+  const description = (formData.get("description") as string)?.trim() || null;
+  const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
+  const allergens = (formData.get("allergens") as string)?.trim() || "[]";
+  const isAvailable = formData.get("isAvailable") !== "false";
+
+  if (!name || name.length < 2) {
+    return { success: false, error: "Il nome del piatto deve contenere almeno 2 caratteri" };
+  }
+
+  try {
+    const item = await prisma.menuItem.update({
+      where: { id },
+      data: {
+        name,
+        category,
+        price,
+        description,
+        imageUrl,
+        allergens,
+        isAvailable,
+      },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/menu");
+    return { success: true, item };
+  } catch (error) {
+    console.error("Errore modifica piatto:", error);
+    return { success: false, error: "Impossibile modificare il piatto" };
+  }
+}
+
+export async function deleteMenuItemAction(id: string) {
+  try {
+    await prisma.menuItem.delete({
+      where: { id },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/menu");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore cancellazione piatto:", error);
+    return { success: false, error: "Impossibile cancellare il piatto" };
+  }
+}
+
+export async function toggleMenuItemAvailabilityAction(id: string, isAvailable: boolean) {
+  try {
+    await prisma.menuItem.update({
+      where: { id },
+      data: { isAvailable },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/menu");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore disponibilità piatto:", error);
+    return { success: false, error: "Impossibile aggiornare la disponibilità" };
+  }
+}
+
+export async function updateMenuShowImagesSettingAction(showImages: boolean) {
+  try {
+    await prisma.localSetting.upsert({
+      where: { key: "menu_show_dish_images" },
+      create: { key: "menu_show_dish_images", value: showImages ? "true" : "false" },
+      update: { value: showImages ? "true" : "false" },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/menu");
+    revalidatePath("/dashboard/impostazioni");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore salvataggio impostazione immagini menu:", error);
+    return { success: false, error: "Impossibile salvare l'impostazione" };
+  }
+}
+
+
 
