@@ -78,7 +78,10 @@ model CustomerProfile {
   phoneNumber   String   @unique
   name          String
   email         String?
-  notes         String?  // preferenze, intolleranze, tavolo favorito
+  allergies     String?  // Intolleranze / allergeni segnalati (es. "Celiachia (Senza Glutine)")
+  favoriteTable String?  // Tavolo o zona preferita (es. "Tavolo 4", "Dehors Vista Giardino")
+  isVip         Boolean  @default(false)
+  notes         String?  // preferenze, ricorrenze, note di sala
   visitCount    Int      @default(1)
   loyaltyPoints Int      @default(10)
   lastVisitAt   DateTime @default(now())

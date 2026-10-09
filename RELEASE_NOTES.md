@@ -35,6 +35,12 @@
 - **Flusso Operativo a 4 Fasi**: Avanzamento comande a 1-tap (*In Coda*, *In Preparazione*, *Pronto al Banco*, *Ritirato & Saldato*) con orario di ritiro cubitale ad alto contrasto e calcolo urgenza/ritardo.
 - **Notifica WhatsApp 1-Click "Ordine Pronto"**: Quando la comanda è pronta al banco, un tap apre WhatsApp con messaggio precompilato elegante per avvisare il cliente ed evitare file all'interno del locale.
 
+### 7. 👥 Gestionale Clienti & CRM Sala Rimodernato
+- **Scheda Ospite Potenziata con Tavolo Preferito & Intolleranze**: Anagrafica clienti con memorizzazione del tavolo o zona preferita del locale (es. Vista Giardino, Finestra, Privé) ed evidenziazione critica di intolleranze alimentari e allergeni per la massima sicurezza dello staff di sala.
+- **Metriche CRM Istantanee**: Totale ospiti censiti, clienti VIP con badge dedicato, ospiti con intolleranze segnalate e conteggio cene/visite complessive nel locale.
+- **Ricerca Live & Filtri Rapidi**: Ricerca in tempo reale per nome, numero telefonico, tavolo preferito, allergie o note; filtri veloci a tab (*Tutti*, *VIP ⭐*, *Con Allergeni ⚠️*, *Ospiti Frequenti 🔥*).
+- **Azioni 1-Click per lo Staff**: Invio messaggio WhatsApp personalizzato con saluto e disponibilità tavolo, registrazione rapida passaggio (+1 Cena e punti fedeltà), chiamata diretta con click sul recapito e modal touch con chip rapidi per allergeni frequenti.
+
 ---
 
 ## Novità della Versione 1.0.3

@@ -423,7 +423,135 @@ export async function deleteReservationAction(reservationId: string) {
   }
 }
 
-// --- CUSTOMER PROFILE ACTIONS (Issue #9) ---
+// --- CUSTOMER PROFILE ACTIONS (CRM Gestionale Clienti) ---
+export interface CustomerProfileInput {
+  id?: string;
+  name: string;
+  phoneNumber: string;
+  email?: string | null;
+  allergies?: string | null;
+  favoriteTable?: string | null;
+  isVip?: boolean;
+  notes?: string | null;
+  visitCount?: number;
+  loyaltyPoints?: number;
+}
+
+export async function createOrUpdateCustomerAction(input: CustomerProfileInput) {
+  try {
+    const name = input.name?.trim();
+    const phoneNumber = input.phoneNumber?.trim();
+
+    if (!name || !phoneNumber) {
+      return { success: false, error: "Nome e Numero di Telefono sono obbligatori" };
+    }
+
+    if (phoneNumber.length < 6) {
+      return { success: false, error: "Inserisci un numero di telefono valido" };
+    }
+
+    const email = input.email?.trim() || null;
+    const allergies = input.allergies?.trim() || null;
+    const favoriteTable = input.favoriteTable?.trim() || null;
+    const isVip = Boolean(input.isVip);
+    const notes = input.notes?.trim() || null;
+    const visitCount = typeof input.visitCount === "number" ? Math.max(1, input.visitCount) : 1;
+    const loyaltyPoints = typeof input.loyaltyPoints === "number" ? Math.max(0, input.loyaltyPoints) : 10;
+
+    let customer;
+    if (input.id) {
+      // Verifica unicità telefono se modificato
+      const existingPhone = await prisma.customerProfile.findUnique({
+        where: { phoneNumber },
+      });
+      if (existingPhone && existingPhone.id !== input.id) {
+        return { success: false, error: "Un altro cliente ha già questo numero di telefono" };
+      }
+
+      customer = await prisma.customerProfile.update({
+        where: { id: input.id },
+        data: {
+          name,
+          phoneNumber,
+          email,
+          allergies,
+          favoriteTable,
+          isVip,
+          notes,
+          visitCount,
+          loyaltyPoints,
+        },
+      });
+    } else {
+      customer = await prisma.customerProfile.upsert({
+        where: { phoneNumber },
+        create: {
+          name,
+          phoneNumber,
+          email,
+          allergies,
+          favoriteTable,
+          isVip,
+          notes,
+          visitCount,
+          loyaltyPoints,
+          lastVisitAt: new Date(),
+        },
+        update: {
+          name,
+          email,
+          allergies,
+          favoriteTable,
+          isVip,
+          notes,
+          visitCount,
+          loyaltyPoints,
+        },
+      });
+    }
+
+    revalidatePath("/dashboard/clienti");
+    revalidatePath("/dashboard");
+    return { success: true, customer };
+  } catch (error) {
+    console.error("Errore salvataggio profilo cliente:", error);
+    return { success: false, error: "Impossibile salvare la scheda cliente" };
+  }
+}
+
+export async function deleteCustomerAction(id: string) {
+  try {
+    await prisma.customerProfile.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/clienti");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore eliminazione cliente:", error);
+    return { success: false, error: "Impossibile eliminare la scheda cliente" };
+  }
+}
+
+export async function incrementCustomerVisitsAction(id: string, loyaltyDelta: number = 10) {
+  try {
+    const updated = await prisma.customerProfile.update({
+      where: { id },
+      data: {
+        visitCount: { increment: 1 },
+        loyaltyPoints: { increment: loyaltyDelta },
+        lastVisitAt: new Date(),
+      },
+    });
+    revalidatePath("/dashboard/clienti");
+    revalidatePath("/dashboard");
+    return { success: true, customer: updated };
+  } catch (error) {
+    console.error("Errore registrazione visita:", error);
+    return { success: false, error: "Impossibile registrare la visita" };
+  }
+}
+
 export async function updateCustomerNotesAction(phoneNumber: string, notes: string, loyaltyDelta: number = 0) {
   try {
     const updated = await prisma.customerProfile.update({
@@ -433,6 +561,7 @@ export async function updateCustomerNotesAction(phoneNumber: string, notes: stri
         ...(loyaltyDelta !== 0 ? { loyaltyPoints: { increment: loyaltyDelta } } : {}),
       },
     });
+    revalidatePath("/dashboard/clienti");
     revalidatePath("/dashboard");
     return { success: true, customer: updated };
   } catch (error) {
