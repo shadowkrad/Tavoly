@@ -344,7 +344,7 @@ export async function updateReservationStatus(reservationId: string, status: str
           seatedCount: res.guestCount,
         },
       });
-    } else if (status === "COMPLETATA" && res.tableId) {
+    } else if ((status === "COMPLETATA" || status === "ANNULLATA") && res.tableId) {
       await prisma.table.update({
         where: { id: res.tableId },
         data: {
@@ -355,10 +355,71 @@ export async function updateReservationStatus(reservationId: string, status: str
     }
 
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/prenotazioni");
     return { success: true };
   } catch (error) {
     console.error("Errore aggiornamento prenotazione:", error);
     return { success: false, error: "Impossibile aggiornare la prenotazione" };
+  }
+}
+
+export async function assignTableToReservationAction(reservationId: string, tableId: string | null) {
+  try {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+    });
+    if (!reservation) return { success: false, error: "Prenotazione non trovata" };
+
+    const targetTableId = !tableId || tableId === "" ? null : tableId;
+
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: {
+        tableId: targetTableId,
+      },
+    });
+
+    if (targetTableId && reservation.status === "SEDUTI") {
+      await prisma.table.update({
+        where: { id: targetTableId },
+        data: {
+          status: "OCCUPATO",
+          seatedCount: reservation.guestCount,
+        },
+      });
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/prenotazioni");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore assegnazione tavolo:", error);
+    return { success: false, error: "Impossibile assegnare il tavolo" };
+  }
+}
+
+export async function deleteReservationAction(reservationId: string) {
+  try {
+    const res = await prisma.reservation.findUnique({ where: { id: reservationId } });
+    if (!res) return { success: false, error: "Prenotazione non trovata" };
+
+    if (res.tableId && res.status === "SEDUTI") {
+      await prisma.table.update({
+        where: { id: res.tableId },
+        data: { status: "LIBERO", seatedCount: 0 },
+      });
+    }
+
+    await prisma.reservation.delete({
+      where: { id: reservationId },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/prenotazioni");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore eliminazione prenotazione:", error);
+    return { success: false, error: "Impossibile eliminare la prenotazione" };
   }
 }
 
