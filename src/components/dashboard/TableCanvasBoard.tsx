@@ -3,25 +3,21 @@
 import React, { useState, useRef, useTransition } from "react";
 import {
   Users,
-  Check,
-  Clock,
-  DollarSign,
-  Sparkles,
   Plus,
   Move,
   LayoutGrid,
-  MapPin,
-  CheckCircle2,
-  Brush,
+  Map,
+  Check,
+  Clock,
+  Sparkles,
+  Receipt,
   UserCheck,
 } from "lucide-react";
 import {
-  updateTableStatus,
   updateTablePositionAction,
-  updateTableSeatedCountAction,
 } from "@/app/actions";
-import { WalkInModal } from "./WalkInModal";
 import { AddTableModal } from "./AddTableModal";
+import { TableDetailModal } from "./TableDetailModal";
 
 interface Area {
   id: string;
@@ -42,57 +38,73 @@ export interface TableItem {
   area: Area;
 }
 
+interface ReservationItem {
+  id: string;
+  customerName: string;
+  phoneNumber: string;
+  guestCount: number;
+  timeSlot: string;
+  status: string;
+  notes: string | null;
+  tableId: string | null;
+}
+
 interface TableCanvasBoardProps {
   tables: TableItem[];
   areas: Area[];
+  reservations?: ReservationItem[];
 }
 
 const STATUS_THEMES: Record<
   string,
-  { label: string; badge: string; border: string; glow: string; dotColor: string }
+  { label: string; badge: string; border: string; glow: string; bg: string }
 > = {
   LIBERO: {
     label: "Libero",
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    border: "border-emerald-300 hover:border-emerald-400 bg-white",
-    glow: "shadow-emerald-100",
-    dotColor: "bg-slate-200 border-slate-300",
+    border: "border-emerald-400/80 hover:border-emerald-500",
+    glow: "shadow-emerald-100/60",
+    bg: "bg-white",
   },
   OCCUPATO: {
     label: "Occupato",
     badge: "bg-rose-50 text-rose-700 border-rose-200",
-    border: "border-rose-300 bg-rose-50/30",
+    border: "border-rose-400 hover:border-rose-500",
     glow: "shadow-rose-100",
-    dotColor: "bg-rose-600 border-rose-700",
+    bg: "bg-rose-50/20",
   },
   PRENOTATO: {
     label: "Prenotato",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
-    border: "border-blue-300 bg-blue-50/30",
+    border: "border-blue-400 hover:border-blue-500",
     glow: "shadow-blue-100",
-    dotColor: "bg-blue-400 border-blue-500",
+    bg: "bg-blue-50/20",
   },
   CONTO: {
     label: "Conto",
     badge: "bg-amber-50 text-amber-700 border-amber-200",
-    border: "border-amber-300 bg-amber-50/30",
+    border: "border-amber-400 hover:border-amber-500",
     glow: "shadow-amber-100",
-    dotColor: "bg-amber-500 border-amber-600",
+    bg: "bg-amber-50/30",
   },
   DA_PULIRE: {
     label: "Da Pulire",
     badge: "bg-purple-50 text-purple-700 border-purple-200",
-    border: "border-purple-300 bg-purple-50/30",
+    border: "border-purple-400 hover:border-purple-500",
     glow: "shadow-purple-100",
-    dotColor: "bg-purple-500 border-purple-600",
+    bg: "bg-purple-50/20",
   },
 };
 
-export function TableCanvasBoard({ tables, areas }: TableCanvasBoardProps) {
+export function TableCanvasBoard({
+  tables,
+  areas,
+  reservations = [],
+}: TableCanvasBoardProps) {
   const [selectedAreaId, setSelectedAreaId] = useState<string>(areas[0]?.id || "ALL");
   const [isEditMode, setIsEditMode] = useState(false);
   const [viewMode, setViewMode] = useState<"CANVAS" | "GRID">("CANVAS");
-  const [walkInTable, setWalkInTable] = useState<TableItem | null>(null);
+  const [selectedTableForDetail, setSelectedTableForDetail] = useState<TableItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [isPending, startTransition] = useTransition();
@@ -103,6 +115,14 @@ export function TableCanvasBoard({ tables, areas }: TableCanvasBoardProps) {
     selectedAreaId === "ALL"
       ? tables
       : tables.filter((t) => t.areaId === selectedAreaId);
+
+  // Mappa prenotazioni attive per tavolo
+  const reservationsByTable = reservations.reduce((acc, r) => {
+    if (r.tableId && r.status !== "ANNULLATA" && r.status !== "COMPLETATA") {
+      acc[r.tableId] = r;
+    }
+    return acc;
+  }, {} as Record<string, ReservationItem>);
 
   // Drag & Drop handlers on Canvas
   const handleDragStart = (e: React.DragEvent, tableId: string) => {
@@ -135,397 +155,320 @@ export function TableCanvasBoard({ tables, areas }: TableCanvasBoardProps) {
     if (isEditMode) e.preventDefault();
   };
 
-  // Seated Count increment/decrement (Pallini)
-  const handleDeltaSeated = (e: React.MouseEvent, tableId: string, delta: number) => {
-    e.stopPropagation();
-    startTransition(async () => {
-      await updateTableSeatedCountAction(tableId, delta);
-    });
-  };
-
-  const handleStatusChange = (e: React.MouseEvent, tableId: string, status: string) => {
-    e.stopPropagation();
-    startTransition(async () => {
-      await updateTableStatus(tableId, status);
-    });
-  };
-
   return (
-    <div className="taaaac-card space-y-4">
-      {/* Top Bar: Controls, Area filters & Modes */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
-              Lavagna Sale & Tavoli
-            </h3>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-              {filteredTables.length} postazioni
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Gestisci la disposizione spaziale, i coperti e i pallini persone in tempo reale
-          </p>
+    <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-xs border border-slate-200/90 space-y-4">
+      {/* TOOLBAR SALE & CONTROLLI (SNELLA, RIGA SINGOLA) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        {/* Tabs delle Sale */}
+        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto py-0.5">
+          <button
+            type="button"
+            onClick={() => setSelectedAreaId("ALL")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedAreaId === "ALL"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            Tutte le Sale ({tables.length})
+          </button>
+          {areas.map((area) => {
+            const count = tables.filter((t) => t.areaId === area.id).length;
+            return (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => setSelectedAreaId(area.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedAreaId === area.id
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {area.name} ({count})
+              </button>
+            );
+          })}
         </div>
 
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View toggle */}
+        {/* Controlli Vista & Editor Pianta */}
+        <div className="flex items-center gap-2 self-end sm:self-center">
+          {/* Switch Vista Canvas / Griglia */}
           <div className="flex items-center bg-slate-100 p-1 rounded-xl">
             <button
               type="button"
               onClick={() => setViewMode("CANVAS")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              title="Vista Planimetria 2D"
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 viewMode === "CANVAS"
                   ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              Lavagna 2D
+              <Map className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Pianta 2D</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode("GRID")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              title="Vista Elenco Griglia"
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 viewMode === "GRID"
                   ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              Griglia Elenco
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Griglia</span>
             </button>
           </div>
 
-          {/* Edit Mode Toggle */}
+          {/* Toggle Modalità Sposta Tavoli */}
           {viewMode === "CANVAS" && (
             <button
               type="button"
               onClick={() => setIsEditMode(!isEditMode)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer border ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer border ${
                 isEditMode
                   ? "bg-amber-500 text-white border-amber-600 shadow-xs"
                   : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
               }`}
+              title="Attiva modalità trascina e rilascia per modificare la pianta della sala"
             >
               <Move className="w-3.5 h-3.5" />
-              <span>{isEditMode ? "Salva Disposizione" : "Sposta Tavoli"}</span>
+              <span>{isEditMode ? "Fatto" : "Modifica Pianta"}</span>
             </button>
           )}
 
-          {/* Add Table Button */}
+          {/* Aggiungi Tavolo */}
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="taaaac-btn-primary text-xs px-3.5 py-2"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+            title="Aggiungi un nuovo tavolo a questa sala"
           >
-            <Plus className="w-4 h-4" />
-            <span>Nuovo Tavolo</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Tavolo</span>
           </button>
         </div>
       </div>
 
-      {/* Area Selection Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setSelectedAreaId("ALL")}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            selectedAreaId === "ALL"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          Tutte le Sale ({tables.length})
-        </button>
-        {areas.map((area) => {
-          const count = tables.filter((t) => t.areaId === area.id).length;
-          return (
-            <button
-              key={area.id}
-              type="button"
-              onClick={() => setSelectedAreaId(area.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                selectedAreaId === area.id
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {area.name} ({count})
-            </button>
-          );
-        })}
-      </div>
+      {/* AVVISO MODALITA EDIT */}
+      {isEditMode && (
+        <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-between animate-in fade-in duration-150">
+          <div className="flex items-center gap-2">
+            <Move className="w-4 h-4 text-amber-600" />
+            <span>Modalità Modifica Pianta: trascina i tavoli per posizionarli nello spazio.</span>
+          </div>
+          <button
+            onClick={() => setIsEditMode(false)}
+            className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-bold cursor-pointer"
+          >
+            Salva & Chiudi
+          </button>
+        </div>
+      )}
 
-      {/* VIEW 1: THE INTERACTIVE CANVAS (LAVAGNA GRAFICA 2D) */}
+      {/* VISTA 1: CANVAS PLANIMETRIA 2D A PIENA LARGHEZZA */}
       {viewMode === "CANVAS" ? (
-        <div className="space-y-2">
-          {isEditMode && (
-            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center justify-between">
-              <span>
-                Modalità Modifica Attiva: trascina i tavoli sulla lavagna per riorganizzare la pianta della sala.
-              </span>
-              <button
-                onClick={() => setIsEditMode(false)}
-                className="text-xs bg-amber-600 text-white px-2.5 py-1 rounded-lg font-bold"
-              >
-                Fatto
-              </button>
-            </div>
-          )}
-
+        <div className="space-y-3">
           <div
             ref={canvasRef}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="relative w-full h-[580px] bg-slate-100/70 border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden shadow-inner select-none"
+            className="relative w-full h-[620px] lg:h-[660px] bg-slate-50/70 border-2 border-dashed border-slate-200/90 rounded-3xl overflow-hidden shadow-inner select-none transition-all"
             style={{
               backgroundImage:
-                "radial-gradient(#cbd5e1 1.2px, transparent 1.2px), radial-gradient(#cbd5e1 1.2px, #f8fafc 1.2px)",
+                "radial-gradient(#94a3b8 1.1px, transparent 1.1px), radial-gradient(#94a3b8 1.1px, #f8fafc 1.1px)",
               backgroundSize: "28px 28px",
               backgroundPosition: "0 0, 14px 14px",
             }}
           >
-            {filteredTables.map((t) => {
-              const theme = STATUS_THEMES[t.status] || STATUS_THEMES.LIBERO;
-              const isRound = t.shape === "ROUND";
-              const isBar = t.shape === "BAR";
-
-              // Calcolo pallini: visualizza sia posti a sedere sia le persone sedute
-              const totalDots = Math.max(t.capacity, t.seatedCount);
-              const dotsArray = Array.from({ length: totalDots });
-
-              return (
-                <div
-                  key={t.id}
-                  draggable={isEditMode}
-                  onDragStart={(e) => handleDragStart(e, t.id)}
-                  style={{
-                    left: `${t.posX}%`,
-                    top: `${t.posY}%`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  className={`absolute z-10 p-3 shadow-md border-2 transition-transform duration-150 group ${
-                    theme.border
-                  } ${isRound ? "rounded-full w-28 h-28 flex flex-col items-center justify-center text-center" : isBar ? "rounded-xl w-32 h-20 flex flex-col justify-between" : "rounded-2xl w-36 h-28 flex flex-col justify-between"} ${
-                    isEditMode ? "cursor-grab active:cursor-grabbing hover:scale-105" : ""
-                  }`}
+            {filteredTables.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
+                <Map className="w-10 h-10 opacity-30" />
+                <p className="text-xs font-semibold">Nessun tavolo presente in questa sala.</p>
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="text-xs text-blue-600 hover:underline font-bold"
                 >
-                  {/* Top Bar: Table Number & Status Pill */}
-                  <div className="w-full flex items-center justify-between gap-1">
-                    <span className="font-black text-sm text-slate-900 tracking-tight leading-none">
-                      {isBar ? "Banco" : "Tav."} {t.number}
-                    </span>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${theme.badge}`}>
-                      {theme.label}
-                    </span>
-                  </div>
+                  + Aggiungi il primo tavolo
+                </button>
+              </div>
+            ) : (
+              filteredTables.map((t) => {
+                const theme = STATUS_THEMES[t.status] || STATUS_THEMES.LIBERO;
+                const isRound = t.shape === "ROUND";
+                const isBar = t.shape === "BAR";
+                const activeRes = reservationsByTable[t.id];
 
-                  {/* PALLINI (DOTS) PERSONE SEDUTE VS POSTI DISPONIBILI */}
-                  <div className="my-1 flex flex-wrap items-center justify-center gap-1">
-                    {dotsArray.map((_, dotIdx) => {
-                      const isSeated = dotIdx < t.seatedCount;
-                      return (
-                        <span
-                          key={dotIdx}
-                          title={isSeated ? `Ospite ${dotIdx + 1} seduto` : `Sedia ${dotIdx + 1} libera`}
-                          className={`w-3 h-3 rounded-full border transition-all ${
-                            isSeated
-                              ? "bg-rose-600 border-rose-700 scale-105 shadow-2xs"
-                              : "bg-emerald-100 border-emerald-400"
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-
-                  {/* Seated Count Controls (+ / -) */}
-                  <div className="flex items-center justify-between w-full pt-1 border-t border-slate-100 text-[11px]">
-                    <div className="flex items-center gap-1 font-bold text-slate-700">
-                      <Users className="w-3 h-3 text-slate-400" />
-                      <span>{t.seatedCount}/{t.capacity}</span>
+                return (
+                  <div
+                    key={t.id}
+                    draggable={isEditMode}
+                    onDragStart={(e) => handleDragStart(e, t.id)}
+                    onClick={() => {
+                      if (!isEditMode) setSelectedTableForDetail(t);
+                    }}
+                    style={{
+                      left: `${t.posX}%`,
+                      top: `${t.posY}%`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                    className={`absolute z-10 p-3 shadow-md border-2 transition-all duration-150 cursor-pointer ${
+                      theme.border
+                    } ${theme.bg} ${
+                      isRound
+                        ? "rounded-full w-28 h-28 flex flex-col items-center justify-center text-center"
+                        : isBar
+                        ? "rounded-2xl w-32 h-20 flex flex-col justify-between"
+                        : "rounded-3xl w-36 h-28 flex flex-col justify-between"
+                    } ${
+                      isEditMode
+                        ? "cursor-grab active:cursor-grabbing hover:scale-105 ring-2 ring-amber-400"
+                        : "hover:scale-105 hover:shadow-lg active:scale-95"
+                    }`}
+                  >
+                    {/* Header Tavolo: Numero & Badge Stato */}
+                    <div className="w-full flex items-center justify-between gap-1">
+                      <span className="font-black text-sm text-slate-900 tracking-tight leading-none">
+                        {isBar ? "Banco" : "Tav."} {t.number}
+                      </span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${theme.badge}`}>
+                        {theme.label}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeltaSeated(e, t.id, -1)}
-                        disabled={t.seatedCount <= 0}
-                        title="Rimuovi 1 persona seduta"
-                        className="w-5 h-5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs cursor-pointer disabled:opacity-30"
-                      >
-                        -
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeltaSeated(e, t.id, 1)}
-                        title="Aggiungi 1 persona seduta (pallino rosso)"
-                        className="w-5 h-5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs cursor-pointer"
-                      >
-                        +
-                      </button>
+                    {/* Centro: Dettaglio o Ospiti o Prenotazione */}
+                    {activeRes ? (
+                      <div className="my-auto text-center px-1">
+                        <p className="text-[10px] font-bold text-blue-900 truncate max-w-[110px]">
+                          {activeRes.customerName}
+                        </p>
+                        <p className="text-[9px] text-blue-600 font-semibold font-mono">
+                          {activeRes.timeSlot} · {activeRes.guestCount}p
+                        </p>
+                      </div>
+                    ) : (
+                      /* Visualizzazione Coperti / Pallini persone */
+                      <div className="my-auto flex flex-wrap items-center justify-center gap-1 px-1">
+                        {Array.from({ length: Math.max(t.capacity, t.seatedCount) }).map((_, dotIdx) => {
+                          const isSeated = dotIdx < t.seatedCount;
+                          return (
+                            <span
+                              key={dotIdx}
+                              className={`w-2.5 h-2.5 rounded-full border transition-all ${
+                                isSeated
+                                  ? "bg-rose-600 border-rose-700 scale-105 shadow-2xs"
+                                  : "bg-emerald-200 border-emerald-400"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Footer Tavolo: Conteggio Coperti */}
+                    <div className="flex items-center justify-between w-full pt-1 border-t border-slate-100/80 text-[10px] font-bold text-slate-600">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-slate-400" />
+                        <span>{t.seatedCount}/{t.capacity}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-400 uppercase font-semibold">
+                        {t.area.name}
+                      </span>
                     </div>
                   </div>
-
-                  {/* Hover Quick Actions overlay (when not in edit mode) */}
-                  {!isEditMode && (
-                    <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center gap-1 bg-slate-900/90 backdrop-blur-xs p-1 rounded-xl shadow-lg text-[10px] text-white z-30 whitespace-nowrap">
-                      {t.status === "LIBERO" && (
-                        <button
-                          type="button"
-                          onClick={() => setWalkInTable(t)}
-                          className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-bold flex items-center gap-1 cursor-pointer"
-                        >
-                          <UserCheck className="w-3 h-3" />
-                          <span>Walk-In</span>
-                        </button>
-                      )}
-
-                      {t.status !== "LIBERO" && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleStatusChange(e, t.id, "LIBERO")}
-                          className="px-1.5 py-0.5 rounded-lg hover:bg-slate-700 font-semibold cursor-pointer"
-                        >
-                          Libera
-                        </button>
-                      )}
-
-                      {t.status !== "OCCUPATO" && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleStatusChange(e, t.id, "OCCUPATO")}
-                          className="px-1.5 py-0.5 rounded-lg hover:bg-slate-700 font-semibold cursor-pointer"
-                        >
-                          Occupa
-                        </button>
-                      )}
-
-                      {t.status === "OCCUPATO" && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleStatusChange(e, t.id, "CONTO")}
-                          className="px-1.5 py-0.5 rounded-lg hover:bg-slate-700 font-semibold text-amber-300 cursor-pointer"
-                        >
-                          Conto
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleStatusChange(e, t.id, "DA_PULIRE")}
-                        className="px-1.5 py-0.5 rounded-lg hover:bg-slate-700 font-semibold text-purple-300 cursor-pointer"
-                      >
-                        Pulisci
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
-          {/* Canvas Legend */}
-          <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 px-2 pt-1 gap-4">
-            <div className="flex items-center gap-4">
-              <span className="font-semibold text-slate-700">Legenda Pallini:</span>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-600 border border-rose-700"></span>
-                <span>Persona Seduta</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-400"></span>
-                <span>Sedia Libera</span>
-              </div>
+          {/* LEGENDA COMPATTA */}
+          <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 px-2 pt-1 gap-3">
+            <div className="flex items-center gap-3">
+              <span className="font-bold text-slate-700">Stati Tavolo:</span>
+              <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Libero
+              </span>
+              <span className="flex items-center gap-1 text-rose-700 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-rose-500"></span> Occupato
+              </span>
+              <span className="flex items-center gap-1 text-blue-700 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span> Prenotato
+              </span>
+              <span className="flex items-center gap-1 text-amber-700 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-amber-500"></span> Conto
+              </span>
+              <span className="flex items-center gap-1 text-purple-700 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-purple-500"></span> Da Pulire
+              </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-slate-700">Stati Tavolo:</span>
-              <span className="flex items-center gap-1 text-emerald-700 font-medium">● Libero</span>
-              <span className="flex items-center gap-1 text-rose-700 font-medium">● Occupato</span>
-              <span className="flex items-center gap-1 text-blue-700 font-medium">● Prenotato</span>
-              <span className="flex items-center gap-1 text-amber-700 font-medium">● Conto</span>
-              <span className="flex items-center gap-1 text-purple-700 font-medium">● Da Pulire</span>
-            </div>
+            <span className="text-slate-400 italic">
+              💡 Tocca qualsiasi tavolo per aprire la scheda di gestione rapida
+            </span>
           </div>
         </div>
       ) : (
-        /* VIEW 2: COMPACT GRID */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        /* VISTA 2: GRIGLIA COMPATTA */
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {filteredTables.map((t) => {
             const theme = STATUS_THEMES[t.status] || STATUS_THEMES.LIBERO;
+            const activeRes = reservationsByTable[t.id];
+
             return (
               <div
                 key={t.id}
-                className={`border rounded-2xl p-4 bg-white shadow-xs space-y-3 ${theme.border}`}
+                onClick={() => setSelectedTableForDetail(t)}
+                className={`border-2 rounded-2xl p-3.5 bg-white shadow-xs space-y-2 cursor-pointer hover:scale-102 hover:shadow-md transition-all ${theme.border}`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold block">
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">
                       {t.area.name}
                     </span>
-                    <strong className="text-xl font-black text-slate-900">
+                    <strong className="text-lg font-black text-slate-900">
                       Tav. {t.number}
                     </strong>
                   </div>
-                  <span className={`taaaac-badge border ${theme.badge}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${theme.badge}`}>
                     {theme.label}
                   </span>
                 </div>
 
-                {/* Pallini */}
-                <div className="flex items-center justify-between py-1 bg-slate-50 rounded-xl px-2.5">
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: t.capacity }).map((_, idx) => (
-                      <span
-                        key={idx}
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          idx < t.seatedCount ? "bg-rose-600" : "bg-emerald-300"
-                        }`}
-                      />
-                    ))}
+                {activeRes ? (
+                  <div className="p-1.5 bg-blue-50 rounded-xl text-center">
+                    <p className="text-xs font-bold text-blue-900 truncate">
+                      {activeRes.customerName}
+                    </p>
+                    <p className="text-[10px] text-blue-600 font-mono">
+                      {activeRes.timeSlot} · {activeRes.guestCount} osp.
+                    </p>
                   </div>
-                  <span className="text-xs font-bold text-slate-700">
-                    {t.seatedCount}/{t.capacity}
-                  </span>
-                </div>
-
-                {/* Quick Action */}
-                <div className="flex items-center gap-1 pt-1">
-                  {t.status === "LIBERO" ? (
-                    <button
-                      onClick={() => setWalkInTable(t)}
-                      className="w-full py-1.5 text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl transition-colors cursor-pointer"
-                    >
-                      Walk-In al Volo
-                    </button>
-                  ) : (
-                    <button
-                      onClick={(e) => handleStatusChange(e, t.id, "LIBERO")}
-                      className="w-full py-1.5 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
-                    >
-                      Libera Tavolo
-                    </button>
-                  )}
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between py-1 bg-slate-50 rounded-xl px-2">
+                    <span className="text-[11px] text-slate-500 font-medium">Coperti</span>
+                    <span className="text-xs font-black text-slate-800">
+                      {t.seatedCount}/{t.capacity}
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Modals */}
-      {walkInTable && (
-        <WalkInModal
-          table={{
-            id: walkInTable.id,
-            number: walkInTable.number,
-            capacity: walkInTable.capacity,
-            areaName: walkInTable.area.name,
-          }}
-          onClose={() => setWalkInTable(null)}
-        />
-      )}
+      {/* MODAL DETTAGLIO & AZIONI TAVOLO */}
+      <TableDetailModal
+        table={selectedTableForDetail}
+        reservations={reservations}
+        isOpen={Boolean(selectedTableForDetail)}
+        onClose={() => setSelectedTableForDetail(null)}
+      />
 
+      {/* MODAL AGGIUNGI TAVOLO */}
       <AddTableModal
         areas={areas}
         activeAreaId={selectedAreaId}

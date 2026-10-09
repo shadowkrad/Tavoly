@@ -14,10 +14,28 @@ interface TableOption {
 
 interface NewReservationModalProps {
   tables: TableOption[];
+  isOpen?: boolean;
+  onClose?: () => void;
+  showTrigger?: boolean;
 }
 
-export function NewReservationModal({ tables }: NewReservationModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function NewReservationModal({
+  tables,
+  isOpen: controlledIsOpen,
+  onClose,
+  showTrigger = true,
+}: NewReservationModalProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isModalOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const handleClose = () => {
+    if (controlledIsOpen !== undefined) {
+      onClose?.();
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
+
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -30,7 +48,7 @@ export function NewReservationModal({ tables }: NewReservationModalProps) {
     startTransition(async () => {
       const res = await createReservation(formData);
       if (res.success) {
-        setIsOpen(false);
+        handleClose();
         form.reset();
       } else {
         setErrorMsg(res.error || "Errore durante il salvataggio");
@@ -40,16 +58,18 @@ export function NewReservationModal({ tables }: NewReservationModalProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="taaaac-btn-primary text-sm shadow-xs cursor-pointer"
-      >
-        <Plus className="w-4 h-4" />
-        <span>Nuova Prenotazione</span>
-      </button>
+      {showTrigger && controlledIsOpen === undefined && (
+        <button
+          type="button"
+          onClick={() => setInternalIsOpen(true)}
+          className="taaaac-btn-primary text-sm shadow-xs cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Nuova Prenotazione</span>
+        </button>
+      )}
 
-      {isOpen && (
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in duration-150">
             {/* Modal Header */}
@@ -64,7 +84,7 @@ export function NewReservationModal({ tables }: NewReservationModalProps) {
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -208,7 +228,7 @@ export function NewReservationModal({ tables }: NewReservationModalProps) {
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="taaaac-btn-secondary text-xs px-4 py-2"
                 >
                   Annulla
