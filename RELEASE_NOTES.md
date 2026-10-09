@@ -1,5 +1,36 @@
 # 🍽️ Tavoly — Release Notes
 
+## Novità della Versione 1.0.4
+
+### 1. 🗺️ Sala & Mappa Tavoli Rimodernata con Editor Stanze
+- **Mappa Tavoli Focalizzata e Snella**: Eliminazione del disordine visivo e dei moduli superflui per massimizzare la visibilità della disposizione tavoli, dei percorsi e dello stato occupazione in sala.
+- **Gestore ed Editor Stanze/Sale**: Creazione, rinomina ed eliminazione delle sale del ristorante (es. Sala Interna, Dehors, Terrazza, Privé) con gestione sicura e sincronizzata dei tavoli.
+- **Controllo Occupazione Touch**: Gestione rapida dello stato dei tavoli (Libero, Occupato, Prenotato, Conto) ottimizzata per tablet di sala e palmari.
+
+### 2. 📅 Gestione Prenotazioni Avanzata con Ricerca & Filtri Temporali
+- **Visualizzazione Flessibile**: Consultazione delle prenotazioni del giorno con filtri temporali rapidi per pianificare turni futuri o consultare lo storico passato.
+- **Ricerca Live Multicriterio**: Ricerca istantanea per nome cliente, recapito telefonico, codice prenotazione e note speciali (es. allergie, compleanni, seggioloni).
+
+### 3. 🍽️ Menù Digitale, 14 Allergeni UE & Layout Adattivo (Con o Senza Foto)
+- **Catalogazione Piatti & Categorie**: Creazione e modifica rapida dei piatti con prezzo, categoria personalizzabile o predefinita, descrizione e switch istantaneo Disponibile/Esaurito.
+- **14 Allergeni Ufficiali UE (Reg. 1169/2011)**: Selezione interattiva a chip multi-select di tutti i 14 allergeni ufficiali UE con icone intuitive e legenda informativa.
+- **Layout Adattivo Fotografico / Bistrot Gourmet**:
+  - *Opzione nelle Impostazioni (Aspetto & Menù QR)* per scegliere se mostrare o nascondere le foto dei piatti.
+  - Se attivo: card visive con immagini HD e libreria di preset fotografici rapidi per ogni categoria.
+  - Se disattivato: il menù si riadatta istantaneamente su un raffinato layout tipografico stile carta bistrot/alta ristorazione con puntini guida e prezzi allineati, senza spazi vuoti o placeholder.
+
+### 4. 🖨️ Generazione QR Code Stampabile con Logo per Segnatavoli
+- **QR Code HD con Brand**: Generazione dinamica con correzione d'errore massima (`H`) e logo/simbolo del locale posizionato al centro.
+- **Menù Generale o Segnatavolo Dedicato**: Scelta della destinazione tra Menù Generale (`/menu`) o tavolo specifico (`/menu?tavolo=N`).
+- **Cartellino Segnatavolo A6 da Stampare**: Anteprima reale con nome ristorante, numero tavolo e chiamata all'azione, pronto per la stampa da tavolo (`@media print`) o il download in formato PNG ad alta risoluzione.
+
+### 5. 📱 Pagina Pubblica Menù per Smartphone Commensali (`/menu`)
+- **Mobile-First per i Clienti al Tavolo**: Ottimizzata per la scansione da smartphone, con navigazione a categorie orizzontale *sticky*, badge del tavolo rilevato e ricerca istantanea.
+- **Filtro Esclusione Allergeni**: I clienti con intolleranze o allergie possono filtrare il menù per escludere automaticamente i piatti a rischio.
+- **Informativa di Legge**: Sezione di conformità al Regolamento UE 1169/2011 integrata a fondo pagina.
+
+---
+
 ## Novità della Versione 1.0.3
 
 ### 1. 🖼️ Sistema Brand & Vetrina Adattiva (Zero Deformazioni)
