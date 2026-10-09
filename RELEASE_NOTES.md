@@ -29,6 +29,12 @@
 - **Filtro Esclusione Allergeni**: I clienti con intolleranze o allergie possono filtrare il menù per escludere automaticamente i piatti a rischio.
 - **Informativa di Legge**: Sezione di conformità al Regolamento UE 1169/2011 integrata a fondo pagina.
 
+### 6. 🛍️ Rimodernamento Ordini Asporto & Takeaway (Flusso Snello & Anti-Stress)
+- **Presa Ordine Rapida in 30 Secondi**: Maschera touch-friendly per banco e telefono con autocompletamento clienti dal CRM, tasti rapidi orari (+15m, +30m, +45m) e selezione istantanea piatti dal Menù Digitale con calcolo automatico totale.
+- **Semaforo Saturazione Oraria Cucina**: Visualizzazione in tempo reale del carico ordini per ciascun quarto d'ora con codice colore (verde, giallo, rosso) per evitare sovraccarichi nei momenti di punta.
+- **Flusso Operativo a 4 Fasi**: Avanzamento comande a 1-tap (*In Coda*, *In Preparazione*, *Pronto al Banco*, *Ritirato & Saldato*) con orario di ritiro cubitale ad alto contrasto e calcolo urgenza/ritardo.
+- **Notifica WhatsApp 1-Click "Ordine Pronto"**: Quando la comanda è pronta al banco, un tap apre WhatsApp con messaggio precompilato elegante per avvisare il cliente ed evitare file all'interno del locale.
+
 ---
 
 ## Novità della Versione 1.0.3

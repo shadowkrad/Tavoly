@@ -745,5 +745,122 @@ export async function updateMenuShowImagesSettingAction(showImages: boolean) {
   }
 }
 
+export async function createTakeawayOrderAction(data: {
+  customerName: string;
+  phoneNumber: string;
+  pickupTime: string;
+  itemsSummary: string;
+  totalAmount: number;
+  notes?: string;
+  paymentStatus?: string;
+}) {
+  try {
+    if (!data.customerName?.trim()) {
+      return { success: false, error: "Nome cliente obbligatorio" };
+    }
+    if (!data.pickupTime?.trim()) {
+      return { success: false, error: "Orario di ritiro obbligatorio" };
+    }
+    if (!data.itemsSummary?.trim()) {
+      return { success: false, error: "Inserisci almeno un piatto o prodotto nell'ordine" };
+    }
+
+    const order = await prisma.takeawayOrder.create({
+      data: {
+        customerName: data.customerName.trim(),
+        phoneNumber: data.phoneNumber?.trim() || "",
+        pickupTime: data.pickupTime.trim(),
+        itemsSummary: data.itemsSummary.trim(),
+        totalAmount: Number(data.totalAmount) || 0,
+        status: "IN_CODA",
+        paymentStatus: data.paymentStatus === "PAGATO" ? "PAGATO" : "DA_PAGARE",
+        notes: data.notes?.trim() || null,
+      },
+    });
+
+    if (data.phoneNumber && data.phoneNumber.trim().length >= 6) {
+      const cleanPhone = data.phoneNumber.trim();
+      try {
+        await prisma.customerProfile.upsert({
+          where: { phoneNumber: cleanPhone },
+          create: {
+            phoneNumber: cleanPhone,
+            name: data.customerName.trim(),
+            notes: "Cliente Asporto & Takeaway",
+            visitCount: 1,
+            loyaltyPoints: 10,
+            lastVisitAt: new Date(),
+          },
+          update: {
+            name: data.customerName.trim(),
+            visitCount: { increment: 1 },
+            loyaltyPoints: { increment: 10 },
+            lastVisitAt: new Date(),
+          },
+        });
+      } catch (crmErr) {
+        console.warn("[CRM Auto-Sync] Errore aggiornamento profilo cliente:", crmErr);
+      }
+    }
+
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/dashboard/clienti");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore creazione ordine asporto:", error);
+    return { success: false, error: "Impossibile creare l'ordine di asporto" };
+  }
+}
+
+export async function updateTakeawayOrderStatusAction(id: string, status: string) {
+  try {
+    const validStatuses = ["IN_CODA", "IN_PREPARAZIONE", "PRONTO", "RITIRATO", "ANNULLATO"];
+    if (!validStatuses.includes(status)) {
+      return { success: false, error: "Stato ordine non valido" };
+    }
+
+    const order = await prisma.takeawayOrder.update({
+      where: { id },
+      data: { status },
+    });
+
+    revalidatePath("/dashboard/asporto");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore cambio stato ordine asporto:", error);
+    return { success: false, error: "Impossibile aggiornare lo stato dell'ordine" };
+  }
+}
+
+export async function updateTakeawayOrderPaymentAction(id: string, paymentStatus: string) {
+  try {
+    const order = await prisma.takeawayOrder.update({
+      where: { id },
+      data: { paymentStatus: paymentStatus === "PAGATO" ? "PAGATO" : "DA_PAGARE" },
+    });
+
+    revalidatePath("/dashboard/asporto");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore stato pagamento asporto:", error);
+    return { success: false, error: "Impossibile aggiornare lo stato del pagamento" };
+  }
+}
+
+export async function deleteTakeawayOrderAction(id: string) {
+  try {
+    await prisma.takeawayOrder.delete({
+      where: { id },
+    });
+
+    revalidatePath("/dashboard/asporto");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore cancellazione ordine asporto:", error);
+    return { success: false, error: "Impossibile cancellare l'ordine" };
+  }
+}
+
+
 
 
