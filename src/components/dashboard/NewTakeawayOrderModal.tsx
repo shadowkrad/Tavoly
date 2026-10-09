@@ -288,7 +288,7 @@ export function NewTakeawayOrderModal({
                     setCustomerName(c.name);
                     setPhoneNumber(c.phoneNumber);
                   }}
-                  className="bg-white px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-900 font-medium hover:bg-emerald-100 transition shadow-2xs"
+                  className="bg-white px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-900 font-medium hover:bg-emerald-100 transition shadow-xs"
                 >
                   {c.name} ({c.phoneNumber})
                 </button>
@@ -450,7 +450,7 @@ export function NewTakeawayOrderModal({
                       key={item.id}
                       className={`flex items-center justify-between p-2 rounded-xl transition border ${
                         qty > 0
-                          ? "bg-emerald-50/80 border-emerald-300 shadow-2xs"
+                          ? "bg-emerald-50/80 border-emerald-300 shadow-xs"
                           : "bg-white border-slate-200/80 hover:border-slate-300"
                       }`}
                     >
