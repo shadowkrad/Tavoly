@@ -41,6 +41,26 @@
 - **Ricerca Live & Filtri Rapidi**: Ricerca in tempo reale per nome, numero telefonico, tavolo preferito, allergie o note; filtri veloci a tab (*Tutti*, *VIP ⭐*, *Con Allergeni ⚠️*, *Ospiti Frequenti 🔥*).
 - **Azioni 1-Click per lo Staff**: Invio messaggio WhatsApp personalizzato con saluto e disponibilità tavolo, registrazione rapida passaggio (+1 Cena e punti fedeltà), chiamata diretta con click sul recapito e modal touch con chip rapidi per allergeni frequenti.
 
+### 8. 📱 Ottimizzazione Mobile & Schermi Smartphone ("Zero Fuorilinea")
+- **Layout Mobile Dedicato per le Prenotazioni**: Sostituzione della tabella a 7 colonne su smartphone con card native ariose ed ergonomiche, tasti WhatsApp e gestione rapida dello stato spaziati per il tocco touch.
+- **Filtri di Servizio a Scorrimento Fluido**: Filtri data (*Oggi, Domani, Future, Storico*) e filtri di stato (*Tutte, In Attesa, Confermate, Accomodati*) ora scorrono fluidamente in orizzontale su singola riga senza spezzarsi o andare a capo in modo disordinato.
+- **Mappa Tavoli Mobile-First**: Riconoscimento automatico schermi inferiori a 768px con passaggio intelligente alla vista Grid card pulita (zero collisioni tavolo) e canvas 2D protetto da overflow con scroll orizzontale a proporzioni fisse.
+
+### 9. 📝 Presa Comande Cameriere al Tavolo con Gestione Varianti
+- **Registratore Comanda Digitale Touch**: Maschera rapida per il cameriere al tavolo accessibile direttamente dalla Mappa Tavoli e dal dettaglio di ciascun tavolo con selezione rapida coperti e comanda associata.
+- **Selezione Piatti dal Menù Digitale**: Navigazione a chip per categoria (*Antipasti, Primi, Secondi, Pizze, Bevande, Dolci*) e ricerca istantanea.
+- **Gestione Varianti Rapide & Personalizzate**: Chip veloci per le richieste più frequenti (*Al sangue, Media cottura, Ben cotto, Senza cipolla, Senza formaggio, Gluten Free, Senza lattosio, Salsa a parte, Doppia porzione, Poco sale*) più campo testo libero per qualsiasi nota specifica del commensale.
+- **Invio Istantaneo al Pass**: Tasto "Invia in Cucina 🚀" con calcolo totale immediato e occupazione automatica del tavolo sulla planimetria.
+
+### 10. 👨‍🍳 Monitor Cucina KDS (Kitchen Display System) Fast-Food Style
+- **Ordine di Arrivo Rigoroso (FIFO)**: Comande di sala e ordini d'asporto visualizzati in ordine di arrivo, ciascuno con numero tavolo cubitale, coperti, cameriere e orario.
+- **Timer di Attesa Visivo & Urgenza**: Calcolo automatico dei minuti trascorsi con semaforo cromatico (*Verde <10m*, *Giallo 10-20m*, *Rosso lampeggiante >20m con alert "In Ritardo!"*).
+- **Visualizzazione Piatti ad Alto Contrasto**: Quantità ben visibili e varianti evidenziate in ambra ad alto impatto per azzerare gli errori di preparazione dei cuochi.
+- **Avanzamento a 1-Tocco Touch**: Pulsanti grandi per la brigata di cucina (*In Preparazione 👨‍🍳*, *Pronto al Pass 🔔*, *Servito al Tavolo ✓*).
+- **Suono Avviso Nuovi Ordini (Beep Synth)**: Chime audio a doppia campana integrato sintetico per avvisare la cucina all'arrivo di nuove comande senza necessità di ricaricare la pagina (polling live ogni 4 secondi).
+- **Doppia Modalità Schermo**: Accessibile all'interno della dashboard (`/dashboard/cucina`) e in modalità *A Tutto Schermo* (`/cucina`) ideale per smart TV, tablet o monitor fissi a parete al pass.
+- **Flag Attivazione nelle Impostazioni**: Attivabile/disattivabile con un toggle nelle Impostazioni di Sala (*Impostazioni > Monitor Cucina KDS*). Quando disattivato, non compare nella sidebar per la massima pulizia del gestionale.
+
 ---
 
 ## Novità della Versione 1.0.3
