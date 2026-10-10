@@ -754,6 +754,7 @@ export async function createMenuItemAction(formData: FormData) {
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
   const allergens = (formData.get("allergens") as string)?.trim() || "[]";
   const isAvailable = formData.get("isAvailable") !== "false";
+  const isTakeaway = formData.get("isTakeaway") !== "false";
 
   if (!name || name.length < 2) {
     return { success: false, error: "Il nome del piatto deve contenere almeno 2 caratteri" };
@@ -775,12 +776,15 @@ export async function createMenuItemAction(formData: FormData) {
         imageUrl,
         allergens,
         isAvailable,
+        isTakeaway,
         orderIndex,
       },
     });
 
     revalidatePath("/dashboard/menu");
+    revalidatePath("/dashboard/asporto");
     revalidatePath("/menu");
+    revalidatePath("/prenotazione");
     return { success: true, item };
   } catch (error) {
     console.error("Errore creazione piatto:", error);
@@ -797,6 +801,7 @@ export async function updateMenuItemAction(id: string, formData: FormData) {
   const imageUrl = (formData.get("imageUrl") as string)?.trim() || null;
   const allergens = (formData.get("allergens") as string)?.trim() || "[]";
   const isAvailable = formData.get("isAvailable") !== "false";
+  const isTakeaway = formData.get("isTakeaway") !== "false";
 
   if (!name || name.length < 2) {
     return { success: false, error: "Il nome del piatto deve contenere almeno 2 caratteri" };
@@ -813,15 +818,36 @@ export async function updateMenuItemAction(id: string, formData: FormData) {
         imageUrl,
         allergens,
         isAvailable,
+        isTakeaway,
       },
     });
 
     revalidatePath("/dashboard/menu");
+    revalidatePath("/dashboard/asporto");
     revalidatePath("/menu");
+    revalidatePath("/prenotazione");
     return { success: true, item };
   } catch (error) {
     console.error("Errore modifica piatto:", error);
     return { success: false, error: "Impossibile modificare il piatto" };
+  }
+}
+
+export async function toggleMenuItemTakeawayAction(id: string, isTakeaway: boolean) {
+  try {
+    await prisma.menuItem.update({
+      where: { id },
+      data: { isTakeaway },
+    });
+
+    revalidatePath("/dashboard/menu");
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/menu");
+    revalidatePath("/prenotazione");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore modifica disponibilità asporto piatto:", error);
+    return { success: false, error: "Impossibile aggiornare la disponibilità per l'asporto" };
   }
 }
 
@@ -898,8 +924,11 @@ export async function createTakeawayOrderAction(data: {
       data: {
         customerName: data.customerName.trim(),
         phoneNumber: data.phoneNumber?.trim() || "",
+        email: (data as { email?: string }).email?.trim() || null,
+        pickupDate: (data as { pickupDate?: string }).pickupDate?.trim() || null,
         pickupTime: data.pickupTime.trim(),
         itemsSummary: data.itemsSummary.trim(),
+        itemsJson: (data as { itemsJson?: string }).itemsJson || null,
         totalAmount: Number(data.totalAmount) || 0,
         status: "IN_CODA",
         paymentStatus: data.paymentStatus === "PAGATO" ? "PAGATO" : "DA_PAGARE",
@@ -1112,6 +1141,210 @@ export async function toggleKdsSettingAction(enabled: boolean) {
   } catch (error) {
     console.error("Errore salvataggio flag KDS:", error);
     return { success: false, error: "Impossibile aggiornare le impostazioni KDS" };
+  }
+}
+
+// --- TAKEAWAY SETTINGS & PUBLIC ONLINE ORDERING ---
+export async function saveTakeawaySettingsAction(settings: import("@/lib/takeaway-rules").TakeawaySettings) {
+  try {
+    const { saveTakeawaySettings } = await import("@/lib/takeaway-server");
+    await saveTakeawaySettings(settings);
+
+    revalidatePath("/dashboard/impostazioni");
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/prenotazione");
+    revalidatePath("/asporto");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore salvataggio impostazioni asporto:", error);
+    return { success: false, error: "Impossibile salvare le regole di asporto" };
+  }
+}
+
+export async function toggleTakeawayEnabledAction(enabled: boolean) {
+  try {
+    const { saveTakeawaySettings } = await import("@/lib/takeaway-server");
+    await saveTakeawaySettings({ enabled });
+
+    revalidatePath("/dashboard/impostazioni");
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/prenotazione");
+    revalidatePath("/asporto");
+    revalidatePath("/");
+    return { success: true, enabled };
+  } catch (error) {
+    console.error("Errore toggle asporto:", error);
+    return { success: false, error: "Impossibile modificare lo stato dell'asporto" };
+  }
+}
+
+export async function createPublicTakeawayOrderAction(data: {
+  customerName: string;
+  phoneNumber: string;
+  email?: string;
+  pickupDate: string;
+  pickupTime: string;
+  items: Array<{ dishId: string; quantity: number; notes?: string }>;
+  notes?: string;
+}) {
+  try {
+    const { getTakeawaySettings } = await import("@/lib/takeaway-server");
+    const { calculateAvailableTakeawaySlots } = await import("@/lib/takeaway-rules");
+    const settings = await getTakeawaySettings();
+
+    if (!settings.enabled) {
+      return { success: false, error: "Il servizio di asporto non è attualmente attivo" };
+    }
+
+    if (!data.customerName?.trim() || data.customerName.trim().length < 2) {
+      return { success: false, error: "Inserisci nome e cognome per il ritiro" };
+    }
+
+    const cleanPhone = data.phoneNumber?.trim() || "";
+    if (cleanPhone.length < 6) {
+      return { success: false, error: "Inserisci un numero di telefono valido per la conferma" };
+    }
+
+    if (!data.pickupDate || !data.pickupTime) {
+      return { success: false, error: "Data e orario di ritiro obbligatori" };
+    }
+
+    if (!data.items || data.items.length === 0) {
+      return { success: false, error: "Seleziona almeno un piatto per l'ordine di asporto" };
+    }
+
+    // 1. Verifica disponibilità slot secondo le regole impostate
+    const existingOrders = await prisma.takeawayOrder.findMany({
+      where: {
+        status: { not: "ANNULLATO" },
+        OR: [
+          { pickupDate: data.pickupDate },
+          { createdAt: { gte: new Date(new Date(data.pickupDate).setHours(0, 0, 0, 0)) } },
+        ],
+      },
+      select: { pickupTime: true },
+    });
+
+    const calculation = calculateAvailableTakeawaySlots(data.pickupDate, settings, existingOrders);
+    const chosenSlot = calculation.slots.find((s) => s.time === data.pickupTime);
+
+    if (!chosenSlot) {
+      return { success: false, error: "L'orario selezionato non rientra nelle fasce orarie di ritiro" };
+    }
+
+    if (!chosenSlot.isAvailable) {
+      return { success: false, error: chosenSlot.reason || "Orario non disponibile o capienza comande esaurita" };
+    }
+
+    // 2. Verifica piatti: solo quelli disponibili e abilitati per asporto
+    const dishIds = data.items.map((it) => it.dishId);
+    const dbDishes = await prisma.menuItem.findMany({
+      where: {
+        id: { in: dishIds },
+        isAvailable: true,
+        isTakeaway: true,
+      },
+    });
+
+    if (dbDishes.length === 0) {
+      return { success: false, error: "I piatti selezionati non sono disponibili per l'asporto" };
+    }
+
+    let totalAmount = 0;
+    const structuredItems: Array<{
+      dishId: string;
+      name: string;
+      category: string;
+      quantity: number;
+      price: number;
+      notes?: string;
+    }> = [];
+
+    const summaryParts: string[] = [];
+
+    for (const item of data.items) {
+      const dish = dbDishes.find((d) => d.id === item.dishId);
+      if (!dish) continue;
+      const qty = Math.max(1, item.quantity || 1);
+      const subtotal = dish.price * qty;
+      totalAmount += subtotal;
+
+      summaryParts.push(`${qty}x ${dish.name}`);
+      structuredItems.push({
+        dishId: dish.id,
+        name: dish.name,
+        category: dish.category,
+        quantity: qty,
+        price: dish.price,
+        notes: item.notes?.trim() || undefined,
+      });
+    }
+
+    const itemsSummary = summaryParts.join(", ");
+
+    // 3. Salva TakeawayOrder
+    const order = await prisma.takeawayOrder.create({
+      data: {
+        customerName: data.customerName.trim(),
+        phoneNumber: cleanPhone,
+        email: data.email?.trim() || null,
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        itemsSummary,
+        itemsJson: JSON.stringify(structuredItems),
+        totalAmount,
+        status: "IN_CODA",
+        paymentStatus: "DA_PAGARE",
+        notes: data.notes?.trim() || null,
+      },
+    });
+
+    // 4. CRM Auto-Sync
+    try {
+      await prisma.customerProfile.upsert({
+        where: { phoneNumber: cleanPhone },
+        create: {
+          phoneNumber: cleanPhone,
+          name: data.customerName.trim(),
+          email: data.email?.trim() || null,
+          notes: "Cliente Asporto Online",
+          visitCount: 1,
+          loyaltyPoints: 10,
+          lastVisitAt: new Date(),
+        },
+        update: {
+          name: data.customerName.trim(),
+          ...(data.email?.trim() ? { email: data.email.trim() } : {}),
+          visitCount: { increment: 1 },
+          loyaltyPoints: { increment: 10 },
+          lastVisitAt: new Date(),
+        },
+      });
+    } catch (crmErr) {
+      console.warn("[CRM Sync] Errore sync cliente:", crmErr);
+    }
+
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/dashboard/clienti");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/prenotazione");
+
+    return {
+      success: true,
+      order: {
+        id: order.id,
+        customerName: order.customerName,
+        pickupDate: order.pickupDate,
+        pickupTime: order.pickupTime,
+        itemsSummary: order.itemsSummary,
+        totalAmount: order.totalAmount,
+      },
+    };
+  } catch (error) {
+    console.error("Errore creazione ordine asporto pubblico:", error);
+    return { success: false, error: "Impossibile completare l'ordine di asporto" };
   }
 }
 

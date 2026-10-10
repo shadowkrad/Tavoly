@@ -48,6 +48,7 @@ export default async function PublicMenuPage({ searchParams }: PageProps) {
     imageUrl: m.imageUrl,
     allergens: m.allergens,
     isAvailable: m.isAvailable,
+    isTakeaway: m.isTakeaway ?? true,
   }));
 
   const showImages = showImagesSetting ? showImagesSetting.value === "true" : true;

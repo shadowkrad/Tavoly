@@ -93,8 +93,11 @@ model TakeawayOrder {
   id            String   @id @default(cuid())
   customerName  String
   phoneNumber   String
+  email         String?
+  pickupDate    String?  // es. "2026-10-10"
   pickupTime    String   // es. "19:45"
   itemsSummary  String   // es. "2x Spritz, 1x Tagliere Misto, 2x Burger Gourmet"
+  itemsJson     String?  // JSON string con dettaglio righe comanda: [{dishId, name, category, quantity, price, notes}]
   totalAmount   Float    @default(0.0)
   status        String   @default("IN_CODA") // IN_CODA, IN_PREPARAZIONE, PRONTO, RITIRATO, ANNULLATO
   paymentStatus String   @default("DA_PAGARE") // DA_PAGARE, PAGATO
@@ -142,6 +145,7 @@ model MenuItem {
   allergens   String   @default("[]") // JSON string array es. '["Glutine","Latticini"]'
   imageUrl    String?  // URL fotografia del piatto
   isAvailable Boolean  @default(true) // disponibile o esaurito
+  isTakeaway  Boolean  @default(true) // disponibile per asporto e takeaway online
   orderIndex  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

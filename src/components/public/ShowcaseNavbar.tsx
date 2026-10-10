@@ -5,9 +5,10 @@ import { TenantConfigResponse } from "@/types/taaaac";
 
 interface ShowcaseNavbarProps {
   tenantConfig: TenantConfigResponse;
+  takeawayEnabled?: boolean;
 }
 
-export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
+export function ShowcaseNavbar({ tenantConfig, takeawayEnabled }: ShowcaseNavbarProps) {
   const { theme } = tenantConfig;
 
   return (
@@ -44,13 +45,21 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
 
         {/* Navigation links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-          <a href="#servizi" className="hover:text-blue-600 transition-colors">
+          <a href="/#servizi" className="hover:text-blue-600 transition-colors">
             I Nostri Servizi
           </a>
           <Link href="/prenotazione" className="hover:text-blue-600 transition-colors">
             Prenota un Tavolo
           </Link>
-          <a href="#contatti" className="hover:text-blue-600 transition-colors">
+          {takeawayEnabled && (
+            <Link
+              href="/asporto"
+              className="hover:text-amber-600 text-amber-700 font-bold transition-colors flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200"
+            >
+              <span>🛍️ Ordina Asporto</span>
+            </Link>
+          )}
+          <a href="/#contatti" className="hover:text-blue-600 transition-colors">
             Orari & Contatti
           </a>
         </nav>

@@ -42,6 +42,7 @@ interface TakeawayManagementViewProps {
   menuItems: MenuItemSimple[];
   existingCustomers: CustomerSimple[];
   restaurantName: string;
+  isTakeawayEnabled?: boolean;
 }
 
 export function TakeawayManagementView({
@@ -49,6 +50,7 @@ export function TakeawayManagementView({
   menuItems,
   existingCustomers,
   restaurantName,
+  isTakeawayEnabled = true,
 }: TakeawayManagementViewProps) {
   const [orders, setOrders] = useState<TakeawayOrderData[]>(initialOrders);
   const [activeTab, setActiveTab] = useState<"ATTIVI" | "IN_CODA" | "IN_PREPARAZIONE" | "PRONTO" | "RITIRATO">("ATTIVI");
@@ -240,6 +242,24 @@ export function TakeawayManagementView({
           <span>Nuovo Ordine Asporto</span>
         </button>
       </div>
+
+      {!isTakeawayEnabled && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <strong className="block text-sm">Il servizio Asporto & Takeaway è attualmente disattivato</strong>
+              <span className="text-amber-700">I clienti online non possono inviare ordini per il ritiro. Puoi comunque inserire ordini telefonici o al banco.</span>
+            </div>
+          </div>
+          <a
+            href="/dashboard/impostazioni"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shrink-0 self-start sm:self-auto transition-all"
+          >
+            Configura & Attiva Asporto
+          </a>
+        </div>
+      )}
 
       {/* 2. Metriche Rapide (4 Card spaziose con padding generoso e gap ampio) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">

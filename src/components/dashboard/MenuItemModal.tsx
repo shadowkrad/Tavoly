@@ -24,6 +24,7 @@ export interface MenuItemData {
   imageUrl: string | null;
   allergens: string; // JSON array string
   isAvailable: boolean;
+  isTakeaway: boolean;
 }
 
 interface MenuItemModalProps {
@@ -63,6 +64,7 @@ export function MenuItemModal({
   const [imageUrl, setImageUrl] = useState("");
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [isTakeaway, setIsTakeaway] = useState(true);
 
   useEffect(() => {
     if (item) {
@@ -72,6 +74,7 @@ export function MenuItemModal({
       setDescription(item.description || "");
       setImageUrl(item.imageUrl || "");
       setIsAvailable(item.isAvailable);
+      setIsTakeaway(item.isTakeaway !== undefined ? item.isTakeaway : true);
       try {
         const parsed = JSON.parse(item.allergens || "[]");
         setSelectedAllergens(Array.isArray(parsed) ? parsed : []);
@@ -87,6 +90,7 @@ export function MenuItemModal({
       setImageUrl("");
       setSelectedAllergens([]);
       setIsAvailable(true);
+      setIsTakeaway(true);
     }
     setErrorMsg(null);
   }, [item, categories, isOpen]);
@@ -126,6 +130,7 @@ export function MenuItemModal({
     formData.set("imageUrl", imageUrl.trim());
     formData.set("allergens", JSON.stringify(selectedAllergens));
     formData.set("isAvailable", isAvailable ? "true" : "false");
+    formData.set("isTakeaway", isTakeaway ? "true" : "false");
 
     startTransition(async () => {
       const res = item
@@ -390,6 +395,37 @@ export function MenuItemModal({
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Disponibilità & Abilitazione Asporto */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50">
+              <div>
+                <span className="text-xs font-bold text-slate-800 block">Disponibile nel Locale</span>
+                <span className="text-[10px] text-slate-500">Se esaurito, disattiva per la sala</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={isAvailable}
+                onChange={(e) => setIsAvailable(e.target.checked)}
+                className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50">
+              <div>
+                <span className="text-xs font-bold text-slate-800 block flex items-center gap-1">
+                  <span>🛍️</span> Disponibile per Asporto
+                </span>
+                <span className="text-[10px] text-slate-500">Ordinabile per takeaway online</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={isTakeaway}
+                onChange={(e) => setIsTakeaway(e.target.checked)}
+                className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
+              />
             </div>
           </div>
 

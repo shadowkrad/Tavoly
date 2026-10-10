@@ -39,6 +39,7 @@ export default async function TavolyMenuDashboardPage() {
     imageUrl: m.imageUrl,
     allergens: m.allergens,
     isAvailable: m.isAvailable,
+    isTakeaway: m.isTakeaway !== undefined ? m.isTakeaway : true,
   }));
 
   const tables = rawTables.map((t) => ({

@@ -20,12 +20,14 @@ import {
   ChevronRight,
   ChefHat,
   Tv,
+  ShoppingBag,
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
 import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
 import { toggleKdsSettingAction } from "@/app/actions";
+import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rules";
 
-type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "dispositivi" | "aspetto";
+type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "asporto" | "dispositivi" | "aspetto";
 
 interface TabItem {
   id: SettingsTab;
@@ -78,6 +80,14 @@ const TABS: TabItem[] = [
     description: "Abilitazione schermo cucina KDS, ordini fast-food style e gestione comande",
   },
   {
+    id: "asporto",
+    label: "Asporto & Takeaway",
+    shortLabel: "Asporto",
+    iconComponent: ShoppingBag,
+    shortDescription: "Regole ritiro e capienza",
+    description: "Abilitazione asporto, fasce orarie di ritiro, tempo di preparazione e max comande per slot",
+  },
+  {
     id: "dispositivi",
     label: "Dispositivi & Palmari",
     shortLabel: "Dispositivi",
@@ -101,6 +111,42 @@ export default function TavolyImpostazioniPage() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [kdsSaving, setKdsSaving] = useState(false);
   const [kdsSavedNotice, setKdsSavedNotice] = useState(false);
+
+  // Takeaway Rules State
+  const [takeaway, setTakeaway] = useState<TakeawaySettings>(DEFAULT_TAKEAWAY_SETTINGS);
+  const [takeawaySaving, setTakeawaySaving] = useState(false);
+  const [takeawaySavedNotice, setTakeawaySavedNotice] = useState(false);
+
+  const handleToggleTakeaway = async (newVal: boolean) => {
+    setTakeaway((prev) => ({ ...prev, enabled: newVal }));
+    setTakeawaySaving(true);
+    try {
+      const { toggleTakeawayEnabledAction } = await import("@/app/actions");
+      await toggleTakeawayEnabledAction(newVal);
+      setTakeawaySavedNotice(true);
+      setTimeout(() => setTakeawaySavedNotice(false), 3000);
+    } catch (err) {
+      console.error("Errore salvataggio rapido Asporto:", err);
+    } finally {
+      setTakeawaySaving(false);
+    }
+  };
+
+  const handleSaveTakeawaySettings = async () => {
+    setTakeawaySaving(true);
+    try {
+      const { saveTakeawaySettingsAction } = await import("@/app/actions");
+      await saveTakeawaySettingsAction(takeaway);
+      setTakeawaySavedNotice(true);
+      setTimeout(() => setTakeawaySavedNotice(false), 3000);
+      setFeedback({ type: "success", text: "Regole e orari asporto salvati con successo!" });
+    } catch (err) {
+      console.error("Errore salvataggio impostazioni Asporto:", err);
+      setFeedback({ type: "error", text: "Errore durante il salvataggio dell'asporto." });
+    } finally {
+      setTakeawaySaving(false);
+    }
+  };
 
   const handleToggleKds = async (newVal: boolean) => {
     setForm((prev) => ({ ...prev, kdsEnabled: newVal }));
@@ -165,6 +211,9 @@ export default function TavolyImpostazioniPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) {
+          if (data.takeawaySettings) {
+            setTakeaway(data.takeawaySettings);
+          }
           setForm((f) => {
             const resolvedKds = cookieKds !== null ? cookieKds : Boolean(data.kdsEnabled);
             return {
@@ -260,6 +309,7 @@ export default function TavolyImpostazioniPage() {
           indirizzo: form.indirizzo,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
+          takeawaySettings: takeaway,
         }),
       });
 
@@ -707,6 +757,275 @@ export default function TavolyImpostazioniPage() {
                 <span>{kdsSaving ? "Salvataggio..." : "Salva Stato Monitor KDS"}</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB ASPORTO: REGOLE & CAPACITÀ TAKEAWAY */}
+      {activeTab === "asporto" && (
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                <span>Gestione Servizio Asporto & Ritiro Ordini</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Configura se accettare ordini per asporto, le fasce orarie consentite e le regole di capacità per la cucina.
+              </p>
+            </div>
+            {/* Toggle Abilitazione Generale Asporto */}
+            <div className="flex items-center gap-3 bg-slate-50 p-2.5 px-4 rounded-xl border border-slate-200">
+              <span className="text-xs font-bold text-slate-700">
+                {takeaway.enabled ? "Asporto Attivo" : "Asporto Disattivato"}
+              </span>
+              <input
+                type="checkbox"
+                checked={takeaway.enabled}
+                disabled={takeawaySaving}
+                onChange={(e) => handleToggleTakeaway(e.target.checked)}
+                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {takeawaySavedNotice && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-bold flex items-center gap-2">
+              <span>✓ Regole Asporto salvate con successo!</span>
+            </div>
+          )}
+
+          {!takeaway.enabled && (
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2.5">
+              <span className="text-base">⚠️</span>
+              <div>
+                <strong>Il servizio di Asporto è attualmente disattivato.</strong>
+                <p className="mt-0.5 text-amber-700">
+                  I clienti nella pagina di prenotazione online non potranno ordinare piatti per il ritiro.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Sezione 1: Giorni e Fasce Orarie di Ritiro */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Giorni e Orari di Ritiro</span>
+            </h4>
+
+            {/* Giorni della settimana */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
+                Giorni della settimana in cui è attivo l&apos;asporto:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: "1", label: "Lunedì" },
+                  { id: "2", label: "Martedì" },
+                  { id: "3", label: "Mercoledì" },
+                  { id: "4", label: "Giovedì" },
+                  { id: "5", label: "Venerdì" },
+                  { id: "6", label: "Sabato" },
+                  { id: "0", label: "Domenica" },
+                ].map((d) => {
+                  const isChecked = takeaway.days.includes(d.id);
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => {
+                        const newDays = isChecked
+                          ? takeaway.days.filter((x) => x !== d.id)
+                          : [...takeaway.days, d.id];
+                        setTakeaway({ ...takeaway, days: newDays });
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        isChecked
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                          : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
+                      }`}
+                    >
+                      {d.label} {isChecked ? "✓" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Servizio Pranzo e Cena */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Pranzo */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">☀️ Servizio Pranzo</span>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={takeaway.lunchEnabled}
+                      onChange={(e) => setTakeaway({ ...takeaway, lunchEnabled: e.target.checked })}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                    <span className="font-semibold text-slate-600">Abilitato</span>
+                  </label>
+                </div>
+                {takeaway.lunchEnabled && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1">Dalle ore</label>
+                      <input
+                        type="time"
+                        value={takeaway.lunchStart}
+                        onChange={(e) => setTakeaway({ ...takeaway, lunchStart: e.target.value })}
+                        className="taaaac-input text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1">Alle ore</label>
+                      <input
+                        type="time"
+                        value={takeaway.lunchEnd}
+                        onChange={(e) => setTakeaway({ ...takeaway, lunchEnd: e.target.value })}
+                        className="taaaac-input text-xs w-full"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Cena */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">🌙 Servizio Cena</span>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={takeaway.dinnerEnabled}
+                      onChange={(e) => setTakeaway({ ...takeaway, dinnerEnabled: e.target.checked })}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                    <span className="font-semibold text-slate-600">Abilitato</span>
+                  </label>
+                </div>
+                {takeaway.dinnerEnabled && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1">Dalle ore</label>
+                      <input
+                        type="time"
+                        value={takeaway.dinnerStart}
+                        onChange={(e) => setTakeaway({ ...takeaway, dinnerStart: e.target.value })}
+                        className="taaaac-input text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1">Alle ore</label>
+                      <input
+                        type="time"
+                        value={takeaway.dinnerEnd}
+                        onChange={(e) => setTakeaway({ ...takeaway, dinnerEnd: e.target.value })}
+                        className="taaaac-input text-xs w-full"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sezione 2: Regole di Esecuzione & Capacità Cucina */}
+          <div className="space-y-4 border-t border-slate-100 pt-5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>Regole di Esecuzione & Capacità Cucina</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Tempo di preparazione */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  Tempo Minimo Preparazione
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="10"
+                    max="180"
+                    step="5"
+                    value={takeaway.prepTimeMinutes}
+                    onChange={(e) =>
+                      setTakeaway({ ...takeaway, prepTimeMinutes: parseInt(e.target.value, 10) || 30 })
+                    }
+                    className="taaaac-input text-xs w-24 font-bold"
+                  />
+                  <span className="text-xs text-slate-500">minuti</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  Preavviso minimo. Gli orari online partono da <strong>ora attuale + questo tempo</strong>.
+                </p>
+              </div>
+
+              {/* Intervallo slot */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  Intervallo Slot di Ritiro
+                </label>
+                <select
+                  value={takeaway.slotIntervalMinutes}
+                  onChange={(e) =>
+                    setTakeaway({ ...takeaway, slotIntervalMinutes: parseInt(e.target.value, 10) || 15 })
+                  }
+                  className="taaaac-input text-xs w-full font-bold"
+                >
+                  <option value={10}>Ogni 10 minuti</option>
+                  <option value={15}>Ogni 15 minuti (Consigliato)</option>
+                  <option value={20}>Ogni 20 minuti</option>
+                  <option value={30}>Ogni 30 minuti</option>
+                </select>
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  Frequenza con cui i clienti possono scaglionare il ritiro al pass.
+                </p>
+              </div>
+
+              {/* Max comande per slot */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  Max Comande per Slot
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={takeaway.maxOrdersPerSlot}
+                    onChange={(e) =>
+                      setTakeaway({ ...takeaway, maxOrdersPerSlot: parseInt(e.target.value, 10) || 4 })
+                    }
+                    className="taaaac-input text-xs w-24 font-bold"
+                  />
+                  <span className="text-xs text-slate-500">ordini / slot</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  Raggiunto questo tetto, lo slot risulta <strong>Completo ❌</strong> per non ingolfare la cucina.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Salvataggio Regole Asporto */}
+          <div className="pt-3 flex items-center justify-between border-t border-slate-100">
+            <span className="text-xs text-slate-500">
+              Modifiche applicate istantaneamente alle prenotazioni online.
+            </span>
+            <button
+              type="button"
+              onClick={handleSaveTakeawaySettings}
+              disabled={takeawaySaving}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>{takeawaySaving ? "Salvataggio..." : "Salva Regole Asporto & Capacità"}</span>
+            </button>
           </div>
         </div>
       )}

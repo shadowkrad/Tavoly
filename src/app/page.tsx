@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
 import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
+import { getTakeawaySettings } from "@/lib/takeaway-server";
 import {
   UtensilsCrossed,
   Coffee,
@@ -17,12 +18,13 @@ import {
   Lock,
   ArrowRight,
   CheckCircle2,
+  ShoppingBag,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function PublicShowcasePage() {
-  const [tenantConfig, rawShifts, todayReservations] = await Promise.all([
+  const [tenantConfig, rawShifts, todayReservations, takeawaySettings] = await Promise.all([
     getTenantConfig(),
     prisma.serviceShift.findMany({
       where: { isActive: true },
@@ -36,6 +38,7 @@ export default async function PublicShowcasePage() {
         status: { not: "ANNULLATA" },
       },
     }),
+    getTakeawaySettings(),
   ]);
 
   const { theme } = tenantConfig;
@@ -60,7 +63,7 @@ export default async function PublicShowcasePage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Navbar Pubblica con discreto link staff */}
-      <ShowcaseNavbar tenantConfig={tenantConfig} />
+      <ShowcaseNavbar tenantConfig={tenantConfig} takeawayEnabled={takeawaySettings.enabled} />
 
       {/* Hero Section */}
       <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-white to-slate-50 border-b border-slate-200/80">
@@ -90,6 +93,17 @@ export default async function PublicShowcasePage() {
                   <span>Prenota il tuo Tavolo</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+
+                {takeawaySettings.enabled && (
+                  <Link
+                    href="/asporto"
+                    className="taaaac-btn-secondary px-6 py-3.5 text-sm sm:text-base font-bold inline-flex items-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-amber-600" />
+                    <span>Ordina da Asporto</span>
+                  </Link>
+                )}
+
                 <a
                   href="#servizi"
                   className="taaaac-btn-secondary px-6 py-3.5 text-sm sm:text-base font-bold"

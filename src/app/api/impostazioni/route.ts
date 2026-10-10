@@ -31,6 +31,9 @@ export async function GET() {
     const { getIsKdsEnabled } = await import("@/lib/kds-setting");
     const kdsEnabled = await getIsKdsEnabled();
 
+    const { getTakeawaySettings } = await import("@/lib/takeaway-server");
+    const takeawaySettings = await getTakeawaySettings();
+
     return NextResponse.json({
       nomeRistorante: map["restaurant_name"] || "Osteria dei Tavoli",
       logoUrl: map["brand_logo_url"] || "",
@@ -42,6 +45,7 @@ export async function GET() {
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
       menuShowImages: map["menu_show_dish_images"] !== "false",
       kdsEnabled,
+      takeawaySettings,
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -63,6 +67,7 @@ export async function PUT(req: NextRequest) {
       indirizzo,
       menuShowImages,
       kdsEnabled,
+      takeawaySettings,
     } = body;
 
     const upserts = [
@@ -86,11 +91,18 @@ export async function PUT(req: NextRequest) {
       });
     }
 
+    if (takeawaySettings) {
+      const { saveTakeawaySettings } = await import("@/lib/takeaway-server");
+      await saveTakeawaySettings(takeawaySettings);
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/impostazioni");
     revalidatePath("/dashboard/cucina");
     revalidatePath("/cucina");
     revalidatePath("/menu");
+    revalidatePath("/dashboard/asporto");
+    revalidatePath("/prenotazione");
     revalidatePath("/", "layout");
 
     const response = NextResponse.json({ success: true });

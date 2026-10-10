@@ -7,7 +7,8 @@ import { MenuItemSimple, CustomerSimple } from "@/components/dashboard/NewTakeaw
 export const dynamic = "force-dynamic";
 
 export default async function TavolyAsportoPage() {
-  const [tenantConfig, rawOrders, rawMenuItems, rawCustomers] = await Promise.all([
+  const { getTakeawaySettings } = await import("@/lib/takeaway-server");
+  const [tenantConfig, rawOrders, rawMenuItems, rawCustomers, takeawaySettings] = await Promise.all([
     getTenantConfig(),
     prisma.takeawayOrder.findMany({
       orderBy: [{ pickupTime: "asc" }, { createdAt: "desc" }],
@@ -16,7 +17,7 @@ export default async function TavolyAsportoPage() {
       return [];
     }),
     prisma.menuItem.findMany({
-      where: { isAvailable: true },
+      where: { isAvailable: true, isTakeaway: true },
       select: {
         id: true,
         name: true,
@@ -40,6 +41,7 @@ export default async function TavolyAsportoPage() {
       console.error("[Takeaway] Errore fetch customerProfile:", err);
       return [];
     }),
+    getTakeawaySettings(),
   ]);
 
   const orders: TakeawayOrderData[] = rawOrders.map((o) => ({
@@ -74,6 +76,7 @@ export default async function TavolyAsportoPage() {
       menuItems={menuItems}
       existingCustomers={existingCustomers}
       restaurantName={tenantConfig.theme.restaurantName}
+      isTakeawayEnabled={takeawaySettings.enabled}
     />
   );
 }
