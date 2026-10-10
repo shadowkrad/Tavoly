@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/dashboard/NotificationBell";
@@ -20,10 +20,18 @@ import {
   Star,
   ExternalLink,
   ChevronRight,
+  ChefHat,
 } from "lucide-react";
 import SidebarPwaInstall from "@/components/dashboard/SidebarPwaInstall";
 
-const baseNavLinks = [
+interface NavLinkItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: string;
+}
+
+const baseNavLinks: NavLinkItem[] = [
   { href: "/dashboard", label: "Mappa Tavoli", icon: LayoutGrid },
   { href: "/dashboard/prenotazioni", label: "Prenotazioni & Turni", icon: CalendarDays },
   { href: "/dashboard/menu", label: "Menù Digitale QR", icon: UtensilsCrossed },
@@ -62,12 +70,29 @@ const addonNavLinks = [
   },
 ];
 
-export default function DashboardSidebar() {
+interface DashboardSidebarProps {
+  kdsEnabled?: boolean;
+}
+
+export default function DashboardSidebar({ kdsEnabled = false }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAddonActive, config } = useTenantConfig();
 
   const activeAddons = addonNavLinks.filter((item) => isAddonActive(item.addonId));
+
+  const navLinks = useMemo(() => {
+    const links = [...baseNavLinks];
+    if (kdsEnabled) {
+      links.push({
+        href: "/dashboard/cucina",
+        label: "Monitor Cucina (KDS)",
+        icon: ChefHat,
+        badge: "KDS",
+      });
+    }
+    return links;
+  }, [kdsEnabled]);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -141,7 +166,7 @@ export default function DashboardSidebar() {
           <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 px-3 pb-1">
             Servizio di Sala
           </p>
-          {baseNavLinks.map((link) => {
+          {navLinks.map((link) => {
             const active = isActive(link.href);
             const Icon = link.icon;
             return (
@@ -149,14 +174,21 @@ export default function DashboardSidebar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                   active
                     ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30"
                     : "text-emerald-200 hover:bg-emerald-900 hover:text-white"
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{link.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{link.label}</span>
+                </div>
+                {link.badge && (
+                  <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-500 text-slate-950">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

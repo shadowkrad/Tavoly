@@ -110,6 +110,13 @@ export function TableCanvasBoard({
   const [selectedAreaId, setSelectedAreaId] = useState<string>(areas[0]?.id || "ALL");
   const [isEditMode, setIsEditMode] = useState(false);
   const [viewMode, setViewMode] = useState<"CANVAS" | "GRID">("CANVAS");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setViewMode("GRID");
+    }
+  }, []);
+
   const [selectedTableForDetail, setSelectedTableForDetail] = useState<TableItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAreasModalOpen, setIsAreasModalOpen] = useState(false);
@@ -172,7 +179,7 @@ export function TableCanvasBoard({
       {/* TOOLBAR SALE & CONTROLLI (SNELLA, RIGA SINGOLA) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         {/* Tabs delle Sale */}
-        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto py-0.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full [scrollbar-width:none]">
           <button
             type="button"
             onClick={() => setSelectedAreaId("ALL")}
@@ -295,18 +302,19 @@ export function TableCanvasBoard({
       {/* VISTA 1: CANVAS PLANIMETRIA 2D A PIENA LARGHEZZA */}
       {viewMode === "CANVAS" ? (
         <div className="space-y-3">
-          <div
-            ref={canvasRef}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            className="relative w-full h-[620px] lg:h-[660px] bg-slate-50/70 border-2 border-dashed border-slate-200/90 rounded-3xl overflow-hidden shadow-inner select-none transition-all"
-            style={{
-              backgroundImage:
-                "radial-gradient(#94a3b8 1.1px, transparent 1.1px), radial-gradient(#94a3b8 1.1px, #f8fafc 1.1px)",
-              backgroundSize: "28px 28px",
-              backgroundPosition: "0 0, 14px 14px",
-            }}
-          >
+          <div className="w-full overflow-x-auto rounded-3xl [scrollbar-width:thin]">
+            <div
+              ref={canvasRef}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              className="relative min-w-[680px] md:min-w-0 w-full h-[620px] lg:h-[660px] bg-slate-50/70 border-2 border-dashed border-slate-200/90 rounded-3xl overflow-hidden shadow-inner select-none transition-all"
+              style={{
+                backgroundImage:
+                  "radial-gradient(#94a3b8 1.1px, transparent 1.1px), radial-gradient(#94a3b8 1.1px, #f8fafc 1.1px)",
+                backgroundSize: "28px 28px",
+                backgroundPosition: "0 0, 14px 14px",
+              }}
+            >
             {filteredTables.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
                 <Map className="w-10 h-10 opacity-30" />
@@ -406,6 +414,7 @@ export function TableCanvasBoard({
               })
             )}
           </div>
+        </div>
 
           {/* LEGENDA COMPATTA */}
           <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 px-2 pt-1 gap-3">

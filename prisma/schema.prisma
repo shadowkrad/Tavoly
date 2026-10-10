@@ -149,3 +149,18 @@ model MenuItem {
   @@index([category])
 }
 
+// Comande del Tavolo (Presa comande cameriere & Monitor Cucina KDS)
+model TableOrder {
+  id           String   @id @default(cuid())
+  tableNumber  String   // es. "1", "4", "Dehors 2"
+  coverCount   Int      @default(2)
+  waiterName   String?  // es. "Marco", "Cameriere Sala"
+  status       String   @default("IN_CODA") // IN_CODA, IN_PREPARAZIONE, PRONTO, SERVITO, ANNULLATO
+  itemsJson    String   // JSON string di piatti ordinati con varianti: [{dishId, name, category, quantity, price, variants: string[]}]
+  notes        String?  // Note generali per la cucina
+  totalAmount  Float    @default(0.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}

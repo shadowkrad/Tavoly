@@ -10,6 +10,7 @@ import {
   Plus,
   CalendarCheck2,
   Layers,
+  ChefHat,
 } from "lucide-react";
 import { TableCanvasBoard, TableItem } from "./TableCanvasBoard";
 import { ReservationsDrawer } from "./ReservationsDrawer";
@@ -19,6 +20,7 @@ import { TakeawayPanel, TakeawayItem } from "./TakeawayPanel";
 import { ThemeSelectorModal } from "./ThemeSelectorModal";
 import { AreasManagementModal } from "./AreasManagementModal";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
+import { WaiterOrderModal } from "./WaiterOrderModal";
 
 interface Area {
   id: string;
@@ -78,6 +80,7 @@ export function FloorPlanView({
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
   const [isAreasOpen, setIsAreasOpen] = useState(false);
+  const [isWaiterOrderOpen, setIsWaiterOrderOpen] = useState(false);
 
   // Calcoli metriche compatti
   const totalTables = tables.length;
@@ -148,7 +151,7 @@ export function FloorPlanView({
         </div>
 
         {/* Destra: Azioni Rapide Console */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Tasto Cassetto Prenotazioni (A Scomparsa) */}
           <button
             type="button"
@@ -229,6 +232,18 @@ export function FloorPlanView({
             <span className="hidden sm:inline">Nuova Prenotazione</span>
             <span className="sm:hidden">Nuova</span>
           </button>
+
+          {/* Prendi Comanda Cameriere */}
+          <button
+            type="button"
+            onClick={() => setIsWaiterOrderOpen(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border shadow-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-black"
+            title="Prendi comanda tavolo cameriere"
+          >
+            <ChefHat className="w-4 h-4 text-slate-950" />
+            <span className="hidden sm:inline">Prendi Comanda</span>
+            <span className="sm:hidden">Comanda</span>
+          </button>
         </div>
       </div>
 
@@ -285,6 +300,13 @@ export function FloorPlanView({
         currentPaletteId={paletteId}
         isOpen={isThemeOpen}
         onClose={() => setIsThemeOpen(false)}
+      />
+
+      {/* MODAL PRESA COMANDA CAMERIERE */}
+      <WaiterOrderModal
+        isOpen={isWaiterOrderOpen}
+        onClose={() => setIsWaiterOrderOpen(false)}
+        availableTables={tables.map((t) => ({ id: t.id, number: t.number, areaName: t.area.name }))}
       />
     </div>
   );

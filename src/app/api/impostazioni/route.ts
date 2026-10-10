@@ -16,6 +16,7 @@ export async function GET() {
             "contact_phone",
             "address",
             "menu_show_dish_images",
+            "kds_enabled",
           ],
         },
       },
@@ -36,6 +37,7 @@ export async function GET() {
       telefono: map["contact_phone"] || "+39 0575 654321",
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
       menuShowImages: map["menu_show_dish_images"] !== "false",
+      kdsEnabled: map["kds_enabled"] === "true",
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -46,7 +48,18 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { nomeRistorante, logoUrl, faviconUrl, colorePrimario, coloreAccento, email, telefono, indirizzo, menuShowImages } = body;
+    const {
+      nomeRistorante,
+      logoUrl,
+      faviconUrl,
+      colorePrimario,
+      coloreAccento,
+      email,
+      telefono,
+      indirizzo,
+      menuShowImages,
+      kdsEnabled,
+    } = body;
 
     const upserts = [
       nomeRistorante !== undefined && { key: "restaurant_name", value: String(nomeRistorante) },
@@ -58,6 +71,7 @@ export async function PUT(req: NextRequest) {
       telefono !== undefined && { key: "contact_phone", value: String(telefono) },
       indirizzo !== undefined && { key: "address", value: String(indirizzo) },
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
+      kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {

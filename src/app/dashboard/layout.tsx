@@ -6,6 +6,7 @@ import { TenantConfigProvider } from "@/components/providers/TenantConfigProvide
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import MaintenanceBanner from "@/components/dashboard/MaintenanceBanner";
 import { isStaffAuthenticated, getMaintenanceSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,11 @@ export default async function DashboardLayout({
   if (!isAuth) {
     redirect("/login");
   }
+
+  const kdsSetting = await prisma.localSetting.findUnique({
+    where: { key: "kds_enabled" },
+  }).catch(() => null);
+  const isKdsEnabled = kdsSetting ? kdsSetting.value === "true" : false;
 
   const userMaintenance = await getMaintenanceSession();
   const activeMaintenance = tenantConfig?.activeMaintenance;
@@ -60,7 +66,7 @@ export default async function DashboardLayout({
         )}
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Sidebar unificata */}
-          <DashboardSidebar />
+          <DashboardSidebar kdsEnabled={isKdsEnabled} />
 
           {/* Contenuto Principale con margine sinistro su desktop */}
           <div className="flex-1 flex flex-col min-w-0 md:pl-64">

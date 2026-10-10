@@ -408,7 +408,7 @@ export function BookingsManagementView({
         {/* Riga 1: Selettore Temporale (Oggi, Domani, Future, Passate, Tutte) */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           {/* Quick Date Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full [scrollbar-width:none]">
             <button
               type="button"
               onClick={() => handleSelectDateMode("TODAY")}
@@ -556,7 +556,7 @@ export function BookingsManagementView({
           )}
 
           {/* Filtri Stato */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full [scrollbar-width:none]">
             {[
               { id: "ALL", label: "Tutte" },
               { id: "IN_ATTESA", label: "In Attesa" },
@@ -618,10 +618,209 @@ export function BookingsManagementView({
         </div>
       </div>
 
-      {/* TABELLA PRENOTAZIONI COMPLETA & PROFESSIONALE */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+      {/* VISTA MOBILE: LISTA CARD PRENOTAZIONI (BLOCK MD:HIDDEN) */}
+      <div className="block md:hidden space-y-3">
+        {filteredReservations.length === 0 ? (
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-8 text-center shadow-xs">
+            <div className="max-w-xs mx-auto space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <CalendarDays className="w-6 h-6" />
+              </div>
+              <div className="font-bold text-slate-800 text-sm">
+                Nessuna prenotazione trovata
+              </div>
+              <p className="text-xs text-slate-500">
+                {searchQuery.trim()
+                  ? `Nessuna prenotazione corrisponde alla ricerca "${searchQuery}".`
+                  : "Non ci sono prenotazioni registrate per i filtri selezionati."}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsNewModalOpen(true)}
+                className="taaaac-btn-primary text-xs px-4 py-2 inline-flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Aggiungi Prenotazione</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          filteredReservations.map((r) => {
+            const statusConf = STATUS_CONFIG[r.status] || STATUS_CONFIG.CONFERMATA;
+            const resDate = new Date(r.date);
+            const isMultiDateView =
+              dateMode === "FUTURE" ||
+              dateMode === "PAST" ||
+              dateMode === "ALL" ||
+              forceGlobalSearch;
+
+            const customerProfile = customerProfiles[r.phoneNumber];
+            const hasHistory = Boolean(customerProfile && customerProfile.visitCount > 1);
+
+            const confirmMsg = buildConfirmationMessage(
+              restaurantName,
+              r.customerName,
+              resDate.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }),
+              r.timeSlot,
+              r.guestCount
+            );
+            const waConfirmUrl = generateWhatsAppLink(r.phoneNumber, confirmMsg);
+
+            return (
+              <div
+                key={`mob-${r.id}`}
+                className={`bg-white rounded-3xl border border-slate-200/90 p-4 shadow-xs space-y-3 transition-colors ${
+                  r.status === "SEDUTI" ? "border-emerald-300 bg-emerald-50/10" : ""
+                }`}
+              >
+                {/* Header Card: Orario, Data, Coperti & Status Selector */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="font-mono text-base font-black text-slate-900 flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-xl">
+                      <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{r.timeSlot}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded-xl">
+                      <Users className="w-3 h-3 text-slate-400" />
+                      <span>{r.guestCount}p</span>
+                    </div>
+                  </div>
+
+                  <select
+                    value={r.status}
+                    disabled={isPending}
+                    onChange={(e) => handleStatusChange(r.id, e.target.value)}
+                    className={`text-xs font-bold px-2 py-1 rounded-xl border cursor-pointer focus:outline-none ${statusConf.badge}`}
+                  >
+                    <option value="IN_ATTESA">In Attesa</option>
+                    <option value="CONFERMATA">Confermata</option>
+                    <option value="SEDUTI">Accomodati</option>
+                    <option value="COMPLETATA">Completata</option>
+                    <option value="ANNULLATA">Annullata</option>
+                  </select>
+                </div>
+
+                {isMultiDateView && (
+                  <div className="text-[11px] font-semibold text-slate-500">
+                    🗓️ {resDate.toLocaleDateString("it-IT", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </div>
+                )}
+
+                {/* Cliente, Telefono, Tavolo */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 text-sm">{r.customerName}</span>
+                      {hasHistory && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80 flex items-center gap-0.5">
+                          <Award className="w-2.5 h-2.5" />
+                          <span>{customerProfile.visitCount}v</span>
+                        </span>
+                      )}
+                    </div>
+                    {r.isWalkIn && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded">
+                        Walk-In
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <a
+                      href={`tel:${r.phoneNumber}`}
+                      className="font-mono text-xs text-slate-600 hover:text-emerald-700 flex items-center gap-1.5 transition-colors"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{r.phoneNumber}</span>
+                    </a>
+
+                    {r.table ? (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAssignModal(r)}
+                        className="font-bold text-xs text-blue-700 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        <span>T.{r.table.number} ({r.table.area?.name || "Sala"})</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAssignModal(r)}
+                        className="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 cursor-pointer"
+                      >
+                        <AlertCircle className="w-3 h-3 text-amber-600" />
+                        <span>Assegna Tavolo</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Note se presenti */}
+                {r.notes && (
+                  <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/70 font-medium">
+                    💬 {r.notes}
+                  </div>
+                )}
+
+                {/* Azioni rapide su mobile */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {r.status !== "SEDUTI" && r.status !== "COMPLETATA" && (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(r.id, "SEDUTI")}
+                        disabled={isPending}
+                        className="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                      >
+                        Accomoda
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCustomer(r)}
+                      className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                      title="Scheda Cliente"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                    </button>
+                    {hasWhatsAppModule && r.phoneNumber && (
+                      <a
+                        href={waConfirmUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors"
+                        title="WhatsApp"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(r.id, r.customerName)}
+                    disabled={isPending}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                    title="Elimina"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* VISTA DESKTOP: TABELLA PRENOTAZIONI COMPLETA & PROFESSIONALE */}
+      <div className="hidden md:block bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
+          <table className="w-full min-w-[760px] text-left text-xs text-slate-700">
             <thead className="bg-slate-50/80 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-200">
               <tr>
                 <th className="p-4">Orario / Data</th>

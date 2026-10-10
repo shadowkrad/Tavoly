@@ -13,6 +13,7 @@ import {
   Calendar,
   Clock,
   ArrowRight,
+  ChefHat,
 } from "lucide-react";
 import {
   updateTableStatus,
@@ -20,6 +21,7 @@ import {
   createWalkInAction,
 } from "@/app/actions";
 import { TableItem } from "./TableCanvasBoard";
+import { WaiterOrderModal } from "./WaiterOrderModal";
 
 interface ReservationItem {
   id: string;
@@ -76,6 +78,7 @@ export function TableDetailModal({
   const [isPending, startTransition] = useTransition();
   const [walkInGuests, setWalkInGuests] = useState<number>(table?.capacity || 2);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   if (!isOpen || !table) return null;
 
@@ -203,10 +206,22 @@ export function TableDetailModal({
         </div>
 
         {/* Azioni Rapide in base allo stato */}
-        <div className="space-y-2">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-            Azioni Rapide
-          </span>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              Azioni Rapide
+            </span>
+          </div>
+
+          {/* Tasto Diretto Presa Comanda Tavolo */}
+          <button
+            type="button"
+            onClick={() => setIsOrderModalOpen(true)}
+            className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-colors"
+          >
+            <ChefHat className="w-4 h-4 text-slate-950" />
+            <span>Prendi Comanda Tavolo {table.number}</span>
+          </button>
 
           {table.status === "LIBERO" && (
             <div className="space-y-3">
@@ -392,6 +407,13 @@ export function TableDetailModal({
           </div>
         )}
       </div>
+
+      {/* Modal Presa Comanda */}
+      <WaiterOrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        initialTableNumber={table.number}
+      />
     </div>
   );
 }

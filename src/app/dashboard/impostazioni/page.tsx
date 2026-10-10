@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   Settings,
   Clock,
@@ -17,11 +18,13 @@ import {
   Phone,
   Smartphone,
   ChevronRight,
+  ChefHat,
+  Tv,
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
 import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
 
-type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "dispositivi" | "aspetto";
+type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "dispositivi" | "aspetto";
 
 interface TabItem {
   id: SettingsTab;
@@ -66,6 +69,14 @@ const TABS: TabItem[] = [
     description: "Notifiche automatiche WhatsApp di conferma tavolo e stato comande",
   },
   {
+    id: "cucina",
+    label: "Monitor Cucina (KDS)",
+    shortLabel: "Cucina KDS",
+    iconComponent: ChefHat,
+    shortDescription: "Comande FIFO e monitor pass",
+    description: "Abilitazione schermo cucina KDS, ordini fast-food style e gestione comande",
+  },
+  {
     id: "dispositivi",
     label: "Dispositivi & Palmari",
     shortLabel: "Dispositivi",
@@ -108,6 +119,7 @@ export default function TavolyImpostazioniPage() {
     logoUrl: "",
     faviconUrl: "",
     menuShowImages: true,
+    kdsEnabled: false,
   });
 
   // Brand Assets State & Refs
@@ -133,6 +145,7 @@ export default function TavolyImpostazioniPage() {
             telefono: data.telefono || f.telefono,
             indirizzo: data.indirizzo || f.indirizzo,
             menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
+            kdsEnabled: Boolean(data.kdsEnabled),
           }));
         }
       })
@@ -209,6 +222,7 @@ export default function TavolyImpostazioniPage() {
           telefono: form.telefono,
           indirizzo: form.indirizzo,
           menuShowImages: form.menuShowImages,
+          kdsEnabled: form.kdsEnabled,
         }),
       });
 
@@ -554,6 +568,81 @@ export default function TavolyImpostazioniPage() {
             <div className="p-3 rounded-lg bg-white font-mono text-[11px] text-slate-800 leading-relaxed border border-emerald-200">
               Gentile &#123;&#123;nome_cliente&#125;&#125;, il tuo tavolo per &#123;&#123;numero_coperti&#125;&#125; persone è confermato per oggi alle ore &#123;&#123;orario&#125;&#125; da Osteria dei Tavoli! Consulta il menù digitale in anteprima: &#123;&#123;link_menu&#125;&#125;
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CUCINA: MONITOR CUCINA (KDS) */}
+      {activeTab === "cucina" && (
+        <div className="space-y-5">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ChefHat className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Gestione Monitor Cucina (KDS - Kitchen Display System)
+                </h3>
+              </div>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                Fast-Food / Ristorante
+              </span>
+            </div>
+
+            {/* Switch Attivazione KDS */}
+            <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+              <div className="space-y-1">
+                <label
+                  htmlFor="kdsEnabledCheckbox"
+                  className="text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-2"
+                >
+                  <span>Abilita Monitor Cucina KDS</span>
+                  {form.kdsEnabled && (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                      Attivo
+                    </span>
+                  )}
+                </label>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Mostra la voce &quot;Monitor Cucina (KDS)&quot; nella barra laterale e abilita la schermata dinamica in cucina ordinata per arrivo (FIFO) con timer di attesa colorati, gestione rapida varianti e pulsanti touch per il personale al pass.
+                </p>
+              </div>
+              <input
+                id="kdsEnabledCheckbox"
+                type="checkbox"
+                checked={form.kdsEnabled}
+                onChange={(e) => setForm({ ...form, kdsEnabled: e.target.checked })}
+                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
+              />
+            </div>
+
+            {/* Box Anteprima & Link Schermo Intero se abilitato */}
+            {form.kdsEnabled ? (
+              <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tv className="w-4 h-4 text-emerald-700" />
+                    <span className="text-xs font-bold text-emerald-900">
+                      Schermo KDS Pronto per l&apos;uso
+                    </span>
+                  </div>
+                  <Link
+                    href="/cucina"
+                    target="_blank"
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                  >
+                    <span>Apri Monitor a Tutto Schermo</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+                <p className="text-[11px] text-emerald-800/80">
+                  Puoi aprire questo link su qualsiasi tablet, computer o smart TV presente in cucina per tenere traccia delle comande in arrivo. Il sistema include avviso sonoro per i nuovi ordini in tempo reale.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
+                ℹ️ Quando il monitor cucina è disattivato, non compare nella barra di navigazione e non occupa risorse di background.
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -990,6 +990,134 @@ export async function deleteTakeawayOrderAction(id: string) {
   }
 }
 
+// --- COMANDE TAVOLO CAMERIERE & MONITOR CUCINA (KDS) ---
+
+export interface TableOrderItemInput {
+  dishId?: string;
+  name: string;
+  category?: string;
+  quantity: number;
+  price: number;
+  variants?: string[];
+}
+
+export async function createTableOrderAction(data: {
+  tableNumber: string;
+  coverCount: number;
+  waiterName?: string;
+  items: TableOrderItemInput[];
+  notes?: string;
+}) {
+  try {
+    if (!data.tableNumber?.trim()) {
+      return { success: false, error: "Numero tavolo obbligatorio" };
+    }
+    if (!data.items || data.items.length === 0) {
+      return { success: false, error: "Inserisci almeno un piatto nella comanda" };
+    }
+
+    const totalAmount = data.items.reduce(
+      (sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1),
+      0
+    );
+
+    const order = await prisma.tableOrder.create({
+      data: {
+        tableNumber: data.tableNumber.trim(),
+        coverCount: Math.max(1, Number(data.coverCount) || 2),
+        waiterName: data.waiterName?.trim() || "Cameriere Sala",
+        status: "IN_CODA",
+        itemsJson: JSON.stringify(data.items),
+        notes: data.notes?.trim() || null,
+        totalAmount,
+      },
+    });
+
+    // Se esiste un tavolo fisico con questo numero, aggiorniamolo a OCCUPATO
+    try {
+      const existingTable = await prisma.table.findFirst({
+        where: { number: data.tableNumber.trim() },
+      });
+      if (existingTable) {
+        await prisma.table.update({
+          where: { id: existingTable.id },
+          data: {
+            status: "OCCUPATO",
+            seatedCount: Math.max(existingTable.seatedCount, Number(data.coverCount) || 2),
+          },
+        });
+      }
+    } catch (tableErr) {
+      console.warn("[Table Order] Errore aggiornamento stato tavolo fisico:", tableErr);
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore creazione comanda tavolo:", error);
+    return { success: false, error: "Impossibile registrare la comanda" };
+  }
+}
+
+export async function updateTableOrderStatusAction(id: string, status: string) {
+  try {
+    const validStatuses = ["IN_CODA", "IN_PREPARAZIONE", "PRONTO", "SERVITO", "ANNULLATO"];
+    if (!validStatuses.includes(status)) {
+      return { success: false, error: "Stato comanda non valido" };
+    }
+
+    const order = await prisma.tableOrder.update({
+      where: { id },
+      data: { status },
+    });
+
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore aggiornamento stato comanda tavolo:", error);
+    return { success: false, error: "Impossibile aggiornare lo stato della comanda" };
+  }
+}
+
+export async function deleteTableOrderAction(id: string) {
+  try {
+    await prisma.tableOrder.delete({
+      where: { id },
+    });
+
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore eliminazione comanda tavolo:", error);
+    return { success: false, error: "Impossibile eliminare la comanda" };
+  }
+}
+
+export async function toggleKdsSettingAction(enabled: boolean) {
+  try {
+    await prisma.localSetting.upsert({
+      where: { key: "kds_enabled" },
+      create: { key: "kds_enabled", value: enabled ? "true" : "false" },
+      update: { value: enabled ? "true" : "false" },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/impostazioni");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    return { success: true, enabled };
+  } catch (error) {
+    console.error("Errore salvataggio flag KDS:", error);
+    return { success: false, error: "Impossibile aggiornare le impostazioni KDS" };
+  }
+}
+
+
 
 
 
