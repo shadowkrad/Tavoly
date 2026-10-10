@@ -9,16 +9,14 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function StandaloneCucinaPage() {
-  const [kdsSetting, restaurantSetting] = await Promise.all([
-    prisma.localSetting.findUnique({
-      where: { key: "kds_enabled" },
-    }),
+  const { getIsKdsEnabled } = await import("@/lib/kds-setting");
+  const [isKdsEnabled, restaurantSetting] = await Promise.all([
+    getIsKdsEnabled(),
     prisma.localSetting.findUnique({
       where: { key: "restaurant_name" },
     }),
   ]);
 
-  const isKdsEnabled = kdsSetting ? kdsSetting.value === "true" : false;
   const restaurantName = restaurantSetting ? restaurantSetting.value : "Osteria dei Tavoli";
 
   if (!isKdsEnabled) {

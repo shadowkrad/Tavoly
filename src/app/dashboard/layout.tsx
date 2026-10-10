@@ -26,10 +26,8 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const kdsSetting = await prisma.localSetting.findUnique({
-    where: { key: "kds_enabled" },
-  }).catch(() => null);
-  const isKdsEnabled = kdsSetting ? kdsSetting.value === "true" : false;
+  const { getIsKdsEnabled } = await import("@/lib/kds-setting");
+  const isKdsEnabled = await getIsKdsEnabled();
 
   const userMaintenance = await getMaintenanceSession();
   const activeMaintenance = tenantConfig?.activeMaintenance;

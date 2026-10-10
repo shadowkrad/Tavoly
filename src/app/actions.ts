@@ -1100,11 +1100,8 @@ export async function deleteTableOrderAction(id: string) {
 
 export async function toggleKdsSettingAction(enabled: boolean) {
   try {
-    await prisma.localSetting.upsert({
-      where: { key: "kds_enabled" },
-      create: { key: "kds_enabled", value: enabled ? "true" : "false" },
-      update: { value: enabled ? "true" : "false" },
-    });
+    const { setIsKdsEnabled } = await import("@/lib/kds-setting");
+    await setIsKdsEnabled(enabled);
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/impostazioni");

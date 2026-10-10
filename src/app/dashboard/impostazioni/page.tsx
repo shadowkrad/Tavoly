@@ -104,6 +104,9 @@ export default function TavolyImpostazioniPage() {
 
   const handleToggleKds = async (newVal: boolean) => {
     setForm((prev) => ({ ...prev, kdsEnabled: newVal }));
+    if (typeof document !== "undefined") {
+      document.cookie = `kds_enabled=${newVal ? "true" : "false"}; path=/; max-age=31536000; SameSite=Lax`;
+    }
     setKdsSaving(true);
     try {
       await toggleKdsSettingAction(newVal);
@@ -147,23 +150,37 @@ export default function TavolyImpostazioniPage() {
   const [imageProcessing, setImageProcessing] = useState<string | null>(null);
 
   useEffect(() => {
+    let cookieKds: boolean | null = null;
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/(?:^|;\s*)kds_enabled=([^;]*)/);
+      if (match) {
+        cookieKds = match[1] === "true";
+      }
+    }
+    if (cookieKds !== null) {
+      setForm((f) => ({ ...f, kdsEnabled: cookieKds! }));
+    }
+
     fetch("/api/impostazioni")
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) {
-          setForm((f) => ({
-            ...f,
-            nomeRistorante: data.nomeRistorante || f.nomeRistorante,
-            logoUrl: data.logoUrl || "",
-            faviconUrl: data.faviconUrl || "",
-            colorePrimario: data.colorePrimario || f.colorePrimario,
-            coloreAccento: data.coloreAccento || f.coloreAccento,
-            email: data.email || f.email,
-            telefono: data.telefono || f.telefono,
-            indirizzo: data.indirizzo || f.indirizzo,
-            menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
-            kdsEnabled: Boolean(data.kdsEnabled),
-          }));
+          setForm((f) => {
+            const resolvedKds = cookieKds !== null ? cookieKds : Boolean(data.kdsEnabled);
+            return {
+              ...f,
+              nomeRistorante: data.nomeRistorante || f.nomeRistorante,
+              logoUrl: data.logoUrl || "",
+              faviconUrl: data.faviconUrl || "",
+              colorePrimario: data.colorePrimario || f.colorePrimario,
+              coloreAccento: data.coloreAccento || f.coloreAccento,
+              email: data.email || f.email,
+              telefono: data.telefono || f.telefono,
+              indirizzo: data.indirizzo || f.indirizzo,
+              menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
+              kdsEnabled: resolvedKds,
+            };
+          });
         }
       })
       .catch((err) => console.error("Errore caricamento impostazioni:", err));
@@ -226,6 +243,9 @@ export default function TavolyImpostazioniPage() {
     setSaving(true);
     setFeedback(null);
     try {
+      if (typeof document !== "undefined") {
+        document.cookie = `kds_enabled=${form.kdsEnabled ? "true" : "false"}; path=/; max-age=31536000; SameSite=Lax`;
+      }
       const res = await fetch("/api/impostazioni", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

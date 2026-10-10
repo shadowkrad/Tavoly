@@ -28,6 +28,9 @@ export async function GET() {
       map[s.key] = s.value;
     }
 
+    const { getIsKdsEnabled } = await import("@/lib/kds-setting");
+    const kdsEnabled = await getIsKdsEnabled();
+
     return NextResponse.json({
       nomeRistorante: map["restaurant_name"] || "Osteria dei Tavoli",
       logoUrl: map["brand_logo_url"] || "",
@@ -38,7 +41,7 @@ export async function GET() {
       telefono: map["contact_phone"] || "+39 0575 654321",
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
       menuShowImages: map["menu_show_dish_images"] !== "false",
-      kdsEnabled: map["kds_enabled"] === "true",
+      kdsEnabled,
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -90,7 +93,16 @@ export async function PUT(req: NextRequest) {
     revalidatePath("/menu");
     revalidatePath("/", "layout");
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    if (kdsEnabled !== undefined) {
+      response.cookies.set("kds_enabled", kdsEnabled ? "true" : "false", {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Errore salvataggio impostazioni Tavoly:", error);
     return NextResponse.json({ error: "Errore nel salvataggio" }, { status: 500 });
