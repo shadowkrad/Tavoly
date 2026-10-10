@@ -2,9 +2,11 @@ import React from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { KitchenDisplayView } from "@/components/dashboard/KitchenDisplayView";
+import { toggleKdsSettingAction } from "@/app/actions";
 import { ChefHat, Settings, ArrowRight, Tv } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function CucinaDashboardPage() {
   const [kdsSetting, restaurantSetting] = await Promise.all([
@@ -30,17 +32,30 @@ export default async function CucinaDashboardPage() {
             Monitor Cucina KDS Disattivato
           </h1>
           <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Il modulo Monitor Cucina (KDS) è attualmente disabilitato nelle impostazioni di sala.
-            Attivalo per visualizzare le comande in arrivo sul monitor in tempo reale.
+            Il modulo Monitor Cucina (KDS) è attualmente disabilitato. Puoi attivarlo istantaneamente qui sotto oppure gestirlo dalle impostazioni di sala.
           </p>
         </div>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <form
+            action={async () => {
+              "use server";
+              await toggleKdsSettingAction(true);
+            }}
+          >
+            <button
+              type="submit"
+              className="taaaac-btn-primary px-6 py-2.5 text-xs inline-flex items-center gap-2 font-bold cursor-pointer shadow-md"
+            >
+              <ChefHat className="w-4 h-4" />
+              <span>Attiva Monitor Cucina Adesso ⚡</span>
+            </button>
+          </form>
           <Link
             href="/dashboard/impostazioni"
-            className="taaaac-btn-primary px-5 py-2.5 text-xs inline-flex items-center gap-2"
+            className="taaaac-btn-secondary px-5 py-2.5 text-xs inline-flex items-center gap-2"
           >
             <Settings className="w-4 h-4" />
-            <span>Vai a Impostazioni e Attiva KDS</span>
+            <span>Vai a Impostazioni Sala</span>
           </Link>
         </div>
       </div>

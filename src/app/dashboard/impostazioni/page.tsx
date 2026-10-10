@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
 import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
+import { toggleKdsSettingAction } from "@/app/actions";
 
 type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "dispositivi" | "aspetto";
 
@@ -98,6 +99,22 @@ export default function TavolyImpostazioniPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("ristorante");
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [kdsSaving, setKdsSaving] = useState(false);
+  const [kdsSavedNotice, setKdsSavedNotice] = useState(false);
+
+  const handleToggleKds = async (newVal: boolean) => {
+    setForm((prev) => ({ ...prev, kdsEnabled: newVal }));
+    setKdsSaving(true);
+    try {
+      await toggleKdsSettingAction(newVal);
+      setKdsSavedNotice(true);
+      setTimeout(() => setKdsSavedNotice(false), 3000);
+    } catch (err) {
+      console.error("Errore salvataggio rapido KDS:", err);
+    } finally {
+      setKdsSaving(false);
+    }
+  };
 
   // Form State
   const [form, setForm] = useState({
@@ -601,6 +618,16 @@ export default function TavolyImpostazioniPage() {
                       Attivo
                     </span>
                   )}
+                  {kdsSaving && (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 animate-pulse">
+                      Salvataggio in corso...
+                    </span>
+                  )}
+                  {kdsSavedNotice && (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                      ✓ Salvato e attivo!
+                    </span>
+                  )}
                 </label>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   Mostra la voce &quot;Monitor Cucina (KDS)&quot; nella barra laterale e abilita la schermata dinamica in cucina ordinata per arrivo (FIFO) con timer di attesa colorati, gestione rapida varianti e pulsanti touch per il personale al pass.
@@ -610,7 +637,8 @@ export default function TavolyImpostazioniPage() {
                 id="kdsEnabledCheckbox"
                 type="checkbox"
                 checked={form.kdsEnabled}
-                onChange={(e) => setForm({ ...form, kdsEnabled: e.target.checked })}
+                disabled={kdsSaving}
+                onChange={(e) => handleToggleKds(e.target.checked)}
                 className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
               />
             </div>
@@ -643,6 +671,22 @@ export default function TavolyImpostazioniPage() {
                 ℹ️ Quando il monitor cucina è disattivato, non compare nella barra di navigazione e non occupa risorse di background.
               </div>
             )}
+
+            {/* Tasto dedicato Salva & Applica Stato Monitor KDS */}
+            <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+              <span className="text-xs text-slate-500">
+                Stato salvato: <strong>{form.kdsEnabled ? "Attivo" : "Disattivato"}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => handleToggleKds(form.kdsEnabled)}
+                disabled={kdsSaving}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{kdsSaving ? "Salvataggio..." : "Salva Stato Monitor KDS"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

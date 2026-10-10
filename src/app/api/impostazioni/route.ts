@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -81,6 +82,13 @@ export async function PUT(req: NextRequest) {
         update: { value: item.value },
       });
     }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/impostazioni");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/menu");
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true });
   } catch (error) {

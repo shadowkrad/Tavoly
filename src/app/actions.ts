@@ -1110,6 +1110,7 @@ export async function toggleKdsSettingAction(enabled: boolean) {
     revalidatePath("/dashboard/impostazioni");
     revalidatePath("/dashboard/cucina");
     revalidatePath("/cucina");
+    revalidatePath("/", "layout");
     return { success: true, enabled };
   } catch (error) {
     console.error("Errore salvataggio flag KDS:", error);
