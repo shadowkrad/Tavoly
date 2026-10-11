@@ -13,7 +13,10 @@ export function middleware(request: NextRequest) {
 
   // Security Headers
   response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set(
+    "Content-Security-Policy",
+    "frame-ancestors 'self' https://taaaac.eu https://*.taaaac.eu https://*.vercel.app http://localhost:*;"
+  );
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-XSS-Protection", "1; mode=block");
 
