@@ -1,0 +1,1076 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import {
+  ShowcaseConfig,
+  DEFAULT_TAVOLY_SHOWCASE_CONFIG,
+  GalleryPhotoItem,
+} from "@/lib/showcase-defaults";
+import {
+  Sparkles,
+  Smartphone,
+  Monitor,
+  Save,
+  RotateCcw,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Image as ImageIcon,
+  Type,
+  Palette,
+  Eye,
+  Plus,
+  Trash2,
+  Upload,
+  Star,
+  ShieldCheck,
+  Award,
+  Clock,
+  MapPin,
+  UtensilsCrossed,
+  ArrowRight,
+  Quote,
+  ShoppingBag,
+} from "lucide-react";
+
+type ControlTab = "hero" | "media" | "colori" | "cucina" | "sezioni" | "badges";
+
+export default function ShowcaseVisualStudio() {
+  const [config, setConfig] = useState<ShowcaseConfig>(DEFAULT_TAVOLY_SHOWCASE_CONFIG);
+  const [activeControlTab, setActiveControlTab] = useState<ControlTab>("hero");
+  const [deviceMode, setDeviceMode] = useState<"mobile" | "desktop">("mobile");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [imageProcessing, setImageProcessing] = useState<string | null>(null);
+
+  // File Inputs Refs
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    fetch("/api/impostazioni/vetrina")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setConfig(data);
+        }
+      })
+      .catch((err) => console.error("Errore fetch vetrina Tavoly:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const processImageFile = (
+    file: File,
+    maxSize: number,
+    format: "image/webp" | "image/png",
+    callback: (dataUrl: string) => void
+  ) => {
+    if (!file.type.startsWith("image/")) {
+      setFeedback({ type: "error", text: "Il file selezionato non è un'immagine valida." });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setFeedback({ type: "error", text: "L'immagine supera i 10MB. Seleziona un file più leggero." });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL(format, format === "image/webp" ? 0.88 : undefined);
+        callback(dataUrl);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/impostazioni/vetrina", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+
+      if (res.ok) {
+        setFeedback({ type: "success", text: "Vetrina del ristorante aggiornata con successo!" });
+      } else {
+        setFeedback({ type: "error", text: "Errore durante il salvataggio della vetrina." });
+      }
+    } catch {
+      setFeedback({ type: "error", text: "Errore di connessione." });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setFeedback(null), 4000);
+    }
+  };
+
+  const handleResetToDefault = () => {
+    if (window.confirm("Vuoi ripristinare i testi e la grafica predefinita di Tavoly?")) {
+      setConfig({ ...DEFAULT_TAVOLY_SHOWCASE_CONFIG });
+      setFeedback({ type: "success", text: "Valori predefiniti ripristinati. Clicca Salva per confermare." });
+    }
+  };
+
+  const addGalleryImage = (dataUrl: string) => {
+    const newImg: GalleryPhotoItem = {
+      id: `img_${Date.now()}`,
+      url: dataUrl,
+      caption: "Nuova foto della sala / piatti",
+    };
+    setConfig((prev) => ({
+      ...prev,
+      gallery: {
+        ...prev.gallery,
+        images: [...prev.gallery.images, newImg],
+      },
+    }));
+  };
+
+  const removeGalleryImage = (id: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      gallery: {
+        ...prev.gallery,
+        images: prev.gallery.images.filter((img) => img.id !== id),
+      },
+    }));
+  };
+
+  const updateGalleryCaption = (id: string, caption: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      gallery: {
+        ...prev.gallery,
+        images: prev.gallery.images.map((img) => (img.id === id ? { ...img, caption } : img)),
+      },
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm font-semibold">Caricamento Showcase Studio...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Barra Azioni & Toolbar Superiore */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-0.5">
+            <span>✨ Showcase Visual Studio</span>
+            <span>•</span>
+            <span>Live Customizer Ristorante</span>
+          </div>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <span>Editor Vetrina Interattivo</span>
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Personalizza testi di benvenuto, cover d&apos;atmosfera, galleria piatti e sezioni pubbliche.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Selettore Device Desktop / Mobile */}
+          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setDeviceMode("mobile")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                deviceMode === "mobile"
+                  ? "bg-white text-slate-900 shadow-xs border border-slate-200"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Mobile</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeviceMode("desktop")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                deviceMode === "desktop"
+                  ? "bg-white text-slate-900 shadow-xs border border-slate-200"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Desktop</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleResetToDefault}
+            className="px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Default</span>
+          </button>
+
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center gap-1.5"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">Vedi Sito</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-60"
+          >
+            {saving ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Salvataggio...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>Salva Vetrina</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {feedback && (
+        <div
+          className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center justify-between ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            )}
+            <span>{feedback.text}</span>
+          </div>
+          <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-slate-600 text-xs">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* STRUTTURA SPLIT-SCREEN */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* PANNELLO SINISTRO: CONTROLLI */}
+        <div className="xl:col-span-5 space-y-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-2 flex flex-wrap gap-1.5 shadow-xs">
+            {[
+              { id: "hero", label: "Hero & Copy", icon: Type },
+              { id: "media", label: "Cover & Foto", icon: ImageIcon },
+              { id: "colori", label: "Colori", icon: Palette },
+              { id: "cucina", label: "La Cucina", icon: Quote },
+              { id: "sezioni", label: "Sezioni", icon: Eye },
+              { id: "badges", label: "Badges", icon: Award },
+            ].map((tab) => {
+              const IconComp = tab.icon;
+              const isActive = activeControlTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveControlTab(tab.id as ControlTab)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent"
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-5">
+            {/* HERO & COPY */}
+            {activeControlTab === "hero" && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Type className="w-4 h-4 text-emerald-600" />
+                    <span>Testi Schermata Iniziale (Hero)</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Prima impressione all&apos;ingresso sul sito per i tuoi clienti.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Badge Promozionale Top</label>
+                  <input
+                    type="text"
+                    value={config.hero.badgeText}
+                    onChange={(e) =>
+                      setConfig({ ...config, hero: { ...config.hero, badgeText: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Titolo Principale</label>
+                  <textarea
+                    rows={2}
+                    value={config.hero.title}
+                    onChange={(e) =>
+                      setConfig({ ...config, hero: { ...config.hero, title: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Sottotitolo / Descrizione Locale</label>
+                  <textarea
+                    rows={3}
+                    value={config.hero.subtitle}
+                    onChange={(e) =>
+                      setConfig({ ...config, hero: { ...config.hero, subtitle: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Tavolo (CTA 1)</label>
+                    <input
+                      type="text"
+                      value={config.hero.ctaPrimaryText}
+                      onChange={(e) =>
+                        setConfig({ ...config, hero: { ...config.hero, ctaPrimaryText: e.target.value } })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Asporto (CTA 2)</label>
+                    <input
+                      type="text"
+                      value={config.hero.ctaSecondaryText}
+                      onChange={(e) =>
+                        setConfig({ ...config, hero: { ...config.hero, ctaSecondaryText: e.target.value } })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MEDIA & FOTO */}
+            {activeControlTab === "media" && (
+              <div className="space-y-5">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-emerald-600" />
+                    <span>Cover Hero & Galleria Sala / Piatti</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Upload con compressione client-side WebP a caricamento istantaneo.
+                  </p>
+                </div>
+
+                {/* COVER HERO */}
+                <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Foto Copertina Hero</h4>
+                      <p className="text-[10px] text-slate-500">Banner fotografico della sala o mise en place.</p>
+                    </div>
+                    {config.hero.coverImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfig({ ...config, hero: { ...config.hero, coverImageUrl: null } })
+                        }
+                        className="text-[11px] text-rose-600 hover:underline font-semibold"
+                      >
+                        Rimuovi Cover
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={coverInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageProcessing("cover");
+                        processImageFile(file, 1280, "image/webp", (dataUrl) => {
+                          setConfig((prev) => ({
+                            ...prev,
+                            hero: { ...prev.hero, coverImageUrl: dataUrl },
+                          }));
+                          setImageProcessing(null);
+                        });
+                      }
+                    }}
+                  />
+
+                  {config.hero.coverImageUrl ? (
+                    <div className="relative rounded-xl overflow-hidden h-28 border border-slate-300 group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={config.hero.coverImageUrl} alt="Hero Cover" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => coverInputRef.current?.click()}
+                        className="absolute inset-0 bg-slate-950/60 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Cambia Copertina</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => coverInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-xl p-4 text-center cursor-pointer bg-white hover:bg-slate-50 transition"
+                    >
+                      <Upload className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
+                      <div className="text-xs text-slate-800 font-semibold">Carica Foto Copertina Ristorante</div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">JPG, PNG o WebP (max 1280px)</p>
+                    </button>
+                  )}
+
+                  {imageProcessing === "cover" && (
+                    <div className="text-xs text-emerald-600 animate-pulse text-center">
+                      Ottimizzazione cover in corso...
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                      <span>Opacità Scurimento Copertina</span>
+                      <span className="text-emerald-700 font-mono font-bold">{config.hero.overlayOpacity}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="15"
+                      max="90"
+                      value={config.hero.overlayOpacity}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          hero: { ...config.hero, overlayOpacity: Number(e.target.value) },
+                        })
+                      }
+                      className="w-full accent-emerald-600 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* GALLERIA PIATTI & SALA */}
+                <div className="space-y-3 pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Galleria Foto Sala & Piatti</span>
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-slate-100 text-slate-600">
+                          {config.gallery.images.length} foto
+                        </span>
+                      </h4>
+                      <p className="text-[10px] text-slate-500">Mise en place, cantina vini e piatti speciali.</p>
+                    </div>
+
+                    <input
+                      type="file"
+                      ref={galleryInputRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setImageProcessing("gallery");
+                          processImageFile(file, 800, "image/webp", (dataUrl) => {
+                            addGalleryImage(dataUrl);
+                            setImageProcessing(null);
+                          });
+                        }
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Aggiungi Foto</span>
+                    </button>
+                  </div>
+
+                  {imageProcessing === "gallery" && (
+                    <div className="text-xs text-emerald-600 animate-pulse text-center">
+                      Compressione foto in corso...
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
+                    {config.gallery.images.map((img) => (
+                      <div
+                        key={img.id}
+                        className="p-2 rounded-xl bg-slate-50 border border-slate-200 relative group space-y-1.5"
+                      >
+                        <div className="h-20 rounded-lg overflow-hidden bg-slate-200 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img.url} alt={img.caption || "Piatto"} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(img.id)}
+                            className="absolute top-1 right-1 p-1 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={img.caption || ""}
+                          onChange={(e) => updateGalleryCaption(img.id, e.target.value)}
+                          placeholder="Didascalia piatto o sala..."
+                          className="w-full px-2 py-1 rounded-md bg-white border border-slate-200 text-[10px] text-slate-700 focus:outline-hidden"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* COLORI */}
+            {activeControlTab === "colori" && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-emerald-600" />
+                    <span>Palette & Colori Ristorante</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Tonalità primarie per pulsanti, header e dettagli.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">Colore Primario</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={config.primaryColor}
+                        onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
+                        className="w-9 h-9 rounded-xl cursor-pointer bg-transparent border-0"
+                      />
+                      <span className="font-mono text-xs text-slate-700 font-bold">{config.primaryColor}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">Colore Accento (Tasti & Badge)</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={config.accentColor}
+                        onChange={(e) => setConfig({ ...config, accentColor: e.target.value })}
+                        className="w-9 h-9 rounded-xl cursor-pointer bg-transparent border-0"
+                      />
+                      <span className="font-mono text-xs text-emerald-700 font-bold">{config.accentColor}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 space-y-2">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Palette Consigliate per Ristorazione
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { name: "Verde Smeraldo", primary: "#064e3b", accent: "#059669" },
+                      { name: "Borgogna & Vino", primary: "#450a0a", accent: "#dc2626" },
+                      { name: "Ardesia & Oro", primary: "#0f172a", accent: "#d97706" },
+                      { name: "Blu Marinaro", primary: "#0c4a6e", accent: "#0284c7" },
+                      { name: "Terra & Terracotta", primary: "#431407", accent: "#ea580c" },
+                      { name: "Ambra Caldo", primary: "#1c1917", accent: "#f59e0b" },
+                    ].map((p) => (
+                      <button
+                        key={p.name}
+                        type="button"
+                        onClick={() =>
+                          setConfig({
+                            ...config,
+                            primaryColor: p.primary,
+                            accentColor: p.accent,
+                          })
+                        }
+                        className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition flex items-center gap-2 cursor-pointer"
+                      >
+                        <div className="flex items-center -space-x-1 shrink-0">
+                          <span className="w-4 h-4 rounded-full border border-white" style={{ backgroundColor: p.primary }} />
+                          <span className="w-4 h-4 rounded-full border border-white" style={{ backgroundColor: p.accent }} />
+                        </div>
+                        <span className="text-[11px] text-slate-700 font-medium truncate">{p.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* LA CUCINA & FILOSOFIA */}
+            {activeControlTab === "cucina" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Quote className="w-4 h-4 text-emerald-600" />
+                      <span>La Nostra Cucina & Filosofia</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Descrivi l&apos;amore per le materie prime e la tradizione culinaria.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={config.about.enabled}
+                      onChange={(e) =>
+                        setConfig({ ...config, about: { ...config.about, enabled: e.target.checked } })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Titolo Sezione</label>
+                  <input
+                    type="text"
+                    value={config.about.title}
+                    onChange={(e) =>
+                      setConfig({ ...config, about: { ...config.about, title: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Sottotitolo / Filosofia</label>
+                  <input
+                    type="text"
+                    value={config.about.subtitle}
+                    onChange={(e) =>
+                      setConfig({ ...config, about: { ...config.about, subtitle: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Descrizione Piatti & Locale</label>
+                  <textarea
+                    rows={4}
+                    value={config.about.description}
+                    onChange={(e) =>
+                      setConfig({ ...config, about: { ...config.about, description: e.target.value } })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden resize-none"
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Citazione Chef o Titolare</label>
+                    <input
+                      type="text"
+                      value={config.about.quoteText || ""}
+                      onChange={(e) =>
+                        setConfig({ ...config, about: { ...config.about, quoteText: e.target.value } })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Autore Citazione</label>
+                    <input
+                      type="text"
+                      value={config.about.quoteAuthor || ""}
+                      onChange={(e) =>
+                        setConfig({ ...config, about: { ...config.about, quoteAuthor: e.target.value } })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SEZIONI ON/OFF */}
+            {activeControlTab === "sezioni" && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Eye className="w-4 h-4 text-emerald-600" />
+                    <span>Visibilità Sezioni Vetrina Ristorante</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Attiva o disattiva le singole sezioni della pagina pubblica.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {[
+                    { key: "showHero", label: "Schermata Hero di Benvenuto", desc: "Copertina, claim e pulsanti principali" },
+                    { key: "showTrustBadges", label: "Badges di Affidabilità", desc: "Conferma istantanea, WhatsApp, zero attesa" },
+                    { key: "showTakeawayCta", label: "Pulsante Ordina da Asporto", desc: "Mostra il tasto takeaway nella vetrina" },
+                    { key: "showServices", label: "Spazi & Servizi Ristorante", desc: "Dehors, sala interna, aperitivi" },
+                    { key: "showGallery", label: "Galleria Foto Sala & Piatti", desc: "Scatti della location e creazioni" },
+                    { key: "showAbout", label: "La Nostra Cucina & Filosofia", desc: "Storia del locale e citazione Chef" },
+                    { key: "showHours", label: "Turni di Servizio (Pranzo/Cena)", desc: "Fasce orarie e disponibilità coperti" },
+                    { key: "showContact", label: "Dove Siamo & Indicazioni", desc: "Indirizzo, telefono e recapiti" },
+                  ].map((sec) => (
+                    <div
+                      key={sec.key}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">{sec.label}</span>
+                        <span className="text-[10px] text-slate-500">{sec.desc}</span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={config.sections[sec.key as keyof typeof config.sections]}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              sections: {
+                                ...config.sections,
+                                [sec.key]: e.target.checked,
+                              },
+                            })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* BADGES */}
+            {activeControlTab === "badges" && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-emerald-600" />
+                    <span>Badges di Fiducia Tavoly</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Mostrati sotto l&apos;Hero per rassicurare i clienti.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {config.trustBadges.map((badge, idx) => (
+                    <div key={badge.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-700">Badge #{idx + 1}</span>
+                        <select
+                          value={badge.icon}
+                          onChange={(e) => {
+                            const newBadges = [...config.trustBadges];
+                            newBadges[idx] = { ...badge, icon: e.target.value as any };
+                            setConfig({ ...config, trustBadges: newBadges });
+                          }}
+                          className="text-xs bg-white border border-slate-200 text-slate-700 rounded-lg px-2 py-1"
+                        >
+                          <option value="check">✔️ Spunta / Conferma</option>
+                          <option value="star">⭐ Stella Recensioni</option>
+                          <option value="clock">⏱️ Orologio / Zero Attesa</option>
+                          <option value="shield">🛡️ Scudo / Qualità</option>
+                          <option value="award">🏆 Premio / Chef</option>
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        value={badge.text}
+                        onChange={(e) => {
+                          const newBadges = [...config.trustBadges];
+                          newBadges[idx] = { ...badge, text: e.target.value };
+                          setConfig({ ...config, trustBadges: newBadges });
+                        }}
+                        className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* PANNELLO DESTRO: LIVE SIMULATOR */}
+        <div className="xl:col-span-7 space-y-2">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <span>📱 Simulatore Live Tavoly</span>
+              <span className="text-emerald-700 text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                In Tempo Reale
+              </span>
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {deviceMode === "mobile" ? "Formato Smartphone (390px)" : "Formato Schermo Intero"}
+            </span>
+          </div>
+
+          <div
+            className={`mx-auto transition-all duration-300 ${
+              deviceMode === "mobile"
+                ? "max-w-[400px] rounded-[44px] p-3 bg-slate-900 border-[6px] border-slate-800 shadow-2xl ring-1 ring-slate-700"
+                : "w-full rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+            }`}
+          >
+            {deviceMode === "mobile" && (
+              <div className="h-6 flex items-center justify-between px-6 mb-1 text-[10px] text-slate-400 select-none">
+                <span className="font-bold text-white">12:30</span>
+                <div className="w-20 h-4 bg-slate-950 rounded-full border border-slate-800 mx-auto" />
+                <span className="font-mono">5G 100%</span>
+              </div>
+            )}
+
+            <div
+              className={`bg-slate-50 text-slate-800 overflow-y-auto no-scrollbar rounded-[32px] font-sans ${
+                deviceMode === "mobile" ? "max-h-[700px] min-h-[580px]" : "max-h-[760px] min-h-[580px]"
+              }`}
+            >
+              {/* Navbar Live */}
+              <nav className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  {config.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={config.logoUrl} alt="Logo" className="h-7 max-w-[120px] object-contain rounded" />
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                      <span
+                        className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-black text-white"
+                        style={{ backgroundColor: config.primaryColor }}
+                      >
+                        🍽️
+                      </span>
+                      <span className="truncate">{config.brandName}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    style={{ backgroundColor: config.primaryColor }}
+                    className="text-[11px] font-bold text-white px-3 py-1 rounded-full shadow-xs cursor-default"
+                  >
+                    Prenota
+                  </span>
+                </div>
+              </nav>
+
+              {/* HERO SECTION */}
+              {config.sections.showHero && (
+                <section className="relative overflow-hidden py-10 sm:py-14 px-4 text-center space-y-4">
+                  {config.hero.coverImageUrl ? (
+                    <div className="absolute inset-0 z-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={config.hero.coverImageUrl} alt="Hero Cover" className="w-full h-full object-cover" />
+                      <div
+                        className="absolute inset-0 bg-slate-950"
+                        style={{ opacity: config.hero.overlayOpacity / 100 }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="absolute inset-0 z-0"
+                      style={{
+                        background: `linear-gradient(180deg, #ffffff 0%, ${config.primaryColor}15 100%)`,
+                      }}
+                    />
+                  )}
+
+                  <div className="relative z-10 space-y-3 max-w-lg mx-auto">
+                    {config.hero.badgeText && (
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                          config.hero.coverImageUrl
+                            ? "bg-white/10 text-emerald-300 border-white/20"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        <span>{config.hero.badgeText}</span>
+                      </div>
+                    )}
+
+                    <h1
+                      className={`text-xl sm:text-2xl font-black leading-tight tracking-tight ${
+                        config.hero.coverImageUrl ? "text-white" : "text-slate-900"
+                      }`}
+                    >
+                      {config.hero.title}
+                    </h1>
+
+                    <p
+                      className={`text-xs leading-relaxed max-w-md mx-auto ${
+                        config.hero.coverImageUrl ? "text-slate-200" : "text-slate-600"
+                      }`}
+                    >
+                      {config.hero.subtitle}
+                    </p>
+
+                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                      <span
+                        style={{ backgroundColor: config.primaryColor }}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md inline-flex items-center justify-center gap-1.5 cursor-default"
+                      >
+                        <UtensilsCrossed className="w-3.5 h-3.5" />
+                        <span>{config.hero.ctaPrimaryText}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                      {config.sections.showTakeawayCta && config.hero.ctaSecondaryText && (
+                        <span className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 inline-flex items-center justify-center gap-1.5 cursor-default">
+                          <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
+                          <span>{config.hero.ctaSecondaryText}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* TRUST BADGES */}
+              {config.sections.showTrustBadges && (
+                <div className="bg-white border-y border-slate-200 px-4 py-2.5">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] font-semibold text-slate-700">
+                    {config.trustBadges.map((tb) => (
+                      <span key={tb.id} className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>{tb.text}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* GALLERIA SALA & PIATTI */}
+              {config.sections.showGallery && config.gallery.images.length > 0 && (
+                <section className="p-4 space-y-3 bg-white border-b border-slate-200">
+                  <div className="text-center space-y-0.5">
+                    <h3 className="text-sm font-bold text-slate-900">{config.gallery.title}</h3>
+                    <p className="text-[10px] text-slate-500">{config.gallery.subtitle}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {config.gallery.images.slice(0, 4).map((img) => (
+                      <div key={img.id} className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt={img.caption || "Sala"} className="w-full h-24 object-cover" />
+                        {img.caption && (
+                          <div className="p-1.5 text-[9px] text-slate-600 truncate bg-white">
+                            {img.caption}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* LA CUCINA & FILOSOFIA */}
+              {config.sections.showAbout && config.about.enabled && (
+                <section className="p-5 text-center space-y-3 bg-emerald-950 text-white">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                    {config.about.subtitle}
+                  </span>
+                  <h3 className="text-sm font-black text-white">{config.about.title}</h3>
+                  <p className="text-[11px] text-emerald-100 leading-relaxed max-w-sm mx-auto">
+                    {config.about.description}
+                  </p>
+                  {config.about.quoteText && (
+                    <blockquote className="p-3 rounded-xl bg-emerald-900/60 border border-emerald-800 italic text-[10px] text-emerald-200 space-y-1">
+                      <p>&ldquo;{config.about.quoteText}&rdquo;</p>
+                      {config.about.quoteAuthor && (
+                        <footer className="text-amber-400 font-bold not-italic text-[9px]">
+                          — {config.about.quoteAuthor}
+                        </footer>
+                      )}
+                    </blockquote>
+                  )}
+                </section>
+              )}
+
+              {/* ORARI & DOVE SIAMO */}
+              {config.sections.showHours && (
+                <footer className="p-4 bg-white text-center space-y-2 text-[10px] text-slate-500 border-t border-slate-200">
+                  <div className="flex items-center justify-center gap-1 text-slate-700 font-semibold">
+                    <MapPin className="w-3 h-3 text-emerald-700" />
+                    <span>Piazza Grande, 12 - 52100 Arezzo (AR)</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1">
+                    <Clock className="w-3 h-3 text-emerald-700" />
+                    <span>Pranzo 12:30 - 15:00 • Cena 19:30 - 23:00</span>
+                  </div>
+                  <p className="text-[9px] text-slate-400 pt-2 border-t border-slate-100">
+                    Powered by Taaaac Suite • Tavoly Hospitality
+                  </p>
+                </footer>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

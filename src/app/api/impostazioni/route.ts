@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { parseShowcaseConfig } from "@/lib/showcase-defaults";
 
 export async function GET() {
   try {
@@ -18,6 +19,7 @@ export async function GET() {
             "address",
             "menu_show_dish_images",
             "kds_enabled",
+            "showcase_config",
           ],
         },
       },
@@ -34,6 +36,13 @@ export async function GET() {
     const { getTakeawaySettings } = await import("@/lib/takeaway-server");
     const takeawaySettings = await getTakeawaySettings();
 
+    const showcaseConfig = parseShowcaseConfig(map["showcase_config"]);
+    if (map["restaurant_name"]) showcaseConfig.brandName = map["restaurant_name"];
+    if (map["brand_logo_url"]) showcaseConfig.logoUrl = map["brand_logo_url"];
+    if (map["brand_favicon_url"]) showcaseConfig.faviconUrl = map["brand_favicon_url"];
+    if (map["color_primary"]) showcaseConfig.primaryColor = map["color_primary"];
+    if (map["color_accent"]) showcaseConfig.accentColor = map["color_accent"];
+
     return NextResponse.json({
       nomeRistorante: map["restaurant_name"] || "Osteria dei Tavoli",
       logoUrl: map["brand_logo_url"] || "",
@@ -46,6 +55,7 @@ export async function GET() {
       menuShowImages: map["menu_show_dish_images"] !== "false",
       kdsEnabled,
       takeawaySettings,
+      showcaseConfig,
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -68,7 +78,15 @@ export async function PUT(req: NextRequest) {
       menuShowImages,
       kdsEnabled,
       takeawaySettings,
+      showcaseConfig,
     } = body;
+
+    const showcaseConfigStr =
+      showcaseConfig !== undefined
+        ? typeof showcaseConfig === "string"
+          ? showcaseConfig
+          : JSON.stringify(showcaseConfig)
+        : undefined;
 
     const upserts = [
       nomeRistorante !== undefined && { key: "restaurant_name", value: String(nomeRistorante) },
@@ -81,6 +99,7 @@ export async function PUT(req: NextRequest) {
       indirizzo !== undefined && { key: "address", value: String(indirizzo) },
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
+      showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {
