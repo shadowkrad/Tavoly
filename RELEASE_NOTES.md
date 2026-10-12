@@ -1,5 +1,13 @@
 # 🍽️ Tavoly — Release Notes
 
+## Novità della Versione 1.1.0 (In Sviluppo)
+
+### Novità in Lavorazione
+- Nuova gestione ordini cucina e monitor comande
+- Sistema avanzato di prenotazione turni e coperti
+
+---
+
 ## Novità della Versione 1.0.4
 
 ### 1. 🗺️ Sala & Mappa Tavoli Rimodernata con Editor Stanze
