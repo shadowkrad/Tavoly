@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
 import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
+import FloatingWhatsAppWidget from "@/components/public/FloatingWhatsAppWidget";
 import { getTakeawaySettings } from "@/lib/takeaway-server";
 import { parseShowcaseConfig } from "@/lib/showcase-defaults";
 import {
@@ -488,6 +489,12 @@ export default async function PublicShowcasePage() {
           </div>
         </div>
       </footer>
+
+      {/* Widget Flottante WhatsApp Vetrina */}
+      <FloatingWhatsAppWidget
+        phone={tenantConfig.contact?.phone || tenantConfig.phone || "+39 0575 654321"}
+        brandName={theme.restaurantName || "Osteria dei Tavoli"}
+      />
     </div>
   );
 }

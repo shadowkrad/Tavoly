@@ -2,9 +2,10 @@
 
 ## Novità della Versione 1.1.0 (In Sviluppo)
 
-### Novità in Lavorazione
-- Nuova gestione ordini cucina e monitor comande
-- Sistema avanzato di prenotazione turni e coperti
+### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
+- **Floating WhatsApp Widget sulla Vetrina Ristorante**: Pulsante galleggiante WhatsApp ufficiale in basso a destra su tutte le pagine pubbliche (`FloatingWhatsAppWidget`), per consentire ai clienti di richiedere informazioni o concordare menu speciali direttamente dalla landing page.
+- **Pulsanti 1-Click WhatsApp Svincolati da Moduli a Pagamento**: Nelle schermate Prenotazioni e Asporto, il pulsante WhatsApp è ora sempre attivo e utilizzabile a costo 0 € per inviare conferme, promemoria tavolo e avvisi *"Ordine pronto al banco!"* direttamente via WhatsApp Web o app mobile.
+- **Client Standardizzato (`@/lib/whatsapp-client` & `@/lib/whatsapp-server`)**: Connessione al micro-servizio centralizzato di Taaaac Core per le notifiche cloud automatiche.
 
 ---
 

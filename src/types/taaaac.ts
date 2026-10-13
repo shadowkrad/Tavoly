@@ -25,4 +25,9 @@ export interface TenantConfigResponse {
   licenseExpiresAt?: string;
   enabledModules: AddonModule[];
   theme: TenantTheme;
+  phone?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
 }

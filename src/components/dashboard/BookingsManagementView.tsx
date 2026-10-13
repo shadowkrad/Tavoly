@@ -788,7 +788,7 @@ export function BookingsManagementView({
                     >
                       <UserCheck className="w-4 h-4" />
                     </button>
-                    {hasWhatsAppModule && r.phoneNumber && (
+                    {r.phoneNumber && (
                       <a
                         href={waConfirmUrl}
                         target="_blank"
@@ -945,7 +945,7 @@ export function BookingsManagementView({
                             <span>{r.phoneNumber}</span>
                           </a>
 
-                          {hasWhatsAppModule && r.phoneNumber && (
+                          {r.phoneNumber && (
                             <a
                               href={waConfirmUrl}
                               target="_blank"
@@ -1060,7 +1060,7 @@ export function BookingsManagementView({
                           </button>
 
                           {/* WhatsApp Reminder Rapido */}
-                          {hasWhatsAppModule && r.phoneNumber && (
+                          {r.phoneNumber && (
                             <a
                               href={waReminderUrl}
                               target="_blank"
