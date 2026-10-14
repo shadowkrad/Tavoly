@@ -3,21 +3,66 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, ArrowLeft, Delete, KeyRound, ShieldCheck, AlertCircle, Fingerprint, Smartphone } from "lucide-react";
-import { loginStaffAction } from "@/app/actions";
+import {
+  UtensilsCrossed,
+  Lock,
+  ArrowLeft,
+  ArrowRight,
+  Delete,
+  KeyRound,
+  AlertCircle,
+  Fingerprint,
+  Sparkles,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { loginStaffAction, loginDemoAction } from "@/app/actions";
 import { startAuthentication, browserSupportsWebAuthn } from "@simplewebauthn/browser";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [pin, setPin] = useState("");
+  const [credential, setCredential] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<"password" | "keypad">("password");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [demoLoading, setDemoLoading] = useState(false);
   const [supportsWebAuthn, setSupportsWebAuthn] = useState<boolean>(false);
   const [biometricLoading, setBiometricLoading] = useState<boolean>(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
+    // 1. Rileva se ambiente demo (Vercel o branch demo)
+    if (typeof window !== "undefined") {
+      const hn = window.location.hostname.toLowerCase();
+      const isDemoDomain =
+        hn.includes("vercel.app") ||
+        hn.includes("cliente-demo") ||
+        hn.includes("-demo") ||
+        hn.startsWith("demo.");
+      setIsDemo(isDemoDomain);
+    }
+
+    // 2. Verifica supporto WebAuthn
     setSupportsWebAuthn(browserSupportsWebAuthn());
   }, []);
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await loginDemoAction();
+      if (res.success) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        throw new Error(res.error || "Errore durante l'accesso demo");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Errore accesso demo");
+      setDemoLoading(false);
+    }
+  };
 
   const handleBiometricLogin = async () => {
     setErrorMsg(null);
@@ -31,7 +76,7 @@ export default function LoginPage() {
 
       if (!optRes.ok) {
         const err = await optRes.json();
-        throw new Error(err.error || "Nessun dispositivo registrato su questo browser.");
+        throw new Error(err.error || "Nessun dispositivo registrato su questo browser. Accedi prima con password.");
       }
 
       const options = await optRes.json();
@@ -59,43 +104,42 @@ export default function LoginPage() {
       if (err.name === "NotAllowedError") {
         setErrorMsg("Riconoscimento biometrico annullato.");
       } else {
-        setErrorMsg(err.message || "Accesso biometrico non riuscito.");
+        setErrorMsg(err.message || "Accesso biometrico non riuscito. Inserisci la password o il PIN.");
       }
-    } finally {
       setBiometricLoading(false);
     }
   };
 
   const handleKeyClick = (val: string) => {
-    if (pin.length < 6) {
-      setPin((prev) => prev + val);
+    if (credential.length < 12) {
+      setCredential((prev) => prev + val);
     }
   };
 
   const handleDelete = () => {
-    setPin((prev) => prev.slice(0, -1));
+    setCredential((prev) => prev.slice(0, -1));
   };
 
   const handleClear = () => {
-    setPin("");
+    setCredential("");
   };
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (pin.length < 4) {
-      setErrorMsg("Inserisci un PIN di almeno 4 cifre.");
+    if (!credential.trim() || credential.length < 4) {
+      setErrorMsg("Inserisci la password o un PIN di almeno 4 caratteri.");
       return;
     }
     setErrorMsg(null);
 
     startTransition(async () => {
-      const res = await loginStaffAction(pin);
+      const res = await loginStaffAction(credential);
       if (res.success) {
         router.push("/dashboard");
         router.refresh();
       } else {
-        setErrorMsg(res.error || "PIN errato");
-        setPin("");
+        setErrorMsg(res.error || "Credenziali non valide");
+        if (activeTab === "keypad") setCredential("");
       }
     });
   };
@@ -114,111 +158,202 @@ export default function LoginPage() {
       </div>
 
       <div className="taaaac-card max-w-sm w-full bg-white p-6 sm:p-8 shadow-md border-slate-200/90 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center mb-4">
-          <KeyRound className="w-7 h-7" />
+        <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 mx-auto flex items-center justify-center mb-4 shadow-xs">
+          <UtensilsCrossed className="w-7 h-7" />
         </div>
 
         <h1 className="text-xl font-black text-slate-900 tracking-tight">
-          Accesso Staff Sala & Bar
+          Accesso Sala & Gestione
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Digita il PIN operatore per gestire tavoli e comande
+        <p className="text-xs text-slate-500 mt-1 mb-6 flex items-center justify-center gap-1">
+          <Lock className="w-3.5 h-3.5 text-slate-400" />
+          <span>Area Riservata Operatori & Sala</span>
         </p>
 
-        {/* Pulsante rapido Accesso Biometrico PWA / Palmare */}
+        {/* 1-Click Demo Box (Solo su ambienti demo Vercel) */}
+        {isDemo && (
+          <div className="mb-6 p-4 rounded-2xl bg-orange-50/80 border border-orange-200/90 text-center space-y-2">
+            <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-orange-950">
+              <Sparkles className="w-4 h-4 text-orange-600" />
+              <span>Modalità Demo Attiva</span>
+            </div>
+            <p className="text-[11px] text-orange-700">
+              Esplora la gestione tavoli, comande e sale con un singolo click, senza credenziali.
+            </p>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isPending || demoLoading}
+              className="w-full py-2.5 px-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+            >
+              {demoLoading ? "Accesso in corso..." : "👉 Accedi alla Demo (1-Click)"}
+            </button>
+          </div>
+        )}
+
+        {/* Pulsante rapido Accesso Biometrico Passkey */}
         {supportsWebAuthn && (
-          <div className="pt-2">
+          <div className="space-y-2 mb-6">
             <button
               type="button"
               onClick={handleBiometricLogin}
-              disabled={biometricLoading || isPending}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 active:scale-98 text-white font-bold py-3 px-4 rounded-2xl text-xs sm:text-sm transition shadow-xs cursor-pointer disabled:opacity-60"
+              disabled={biometricLoading || isPending || demoLoading}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 hover:from-orange-700 hover:to-amber-700 active:scale-98 text-white font-bold py-3 px-4 rounded-2xl text-xs sm:text-sm transition shadow-xs cursor-pointer disabled:opacity-60"
             >
-              <Fingerprint className="w-4 h-4" />
-              <span>{biometricLoading ? "Verifica biometrica in corso..." : "Accedi con FaceID / Impronta / PIN"}</span>
+              <Fingerprint className={`w-4 h-4 ${biometricLoading ? "animate-spin" : ""}`} />
+              <span>{biometricLoading ? "Verifica biometrica in corso..." : "Sblocco con FaceID / Impronta / PIN"}</span>
             </button>
-            <div className="flex items-center gap-3 py-3">
+            <p className="text-[11px] text-slate-400 text-center font-medium">
+              Dispositivo registrato • Face ID • Touch ID • PIN
+            </p>
+            <div className="flex items-center gap-3 py-2">
               <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">oppure con PIN numerico</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">oppure con credenziali</span>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
           </div>
         )}
 
         {errorMsg && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 text-left font-medium">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 text-left font-medium">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* PIN Display Dots */}
-        <div className="my-6 flex justify-center gap-3">
-          {[0, 1, 2, 3].map((idx) => {
-            const hasChar = pin.length > idx;
-            return (
-              <div
-                key={idx}
-                className={`w-4 h-4 rounded-full transition-all duration-150 ${
-                  hasChar
-                    ? "bg-blue-600 scale-110 shadow-xs"
-                    : "bg-slate-200 border border-slate-300"
-                }`}
-              />
-            );
-          })}
+        {/* Selettore Tab Password / Tastierino PIN */}
+        <div className="flex rounded-xl bg-slate-100 p-1 mb-4 text-xs font-bold text-slate-600">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("password");
+              setErrorMsg(null);
+            }}
+            className={`flex-1 py-1.5 rounded-lg transition ${
+              activeTab === "password" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
+            }`}
+          >
+            Password Master
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("keypad");
+              setErrorMsg(null);
+            }}
+            className={`flex-1 py-1.5 rounded-lg transition ${
+              activeTab === "keypad" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
+            }`}
+          >
+            Tastierino PIN
+          </button>
         </div>
 
-        {/* Touch Numeric Keypad */}
-        <div className="grid grid-cols-3 gap-2.5 max-w-[260px] mx-auto">
-          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
+        {activeTab === "password" ? (
+          <form onSubmit={handleSubmit} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                Password o PIN
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={credential}
+                  onChange={(e) => setCredential(e.target.value)}
+                  placeholder="Inserisci password o PIN"
+                  required
+                  className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
             <button
-              key={num}
-              type="button"
-              onClick={() => handleKeyClick(num)}
-              className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-black text-xl transition-all cursor-pointer flex items-center justify-center"
+              type="submit"
+              disabled={isPending || demoLoading || biometricLoading}
+              className="w-full py-3 px-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
             >
-              {num}
+              {isPending ? "Verifica in corso..." : "Accedi alla Dashboard"}
+              <ArrowRight className="w-4 h-4" />
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={handleClear}
-            className="w-full h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-500 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center uppercase"
-          >
-            Canc
-          </button>
-          <button
-            type="button"
-            onClick={() => handleKeyClick("0")}
-            className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-black text-xl transition-all cursor-pointer flex items-center justify-center"
-          >
-            0
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="w-full h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-600 font-bold text-lg transition-all cursor-pointer flex items-center justify-center"
-          >
-            <Delete className="w-5 h-5" />
-          </button>
-        </div>
+          </form>
+        ) : (
+          <div>
+            {/* PIN Display Dots */}
+            <div className="my-4 flex justify-center gap-3">
+              {[0, 1, 2, 3].map((idx) => {
+                const hasChar = credential.length > idx;
+                return (
+                  <div
+                    key={idx}
+                    className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
+                      hasChar
+                        ? "bg-orange-600 scale-110 shadow-xs"
+                        : "bg-slate-200 border border-slate-300"
+                    }`}
+                  />
+                );
+              })}
+            </div>
 
-        {/* Entra Button */}
-        <button
-          type="button"
-          onClick={() => handleSubmit()}
-          disabled={pin.length < 4 || isPending}
-          className="mt-6 taaaac-btn-primary w-full py-3 text-sm font-bold shadow-md cursor-pointer disabled:opacity-40"
-        >
-          {isPending ? "Verifica in corso..." : "Entra nella Dashboard"}
-        </button>
+            {/* Touch Numeric Keypad */}
+            <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handleKeyClick(num)}
+                  className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-bold text-lg transition-all cursor-pointer flex items-center justify-center"
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleClear}
+                className="w-full h-12 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-500 font-semibold text-[11px] transition-all cursor-pointer flex items-center justify-center uppercase"
+              >
+                Canc
+              </button>
+              <button
+                type="button"
+                onClick={() => handleKeyClick("0")}
+                className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-bold text-lg transition-all cursor-pointer flex items-center justify-center"
+              >
+                0
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="w-full h-12 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-600 font-bold text-base transition-all cursor-pointer flex items-center justify-center"
+              >
+                <Delete className="w-4 h-4" />
+              </button>
+            </div>
 
-        {process.env.NEXT_PUBLIC_IS_DEMO !== "false" && (
-          <p className="text-[11px] text-slate-400 mt-4">
-            PIN predefinito demo: <strong className="text-slate-600">1234</strong>
-          </p>
+            <button
+              type="button"
+              onClick={() => handleSubmit()}
+              disabled={credential.length < 4 || isPending}
+              className="mt-4 w-full py-3 px-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+            >
+              {isPending ? "Verifica in corso..." : "Entra nella Dashboard"}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         )}
+
+        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+          <p className="text-[11px] text-slate-400">
+            Per abilitare lo sblocco rapido con FaceID o PIN su questo dispositivo, effettua l'accesso e registra il dispositivo in <strong className="text-slate-600">Impostazioni &gt; Dispositivi PWA</strong>.
+          </p>
+        </div>
       </div>
     </div>
   );
