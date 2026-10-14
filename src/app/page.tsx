@@ -132,29 +132,29 @@ export default async function PublicShowcasePage() {
                   {showcase.hero.subtitle}
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
                   <Link
                     href="/prenotazione"
                     style={{ backgroundColor: showcase.primaryColor || "#064e3b" }}
-                    className="text-white px-6 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center gap-2 rounded-xl hover:opacity-95 transition"
+                    className="w-full sm:w-auto text-white px-6 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center justify-center gap-2 rounded-xl hover:opacity-95 transition whitespace-nowrap"
                   >
                     <span>{showcase.hero.ctaPrimaryText || "Prenota il tuo Tavolo"}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </Link>
 
                   {takeawaySettings.enabled && showcase.sections.showTakeawayCta && (
                     <Link
                       href="/asporto"
-                      className="px-6 py-3.5 text-sm sm:text-base font-bold inline-flex items-center gap-2 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 rounded-xl shadow-xs transition"
+                      className="w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-bold inline-flex items-center justify-center gap-2 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 rounded-xl shadow-xs transition whitespace-nowrap"
                     >
-                      <ShoppingBag className="w-4 h-4 text-amber-600" />
+                      <ShoppingBag className="w-4 h-4 text-amber-600 shrink-0" />
                       <span>{showcase.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
                     </Link>
                   )}
 
                   <a
                     href="#servizi"
-                    className={`px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition ${
+                    className={`w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition inline-flex items-center justify-center whitespace-nowrap ${
                       showcase.hero.coverImageUrl
                         ? "bg-slate-900/80 text-white border-slate-700 hover:bg-slate-800"
                         : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"

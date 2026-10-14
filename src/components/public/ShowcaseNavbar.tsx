@@ -13,9 +13,9 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled }: ShowcaseNavbar
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
         {/* Brand & Name */}
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 group">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 group">
           {theme.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -29,12 +29,12 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled }: ShowcaseNavbar
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="text-sm sm:text-lg font-black text-slate-900 tracking-tight truncate block leading-tight">
                 {theme.restaurantName || "Tavoly"}
               </span>
               <span className="hidden md:inline-block text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
-                Ristorante & Bar
+                Ristorante &amp; Bar
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate hidden sm:block">
@@ -60,7 +60,7 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled }: ShowcaseNavbar
             </Link>
           )}
           <a href="/#contatti" className="hover:text-blue-600 transition-colors">
-            Orari & Contatti
+            Orari &amp; Contatti
           </a>
         </nav>
 
@@ -68,17 +68,18 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled }: ShowcaseNavbar
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <Link
             href="/prenotazione"
-            className="taaaac-btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1.5"
+            className="taaaac-btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 shrink-0"
           >
-            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Prenota Ora</span>
+            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Prenota</span>
+            <span className="hidden sm:inline">&nbsp;Ora</span>
           </Link>
 
           {/* Discreet Staff Login */}
           <Link
             href="/login"
             title="Area Riservata Staff"
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-all cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-all cursor-pointer shrink-0"
           >
             <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Link>
