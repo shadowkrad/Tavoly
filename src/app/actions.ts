@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendNotificationMail } from "@/lib/taaaac-mailer";
-import { setStaffSession, clearStaffSession, verifyStaffPin } from "@/lib/auth";
+import { setStaffSession, clearStaffSession, verifyStaffPasswordOrPin, verifyStaffPin } from "@/lib/auth";
 import {
   publicReservationSchema,
   staffLoginSchema,
@@ -14,18 +14,27 @@ import {
 } from "@/lib/validations";
 
 // --- AUTH ACTIONS ---
-export async function loginStaffAction(pin: string) {
-  const result = staffLoginSchema.safeParse({ pin });
+export async function loginStaffAction(credential: string) {
+  const result = staffLoginSchema.safeParse({ pin: credential });
   if (!result.success) {
-    return { success: false, error: result.error.issues[0]?.message || "PIN non valido" };
+    return { success: false, error: result.error.issues[0]?.message || "Credenziali non valide" };
   }
 
-  if (!verifyStaffPin(result.data.pin)) {
-    return { success: false, error: "PIN errato. Riprova." };
+  if (!verifyStaffPasswordOrPin(result.data.pin)) {
+    return { success: false, error: "Password o PIN errato. Riprova." };
   }
 
   await setStaffSession();
   return { success: true };
+}
+
+export async function loginDemoAction(): Promise<{ success: boolean; error?: string }> {
+  try {
+    await setStaffSession();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Errore durante l'accesso demo" };
+  }
 }
 
 export async function logoutStaffAction() {

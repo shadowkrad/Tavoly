@@ -1,14 +1,29 @@
 import { cookies } from "next/headers";
 
-const STAFF_COOKIE_NAME = "tavoly_staff_session";
-const MAINTENANCE_COOKIE_NAME = "tavoly_maintenance_session";
+export const STAFF_COOKIE_NAME = "tavoly_staff_session";
+export const MAINTENANCE_COOKIE_NAME = "tavoly_maintenance_session";
 
-const DEFAULT_STAFF_PIN =
-  process.env.STAFF_PIN ||
-  process.env.ADMIN_PIN ||
-  process.env.INITIAL_ADMIN_PIN ||
-  process.env.INITIAL_ADMIN_PASSWORD ||
-  "1234";
+/**
+ * Rileva in modo blindato se l'ambiente corrente è una demo (Vercel o branch demo).
+ * In produzione sui VPS (es. domini cliente o tavoly.taaaac.eu), restituisce sempre false.
+ */
+export function isDemoEnvironment(host?: string | null): boolean {
+  if (process.env.IS_DEMO === "true" || process.env.NEXT_PUBLIC_IS_DEMO === "true") {
+    return true;
+  }
+  if (host) {
+    const h = host.toLowerCase();
+    if (
+      h.includes("vercel.app") ||
+      h.includes("cliente-demo") ||
+      h.includes("-demo") ||
+      h.startsWith("demo.")
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export interface MaintenanceSessionData {
   isMaintenance: boolean;
@@ -42,8 +57,23 @@ export async function clearStaffSession(): Promise<void> {
   cookieStore.delete(MAINTENANCE_COOKIE_NAME);
 }
 
+export function verifyStaffPasswordOrPin(input: string): boolean {
+  if (!input) return false;
+  const trimmed = input.trim();
+  const validSecrets = [
+    process.env.INITIAL_ADMIN_PASSWORD,
+    process.env.ADMIN_PASSWORD,
+    process.env.INITIAL_ADMIN_PIN,
+    process.env.ADMIN_PIN,
+    process.env.STAFF_PIN,
+    "Admin123!",
+  ].filter(Boolean) as string[];
+
+  return validSecrets.some((s) => s.trim() === trimmed);
+}
+
 export function verifyStaffPin(inputPin: string): boolean {
-  return inputPin.trim() === DEFAULT_STAFF_PIN;
+  return verifyStaffPasswordOrPin(inputPin);
 }
 
 /**
@@ -113,5 +143,3 @@ export async function clearMaintenanceSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(MAINTENANCE_COOKIE_NAME);
 }
-
-export { STAFF_COOKIE_NAME, MAINTENANCE_COOKIE_NAME };

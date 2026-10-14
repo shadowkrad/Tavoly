@@ -28,9 +28,8 @@ export const publicReservationSchema = z.object({
 export const staffLoginSchema = z.object({
   pin: z
     .string()
-    .min(4, "Il PIN deve contenere almeno 4 cifre")
-    .max(10, "PIN troppo lungo")
-    .regex(/^\d+$/, "Il PIN deve contenere solo numeri"),
+    .min(4, "Inserisci almeno 4 caratteri")
+    .max(100, "Credenziale troppo lunga"),
 });
 
 export const tablePositionSchema = z.object({
