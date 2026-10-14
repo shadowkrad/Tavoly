@@ -18,6 +18,7 @@ import {
   Phone,
   Smartphone,
   ChevronRight,
+  ChevronDown,
   ChefHat,
   Tv,
   ShoppingBag,
@@ -396,16 +397,44 @@ export default function TavolyImpostazioniPage() {
       {/* LAYOUT A 2 COLONNE: NAVIGAZIONE VERTICALE A SINISTRA + CONTENUTI A DESTRA */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* COLONNA SINISTRA: MENU SEZIONI IMPOSTAZIONI */}
-        <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6 space-y-3">
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-2 sm:p-2.5 shadow-xs">
-            <div className="px-3 py-2 border-b border-slate-100 hidden lg:block">
+        <aside className="lg:col-span-4 xl:col-span-3 sticky top-14 lg:top-6 z-30 space-y-3">
+          {/* Selettore Dropdown Compatto per Mobile (< lg) */}
+          <div className="lg:hidden bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-sm">
+            <label htmlFor="settings-tab-select" className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
+              Sezione Attiva
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-600">
+                <ActiveIcon className="w-4 h-4" />
+              </div>
+              <select
+                id="settings-tab-select"
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as SettingsTab)}
+                className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none cursor-pointer"
+              >
+                {TABS.map((tab) => (
+                  <option key={tab.id} value={tab.id} className="bg-white text-slate-800 py-1">
+                    {tab.label} — {tab.shortDescription}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+
+          {/* Barra di Navigazione Verticale Completa per Desktop (>= lg) */}
+          <div className="hidden lg:block bg-white border border-slate-200/90 rounded-2xl p-2 sm:p-2.5 shadow-xs">
+            <div className="px-3 py-2 border-b border-slate-100">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Sezioni Impostazioni
               </span>
             </div>
 
             <nav
-              className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible no-scrollbar pt-1 lg:pt-2"
+              className="flex flex-col gap-1.5 pt-2"
               aria-label="Sezioni Impostazioni Tavoly"
             >
               {TABS.map((tab) => {
@@ -416,7 +445,7 @@ export default function TavolyImpostazioniPage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`group flex items-center justify-between w-full p-2.5 sm:p-3 rounded-xl text-left transition-all cursor-pointer shrink-0 lg:shrink ${
+                    className={`group flex items-center justify-between w-full p-2.5 sm:p-3 rounded-xl text-left transition-all cursor-pointer ${
                       isActive
                         ? "bg-emerald-50 text-emerald-950 font-semibold border border-emerald-200/80 shadow-xs"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
@@ -434,16 +463,15 @@ export default function TavolyImpostazioniPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs sm:text-sm font-semibold truncate flex items-center gap-1.5">
-                          <span className="hidden sm:inline">{tab.label}</span>
-                          <span className="sm:hidden">{tab.shortLabel}</span>
+                          <span>{tab.label}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 font-normal truncate hidden lg:block">
+                        <p className="text-[11px] text-slate-400 font-normal truncate">
                           {tab.shortDescription}
                         </p>
                       </div>
                     </div>
                     <ChevronRight
-                      className={`w-4 h-4 shrink-0 transition-transform hidden lg:block ${
+                      className={`w-4 h-4 shrink-0 transition-transform ${
                         isActive
                           ? "text-emerald-600 translate-x-0.5"
                           : "text-slate-300 opacity-0 group-hover:opacity-100"
