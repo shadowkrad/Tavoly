@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendNotificationMail } from "@/lib/taaaac-mailer";
+import { triggerGoogleReviewBooster } from "@/lib/omnichannel-client";
 import { setStaffSession, clearStaffSession, verifyStaffPasswordOrPin, verifyStaffPin } from "@/lib/auth";
 import {
   publicReservationSchema,
@@ -361,6 +362,14 @@ export async function updateReservationStatus(reservationId: string, status: str
           seatedCount: 0,
         },
       });
+    }
+
+    if (status === "COMPLETATA" && res.email) {
+      triggerGoogleReviewBooster({
+        clientEmail: res.email,
+        clientName: res.customerName,
+        serviceName: "Esperienza al Ristorante",
+      }).catch((err) => console.error("[Tavoly Reservation ReviewBooster Trigger Error]:", err));
     }
 
     revalidatePath("/dashboard");
@@ -990,6 +999,14 @@ export async function updateTakeawayOrderStatusAction(id: string, status: string
       where: { id },
       data: { status },
     });
+
+    if (status === "RITIRATO" && order.email) {
+      triggerGoogleReviewBooster({
+        clientEmail: order.email,
+        clientName: order.customerName,
+        serviceName: "Asporto & Takeaway",
+      }).catch((err) => console.error("[Tavoly Takeaway ReviewBooster Trigger Error]:", err));
+    }
 
     revalidatePath("/dashboard/asporto");
     return { success: true, order };

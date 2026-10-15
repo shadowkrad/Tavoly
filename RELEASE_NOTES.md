@@ -7,6 +7,17 @@
 - **Pulsanti 1-Click WhatsApp Svincolati da Moduli a Pagamento**: Nelle schermate Prenotazioni e Asporto, il pulsante WhatsApp è ora sempre attivo e utilizzabile a costo 0 € per inviare conferme, promemoria tavolo e avvisi *"Ordine pronto al banco!"* direttamente via WhatsApp Web o app mobile.
 - **Client Standardizzato (`@/lib/whatsapp-client` & `@/lib/whatsapp-server`)**: Connessione al micro-servizio centralizzato di Taaaac Core per le notifiche cloud automatiche.
 
+### 2. 🌐 Hub Sincronizzazione Omnicanale (Google Maps, Meta Facebook & IG, WhatsApp Business)
+- **Aggiornamento Turni & Orari All'Unisono con 1 Click**: Dalla scheda *Dashboard > Impostazioni > Turni & Coperti*, il pulsante `🚀 Salva e Sincronizza Turni su Google & Canali` aggiorna simultaneamente gli orari di apertura pranzo/cena sulla scheda Google Business Profile (Maps & Ricerca), sulle Pagine Meta (Facebook & Instagram) e sul profilo WhatsApp Business del ristorante.
+- **Badge di Stato Canali in Tempo Reale**: Nuova scheda visiva nella gestione turni con indicatori live dello stato di connessione e sincronizzazione per Google Maps, Meta, WhatsApp Business e Google Review Booster.
+- **Architettura Centralizzata Taaaac Core**: Gestione centralizzata e sicura di tutti i token di accesso e delle API dei canali esterni tramite Taaaac Core.
+
+### 3. ⭐ Google Review Booster Automatico via Email (5 Stelle Intelligenti)
+- **Email Post-Tavolo & Asporto Automatica a Costo Zero**: Quando una prenotazione del tavolo viene contrassegnata come `COMPLETATA` o un ordine asporto viene segnato come `RITIRATO`, il sistema invia in automatico un'email con 5 stelle interattive da `noreply@taaaac.eu` senza consumare la quota messaggi WhatsApp.
+- **Routing Intelligente Reputazione**:
+  - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
+  - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
+
 ---
 
 ## Novità della Versione 1.0.5 (Hotfix / Patch)
