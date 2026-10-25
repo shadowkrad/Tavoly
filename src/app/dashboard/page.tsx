@@ -4,6 +4,7 @@ import { getTenantConfig } from "@/lib/taaaac-core";
 import { TableItem } from "@/components/dashboard/TableCanvasBoard";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
 import { FloorPlanView } from "@/components/dashboard/FloorPlanView";
+import { getProssimeFestivitaTavoly } from "@/lib/festivita-italiane";
 
 export const dynamic = "force-dynamic";
 

@@ -21,6 +21,8 @@ import { ThemeSelectorModal } from "./ThemeSelectorModal";
 import { AreasManagementModal } from "./AreasManagementModal";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
 import { WaiterOrderModal } from "./WaiterOrderModal";
+import BannerPreavvisoFestivita from "@/components/dashboard/BannerPreavvisoFestivita";
+import type { PreavvisoFestivita } from "@/lib/festivita-italiane";
 
 interface Area {
   id: string;

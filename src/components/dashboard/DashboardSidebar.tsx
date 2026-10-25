@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   Users,
   Settings,
+  Clock,
   Shield,
   Gift,
   Award,

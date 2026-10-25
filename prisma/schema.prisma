@@ -179,7 +179,23 @@ model TenantLocalCache {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   tokenVersion        Int       @default(1)
+  rispettaFestivitaNazionali Boolean @default(true)
   updatedAt           DateTime  @updatedAt
+}
+
+model EccezioneCalendario {
+  id             String   @id @default(cuid())
+  data           String   @unique // YYYY-MM-DD
+  titolo         String
+  tipo           String   @default("CHIUSURA") // CHIUSURA | APERTURA_STRAORDINARIA | ORARIO_SPECIALE
+  isAperto       Boolean  @default(false)
+  orarioApertura String?
+  orarioChiusura String?
+  pausaInizio    String?
+  pausaFine      String?
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model TrustedDevice {
