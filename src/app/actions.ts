@@ -1,5 +1,7 @@
 "use server";
 
+import { risolviStatoGiornoTavoly } from "@/lib/festivita-italiane";
+
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -64,6 +66,15 @@ export async function createPublicReservationAction(formData: FormData) {
   }
 
   const { customerName, phoneNumber, email, guestCount, date, timeSlot, notes } = validation.data;
+
+  // Verifica chiusura festività o ferie ristorante
+  const statoGiorno = await risolviStatoGiornoTavoly(date);
+  if (!statoGiorno.isLavorativo) {
+    return {
+      success: false,
+      error: "Il ristorante è chiuso nella data selezionata: " + (statoGiorno.motivo || statoGiorno.titolo),
+    };
+  }
 
   try {
     const reservationDate = new Date(date);

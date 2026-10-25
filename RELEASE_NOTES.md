@@ -20,6 +20,12 @@
 - **Blocco Temporaneo Automatico**: Protezione attiva contro tentativi di indovinare la password o il PIN; dopo 5 tentativi consecutivi errati dall'IP o sull'account, l'accesso viene sospeso per 15 minuti con timer di sblocco in tempo reale.
 - **Honey-Pot Silenzioso**: Campo esca invisibile nel modulo di login che respinge all'istante bot automatizzati prima dell'elaborazione.
 
+### 5. 🎄 Motore Festività Nazionali, Chiusure per Ferie & Aperture Straordinarie Ristorante
+- **Riconoscimento Festività Italiane**: Il sistema include il calendario delle festività civili e religiose (Natale, Santo Stefano, Capodanno, Befana, Pasqua, Pasquetta, 25 Aprile, 1 Maggio, 2 Giugno, Ferragosto, Ognissanti, 8 Dicembre), con switch rapido in *Dashboard > Orari & Festività*.
+- **Aperture Straordinarie per le Feste (es. Pranzo di Natale, Cenone di Capodanno, Pasqua)**: Possibilità di programmare date speciali con orari dedicati (es. Pranzo di Natale con menù fisso) oppure chiusure per ferie dello staff.
+- **Notifica di Preavviso in Dashboard (7 Giorni Prima)**: Almeno una settimana prima di una festività o chiusura speciale, la mappa tavoli e la console mostrano un banner di avviso prominente con conto alla rovescia e link rapido 1-click a *Orari* per impostare turni e aperture speciali.
+- **Protezione Prenotazioni Online**: Nei giorni festivi di chiusura, le prenotazioni tavoli online vengono automaticamente disattivate evitando overbooking a serrande abbassate.
+
 ---
 
 ## Novità della Versione 1.0.5 (Hotfix Produzione)
