@@ -1,5 +1,26 @@
 # 🚀 Tavoly — Release Notes
 
+## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
+
+### 1. 📅 Griglia Oraria e Vista Calendario Interattiva per Prenotazioni (Issue #18)
+- **Nuovo Switch a Due Viste**: Possibilità di alternare in un clic tra la classica **Vista Elenco** e la nuova **Griglia Oraria / Calendario**.
+- **Vista Giornaliera a Griglia Oraria (Timeline)**:
+  - Visualizzazione ad agenda oraria suddivisa per sale (Sala Interna, Dehors, ecc.) e per tavolo.
+  - Fasce orarie continue per il servizio pranzo (11:30 - 15:30) e cena (18:30 - 23:30) con slot a 30 minuti.
+  - Blocchi prenotazione colorati in base allo stato (In Attesa, Confermata, Accomodati, Completata, Annullata) con indicazione di nome cliente, coperti, orario e note speciali.
+  - Spazio dedicato ai **Tavoli da Assegnare** per gestire walk-in e prenotazioni prive di tavolo con assegnazione rapida 1-click.
+- **Vista Settimanale (Agenda 7 Giorni)**:
+  - Panoramica completa dal lunedì alla domenica con riepilogo coperti e prenotazioni per turno (Pranzo e Cena).
+- **Dettaglio & Spostamento Rapido**:
+  - Cliccando su qualsiasi blocco prenotazione si apre la scheda di dettaglio rapido con possibilità di modificare orario, numero coperti, tavolo assegnato, stato o inviare messaggio WhatsApp.
+  - Cliccando su uno slot o cella vuota della griglia si apre la modale di nuova prenotazione con orario, data e tavolo già preimpostati.
+- **Filtri Rapidi**:
+  - Filtro per turno di servizio (Tutti i turni, Pranzo, Cena).
+  - Filtro per sala (Tutte le sale, Sala Interna, Dehors, ecc.).
+
+---
+
+
 
 ## Novità della Versione 1.0.6 (Patch di Sicurezza e Hardening Accessi)
 
