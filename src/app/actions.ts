@@ -418,6 +418,84 @@ export async function assignTableToReservationAction(reservationId: string, tabl
   }
 }
 
+export async function updateReservationDetailsAction(
+  reservationId: string,
+  data: {
+    customerName?: string;
+    phoneNumber?: string;
+    email?: string | null;
+    guestCount?: number;
+    timeSlot?: string;
+    date?: string | Date;
+    tableId?: string | null;
+    status?: string;
+    notes?: string | null;
+  }
+) {
+  try {
+    const existing = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+    });
+    if (!existing) return { success: false, error: "Prenotazione non trovata" };
+
+    const updatePayload: any = {};
+    if (data.customerName !== undefined) updatePayload.customerName = data.customerName;
+    if (data.phoneNumber !== undefined) updatePayload.phoneNumber = data.phoneNumber;
+    if (data.email !== undefined) updatePayload.email = data.email || null;
+    if (data.guestCount !== undefined) updatePayload.guestCount = Number(data.guestCount);
+    if (data.timeSlot !== undefined) updatePayload.timeSlot = data.timeSlot;
+    if (data.date !== undefined) {
+      const d = new Date(data.date);
+      if (!isNaN(d.getTime())) updatePayload.date = d;
+    }
+    if (data.tableId !== undefined) {
+      updatePayload.tableId = !data.tableId || data.tableId === "" ? null : data.tableId;
+    }
+    if (data.status !== undefined) updatePayload.status = data.status;
+    if (data.notes !== undefined) updatePayload.notes = data.notes || null;
+
+    const updated = await prisma.reservation.update({
+      where: { id: reservationId },
+      data: updatePayload,
+      include: { table: true },
+    });
+
+    const effectiveTableId = updated.tableId;
+    if (effectiveTableId) {
+      if (updated.status === "SEDUTI") {
+        await prisma.table.update({
+          where: { id: effectiveTableId },
+          data: { status: "OCCUPATO", seatedCount: updated.guestCount },
+        });
+      } else if (updated.status === "COMPLETATA" || updated.status === "ANNULLATA") {
+        await prisma.table.update({
+          where: { id: effectiveTableId },
+          data: { status: "LIBERO", seatedCount: 0 },
+        });
+      } else if (updated.status === "CONFERMATA" || updated.status === "IN_ATTESA") {
+        await prisma.table.update({
+          where: { id: effectiveTableId },
+          data: { status: "PRENOTATO" },
+        });
+      }
+    }
+
+    if (existing.tableId && existing.tableId !== effectiveTableId) {
+      await prisma.table.update({
+        where: { id: existing.tableId },
+        data: { status: "LIBERO", seatedCount: 0 },
+      });
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/prenotazioni");
+    return { success: true, reservation: updated };
+  } catch (error) {
+    console.error("Errore aggiornamento dettagli prenotazione:", error);
+    return { success: false, error: "Impossibile aggiornare i dettagli della prenotazione" };
+  }
+}
+
 export async function deleteReservationAction(reservationId: string) {
   try {
     const res = await prisma.reservation.findUnique({ where: { id: reservationId } });
