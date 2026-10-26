@@ -265,7 +265,7 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
                 <span>Sicurezza & 2FA</span>
               </div>
               <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                1.0.6
+                1.1.0
               </span>
             </button>
           </div>

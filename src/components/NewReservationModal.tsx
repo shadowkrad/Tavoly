@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, X, Calendar, Clock, User, Phone, Users, MessageSquare, Check } from "lucide-react";
+import { Plus, X, Calendar, Clock, User, Phone, Users, MessageSquare } from "lucide-react";
 import { createReservation } from "@/app/actions";
 
 interface TableOption {
@@ -17,6 +17,9 @@ interface NewReservationModalProps {
   isOpen?: boolean;
   onClose?: () => void;
   showTrigger?: boolean;
+  defaultDate?: string;
+  defaultTime?: string;
+  defaultTableId?: string;
 }
 
 export function NewReservationModal({
@@ -24,9 +27,14 @@ export function NewReservationModal({
   isOpen: controlledIsOpen,
   onClose,
   showTrigger = true,
+  defaultDate,
+  defaultTime,
+  defaultTableId,
 }: NewReservationModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isModalOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const handleClose = () => {
     if (controlledIsOpen !== undefined) {
@@ -56,6 +64,25 @@ export function NewReservationModal({
     });
   };
 
+  const TIME_SLOT_OPTIONS = [
+    { value: "11:30", label: "11:30 (Pranzo)" },
+    { value: "12:00", label: "12:00 (Pranzo)" },
+    { value: "12:30", label: "12:30 (Pranzo)" },
+    { value: "13:00", label: "13:00 (Pranzo)" },
+    { value: "13:30", label: "13:30 (Pranzo)" },
+    { value: "14:00", label: "14:00 (Pranzo)" },
+    { value: "14:30", label: "14:30 (Pranzo)" },
+    { value: "18:30", label: "18:30 (Aperitivo/Cena)" },
+    { value: "19:00", label: "19:00 (Cena 1° Turno)" },
+    { value: "19:30", label: "19:30 (Cena 1° Turno)" },
+    { value: "20:00", label: "20:00 (Cena)" },
+    { value: "20:30", label: "20:30 (Cena)" },
+    { value: "21:00", label: "21:00 (Cena 2° Turno)" },
+    { value: "21:30", label: "21:30 (Cena 2° Turno)" },
+    { value: "22:00", label: "22:00 (Cena Tarda)" },
+    { value: "22:30", label: "22:30 (Cena Tarda)" },
+  ];
+
   return (
     <>
       {showTrigger && controlledIsOpen === undefined && (
@@ -71,7 +98,7 @@ export function NewReservationModal({
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in duration-150 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
@@ -79,13 +106,13 @@ export function NewReservationModal({
                   Nuova Prenotazione Tavolo
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Registra una prenotazione per il servizio odierno
+                  Registra una prenotazione e assegna subito il tavolo
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleClose}
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -111,7 +138,7 @@ export function NewReservationModal({
                     type="text"
                     required
                     placeholder="es. Mario Rossi"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -120,7 +147,7 @@ export function NewReservationModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Cellulare (per WhatsApp Bot) *
+                    Cellulare (per WhatsApp) *
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -129,7 +156,7 @@ export function NewReservationModal({
                       type="tel"
                       required
                       placeholder="+39 340 0000000"
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -142,7 +169,24 @@ export function NewReservationModal({
                     name="email"
                     type="email"
                     placeholder="cliente@email.it"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Data Prenotazione */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Data Servizio *
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    name="date"
+                    type="date"
+                    defaultValue={defaultDate || todayStr}
+                    required
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
                   />
                 </div>
               </div>
@@ -159,10 +203,10 @@ export function NewReservationModal({
                       name="guestCount"
                       type="number"
                       min="1"
-                      max="30"
+                      max="40"
                       defaultValue="2"
                       required
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -175,18 +219,15 @@ export function NewReservationModal({
                     <Clock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <select
                       name="timeSlot"
-                      defaultValue="20:30"
+                      defaultValue={defaultTime || "20:30"}
                       required
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
                     >
-                      <option value="12:30">12:30 (Pranzo)</option>
-                      <option value="13:00">13:00 (Pranzo)</option>
-                      <option value="13:30">13:30 (Pranzo)</option>
-                      <option value="19:30">19:30 (Cena)</option>
-                      <option value="20:00">20:00 (Cena)</option>
-                      <option value="20:30">20:30 (Cena)</option>
-                      <option value="21:00">21:00 (Cena)</option>
-                      <option value="21:30">21:30 (Cena)</option>
+                      {TIME_SLOT_OPTIONS.map((slot) => (
+                        <option key={slot.value} value={slot.value}>
+                          {slot.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -199,8 +240,8 @@ export function NewReservationModal({
                 </label>
                 <select
                   name="tableId"
-                  defaultValue=""
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  defaultValue={defaultTableId || ""}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
                 >
                   <option value="">-- Assegna all&apos;arrivo / Automatico --</option>
                   {tables.map((t) => (
@@ -220,7 +261,7 @@ export function NewReservationModal({
                   name="notes"
                   rows={2}
                   placeholder="es. Seggiolone per bimbo, celiaco, anniversario"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 ></textarea>
               </div>
 
@@ -229,14 +270,14 @@ export function NewReservationModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="taaaac-btn-secondary text-xs px-4 py-2"
+                  className="taaaac-btn-secondary text-xs px-4 py-2 cursor-pointer"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="taaaac-btn-primary text-xs px-5 py-2 disabled:opacity-50"
+                  className="taaaac-btn-primary text-xs px-5 py-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isPending ? "Salvataggio..." : "Conferma Prenotazione"}
                 </button>

@@ -31,6 +31,8 @@ import {
 } from "@/app/actions";
 import { NewReservationModal } from "@/components/NewReservationModal";
 import { CustomerProfileModal } from "./CustomerProfileModal";
+import { ReservationsTimelineView } from "./ReservationsTimelineView";
+import { ReservationDetailModal } from "./ReservationDetailModal";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
 import {
   generateWhatsAppLink,
@@ -150,6 +152,13 @@ export function BookingsManagementView({
   const [forceGlobalSearch, setForceGlobalSearch] = useState(false);
 
   // Modali
+  const [viewMode, setViewMode] = useState<"TIMELINE" | "LIST">("TIMELINE");
+  const [detailReservation, setDetailReservation] = useState<BookingItem | null>(null);
+  const [newReservationParams, setNewReservationParams] = useState<{
+    defaultDate?: string;
+    defaultTime?: string;
+    defaultTableId?: string;
+  } | null>(null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [activeCustomerModal, setActiveCustomerModal] = useState<{
     profile: CustomerProfileMapItem;
@@ -357,6 +366,52 @@ export function BookingsManagementView({
           <span>Nuova Prenotazione</span>
         </button>
       </div>
+
+      {/* VISTA SWITCHER: GRIGLIA ORARIA / TIMELINE VS ELENCO */}
+      <div className="flex items-center gap-1.5 p-1 bg-slate-200/70 rounded-2xl w-fit">
+        <button
+          type="button"
+          onClick={() => setViewMode("TIMELINE")}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            viewMode === "TIMELINE"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Clock className="w-4 h-4 text-emerald-600" />
+          <span>📅 Griglia Oraria & Calendario</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("LIST")}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            viewMode === "LIST"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <CalendarDays className="w-4 h-4 text-blue-600" />
+          <span>📋 Registro ad Elenco</span>
+        </button>
+      </div>
+
+      {/* VISTA 1: TIMELINE A GRIGLIA ORARIA */}
+      {viewMode === "TIMELINE" && (
+        <ReservationsTimelineView
+          reservations={initialReservations}
+          tables={tables}
+          customerProfiles={customerProfiles}
+          onSelectReservation={(r) => setDetailReservation(r)}
+          onOpenNewModal={(params) => {
+            setNewReservationParams(params || null);
+            setIsNewModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* VISTA 2: LISTA AD ELENCO DETTAGLIATA */}
+      {viewMode === "LIST" && (
+        <div className="space-y-5">
 
       {/* METRIC PILL CARDS DINAMICHE */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1093,6 +1148,9 @@ export function BookingsManagementView({
         </div>
       </div>
 
+              </div>
+      )}
+
       {/* MODALE ASSEGNAZIONE / CAMBIO TAVOLO */}
       {assigningReservation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1163,8 +1221,25 @@ export function BookingsManagementView({
       <NewReservationModal
         tables={tables}
         isOpen={isNewModalOpen}
-        onClose={() => setIsNewModalOpen(false)}
+        onClose={() => {
+          setIsNewModalOpen(false);
+          setNewReservationParams(null);
+        }}
         showTrigger={false}
+        defaultDate={newReservationParams?.defaultDate}
+        defaultTime={newReservationParams?.defaultTime}
+        defaultTableId={newReservationParams?.defaultTableId}
+      />
+
+      {/* MODAL DETTAGLIO & SPOSTAMENTO PRENOTAZIONE */}
+      <ReservationDetailModal
+        reservation={detailReservation}
+        tables={tables}
+        customerProfiles={customerProfiles}
+        restaurantName={restaurantName}
+        hasWhatsAppModule={hasWhatsAppModule}
+        isOpen={Boolean(detailReservation)}
+        onClose={() => setDetailReservation(null)}
       />
 
       {/* MODAL SCHEDA CLIENTE */}
