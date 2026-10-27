@@ -39,6 +39,13 @@
   - Filtro per turno di servizio (Tutti i turni, Pranzo, Cena).
   - Filtro per sala (Tutte le sale, Sala Interna, Dehors, ecc.).
 
+### 2. 👨‍🍳 Gestione Organico, Camerieri e Staff di Sala (Issue #16)
+- **Anagrafica Completa Collaboratori (CRUD)**: Creazione, modifica e disattivazione di camerieri, capisala/maître, barman, chef, pizzaioli e cassieri con nome, recapiti, avatar colorato e note interne.
+- **Assegnazione Sale & Zone di Competenza**: Possibilità di collegare ciascun cameriere a una o più sale (Sala Interna, Dehors, ecc.) per una distribuzione efficiente dei tavoli.
+- **Turni di Servizio Abituali**: Gestione rapida della disponibilità per i turni di Pranzo ☀️ e Cena 🌙.
+- **PIN Rapido a 4 Cifre**: Accesso e identificazione istantanea per palmari comande sala e monitor cucina KDS senza digitare password complesse.
+- **Nuova Sezione in Sidebar**: Voce dedicata "Staff & Camerieri" con statistiche in tempo reale su organico, presenze attive e suddivisione dei reparti.
+
 ---
 
 

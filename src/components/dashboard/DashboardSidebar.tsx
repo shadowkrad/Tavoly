@@ -37,6 +37,7 @@ interface NavLinkItem {
 const baseNavLinks: NavLinkItem[] = [
   { href: "/dashboard", label: "Mappa Tavoli", icon: LayoutGrid },
   { href: "/dashboard/prenotazioni", label: "Prenotazioni & Turni", icon: CalendarDays },
+  { href: "/dashboard/staff", label: "Staff & Camerieri", icon: ChefHat },
   { href: "/dashboard/menu", label: "Menù Digitale QR", icon: UtensilsCrossed },
   { href: "/dashboard/asporto", label: "Asporto & Delivery", icon: ShoppingBag },
   { href: "/dashboard/clienti", label: "Clienti (CRM)", icon: Users },

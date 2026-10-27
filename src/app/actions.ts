@@ -1467,3 +1467,123 @@ export async function createPublicTakeawayOrderAction(data: {
 
 
 
+
+
+// ─────────────────────────────────────────────────────────────
+// STAFF & CAMERIERI ACTIONS (Issue #16)
+// ─────────────────────────────────────────────────────────────
+
+export interface StaffMemberInput {
+  id?: string;
+  name: string;
+  role: string;
+  phone?: string | null;
+  email?: string | null;
+  color?: string;
+  pin?: string | null;
+  assignedAreas?: string[] | null;
+  serviceShifts?: string[] | null;
+  isActive?: boolean;
+  notes?: string | null;
+}
+
+export async function createOrUpdateStaffMemberAction(input: StaffMemberInput) {
+  try {
+    if (!input.name || input.name.trim().length === 0) {
+      return { success: false, error: "Il nome del membro dello staff è obbligatorio" };
+    }
+
+    const assignedAreasJson = input.assignedAreas ? JSON.stringify(input.assignedAreas) : null;
+    const serviceShiftsJson = input.serviceShifts ? JSON.stringify(input.serviceShifts) : null;
+
+    if (input.id) {
+      const updated = await prisma.staffMember.update({
+        where: { id: input.id },
+        data: {
+          name: input.name.trim(),
+          role: input.role || "CAMERIERE",
+          phone: input.phone?.trim() || null,
+          email: input.email?.trim() || null,
+          color: input.color || "#10b981",
+          pin: input.pin?.trim() || null,
+          assignedAreas: assignedAreasJson,
+          serviceShifts: serviceShiftsJson,
+          isActive: input.isActive !== undefined ? input.isActive : true,
+          notes: input.notes?.trim() || null,
+        },
+      });
+      revalidatePath("/dashboard/staff");
+      return { success: true, staff: updated };
+    } else {
+      const created = await prisma.staffMember.create({
+        data: {
+          name: input.name.trim(),
+          role: input.role || "CAMERIERE",
+          phone: input.phone?.trim() || null,
+          email: input.email?.trim() || null,
+          color: input.color || "#10b981",
+          pin: input.pin?.trim() || null,
+          assignedAreas: assignedAreasJson,
+          serviceShifts: serviceShiftsJson,
+          isActive: input.isActive !== undefined ? input.isActive : true,
+          notes: input.notes?.trim() || null,
+        },
+      });
+      revalidatePath("/dashboard/staff");
+      return { success: true, staff: created };
+    }
+  } catch (error: any) {
+    console.error("Errore salvataggio membro staff:", error);
+    return { success: false, error: error.message || "Errore salvataggio membro staff" };
+  }
+}
+
+export async function toggleStaffActiveAction(id: string, isActive: boolean) {
+  try {
+    const updated = await prisma.staffMember.update({
+      where: { id },
+      data: { isActive },
+    });
+    revalidatePath("/dashboard/staff");
+    return { success: true, staff: updated };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore aggiornamento stato staff" };
+  }
+}
+
+export async function deleteStaffMemberAction(id: string) {
+  try {
+    await prisma.staffMember.delete({
+      where: { id },
+    });
+    revalidatePath("/dashboard/staff");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore eliminazione membro staff" };
+  }
+}
+
+export async function verifyStaffPinAction(pin: string) {
+  try {
+    if (!pin || pin.trim().length === 0) {
+      return { success: false, error: "PIN non valido" };
+    }
+    const member = await prisma.staffMember.findFirst({
+      where: { pin: pin.trim(), isActive: true },
+    });
+    if (!member) {
+      return { success: false, error: "Nessun membro staff attivo corrispondente al PIN inserito" };
+    }
+    return {
+      success: true,
+      staff: {
+        id: member.id,
+        name: member.name,
+        role: member.role,
+        color: member.color,
+      },
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore verifica PIN" };
+  }
+}
