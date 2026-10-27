@@ -1059,6 +1059,18 @@ export async function createTakeawayOrderAction(data: {
       }
     }
 
+    // Auto-print ESC/POS se abilitato
+    try {
+      const pConfig = await getPrinterConfigAction();
+      if (pConfig && pConfig.enabled && pConfig.autoPrintTakeaway && pConfig.ip) {
+        printTakeawayOrderEscPosAction(order.id).catch((pErr) => {
+          console.warn("[ESC/POS AutoPrint] Errore comanda asporto:", pErr);
+        });
+      }
+    } catch (pEx) {
+      // safe ignore
+    }
+
     revalidatePath("/dashboard/asporto");
     revalidatePath("/dashboard/clienti");
     return { success: true, order };
@@ -1176,6 +1188,18 @@ export async function createTableOrderAction(data: {
       }
     } catch (tableErr) {
       console.warn("[Table Order] Errore aggiornamento stato tavolo fisico:", tableErr);
+    }
+
+    // Auto-print ESC/POS se abilitato
+    try {
+      const pConfig = await getPrinterConfigAction();
+      if (pConfig && pConfig.enabled && pConfig.autoPrintTable && pConfig.ip) {
+        printTableOrderEscPosAction(order.id).catch((pErr) => {
+          console.warn("[ESC/POS AutoPrint] Errore comanda tavolo:", pErr);
+        });
+      }
+    } catch (pEx) {
+      // safe ignore
     }
 
     revalidatePath("/dashboard");
@@ -1568,5 +1592,200 @@ export async function verifyStaffPinAction(pin: string) {
     };
   } catch (error: any) {
     return { success: false, error: error.message || "Errore verifica PIN" };
+  }
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// STAMPANTE TERMICA COMANDE ESC/POS (Issue #22)
+// ─────────────────────────────────────────────────────────────
+
+import {
+  PrinterConfig,
+  DEFAULT_PRINTER_CONFIG,
+  buildEscPosBuffer,
+  EscPosTicketData,
+  EscPosOrderItem,
+} from "@/lib/escpos";
+import { sendEscPosToNetworkPrinter } from "@/lib/escpos-network.server";
+
+export async function getPrinterConfigAction(): Promise<PrinterConfig> {
+  try {
+    const rawSetting = await prisma.localSetting.findUnique({
+      where: { key: "thermal_printer_config" },
+    });
+    if (!rawSetting) return DEFAULT_PRINTER_CONFIG;
+    return { ...DEFAULT_PRINTER_CONFIG, ...JSON.parse(rawSetting.value) };
+  } catch {
+    return DEFAULT_PRINTER_CONFIG;
+  }
+}
+
+export async function savePrinterConfigAction(config: PrinterConfig) {
+  try {
+    await prisma.localSetting.upsert({
+      where: { key: "thermal_printer_config" },
+      create: {
+        key: "thermal_printer_config",
+        value: JSON.stringify(config),
+      },
+      update: {
+        value: JSON.stringify(config),
+      },
+    });
+    revalidatePath("/dashboard/impostazioni");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Errore salvataggio configurazione stampante" };
+  }
+}
+
+export async function testPrintEscPosAction(overrideConfig?: Partial<PrinterConfig>): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const currentConfig = await getPrinterConfigAction();
+    const config = { ...currentConfig, ...overrideConfig };
+
+    if (!config.ip || config.ip.trim() === "") {
+      return { success: false, error: "Inserisci l'indirizzo IP della stampante (es. 192.168.1.200)" };
+    }
+
+    const restSetting = await prisma.localSetting.findUnique({ where: { key: "restaurant_name" } });
+    const restaurantName = restSetting?.value || "Tavoly Restaurant";
+
+    const testTicket: EscPosTicketData = {
+      orderType: "TAVOLO",
+      title: "PROVA STAMPANTE OK",
+      subtitle: "Tavoly ESC/POS Bridge - Test di Rete",
+      restaurantName: restaurantName || "TAVOLY RESTAURANT",
+      items: [
+        { name: "Margherita Tradizionale", quantity: 2, category: "Pizze", notes: "Extra Basilico" },
+        { name: "Tagliata di Manzo al Rosmarino", quantity: 1, category: "Secondi", notes: "Cottura Media" },
+        { name: "Bottiglia Acqua Naturale 0.75L", quantity: 1, category: "Bevande" },
+      ],
+      notes: "Stampa di collaudo hardware. Taglierina e allineamento verificati.",
+      timestamp: new Date(),
+    };
+
+    const buffer = buildEscPosBuffer(testTicket, config.paperWidth, config.buzzer);
+    const result = await sendEscPosToNetworkPrinter(config.ip, config.port || 9100, buffer);
+
+    return result;
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore invio stampa di test" };
+  }
+}
+
+export async function printTableOrderEscPosAction(tableOrderId: string) {
+  try {
+    const [order, config, tenantConfig] = await Promise.all([
+      prisma.tableOrder.findUnique({ where: { id: tableOrderId } }),
+      getPrinterConfigAction(),
+      prisma.localSetting.findUnique({ where: { key: "restaurant_name" } }),
+    ]);
+
+    if (!order) return { success: false, error: "Comanda tavolo non trovata" };
+
+    let items: EscPosOrderItem[] = [];
+    try {
+      const parsed = JSON.parse(order.itemsJson);
+      if (Array.isArray(parsed)) {
+        items = parsed.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity || 1,
+          category: item.category,
+          price: item.price,
+          variants: item.variants,
+          notes: item.notes,
+        }));
+      }
+    } catch {}
+
+    const ticketData: EscPosTicketData = {
+      orderType: "TAVOLO",
+      title: `TAVOLO ${order.tableNumber}`,
+      subtitle: order.waiterName ? `Cameriere: ${order.waiterName}` : undefined,
+      coverCount: order.coverCount,
+      restaurantName: tenantConfig?.value || "Tavoly Restaurant",
+      notes: order.notes,
+      items,
+      timestamp: order.createdAt,
+    };
+
+    const buffer = buildEscPosBuffer(ticketData, config.paperWidth, config.buzzer);
+
+    if (config.enabled && config.ip) {
+      const res = await sendEscPosToNetworkPrinter(config.ip, config.port || 9100, buffer);
+      return { ...res, ticketData };
+    }
+
+    return {
+      success: true,
+      message: "Comanda tavolo formattata con successo",
+      ticketData,
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore stampa comanda tavolo" };
+  }
+}
+
+export async function printTakeawayOrderEscPosAction(takeawayOrderId: string) {
+  try {
+    const [order, config, tenantConfig] = await Promise.all([
+      prisma.takeawayOrder.findUnique({ where: { id: takeawayOrderId } }),
+      getPrinterConfigAction(),
+      prisma.localSetting.findUnique({ where: { key: "restaurant_name" } }),
+    ]);
+
+    if (!order) return { success: false, error: "Ordine asporto non trovato" };
+
+    let items: EscPosOrderItem[] = [];
+    if (order.itemsJson) {
+      try {
+        const parsed = JSON.parse(order.itemsJson);
+        if (Array.isArray(parsed)) {
+          items = parsed.map((item: any) => ({
+            name: item.name,
+            quantity: item.quantity || 1,
+            category: item.category,
+            price: item.price,
+            notes: item.notes,
+          }));
+        }
+      } catch {}
+    }
+
+    if (items.length === 0 && order.itemsSummary) {
+      items = order.itemsSummary.split(",").map((s: string) => ({
+        name: s.trim(),
+        quantity: 1,
+      }));
+    }
+
+    const ticketData: EscPosTicketData = {
+      orderType: "ASPORTO",
+      title: `ASPORTO - ${order.customerName}`,
+      subtitle: `Ritiro: ${order.pickupDate || "Oggi"} ore ${order.pickupTime}`,
+      customerPhone: order.phoneNumber,
+      timeSlot: order.pickupTime,
+      restaurantName: tenantConfig?.value || "Tavoly Restaurant",
+      notes: order.notes,
+      items,
+      timestamp: order.createdAt,
+    };
+
+    const buffer = buildEscPosBuffer(ticketData, config.paperWidth, config.buzzer);
+
+    if (config.enabled && config.ip) {
+      const res = await sendEscPosToNetworkPrinter(config.ip, config.port || 9100, buffer);
+      return { ...res, ticketData };
+    }
+
+    return {
+      success: true,
+      message: "Comanda asporto formattata con successo",
+      ticketData,
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Errore stampa comanda asporto" };
   }
 }
