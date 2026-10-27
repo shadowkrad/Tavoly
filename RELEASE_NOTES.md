@@ -47,6 +47,13 @@
 
 
 
+### 5. 🖼️ Vetrina Pubblica Premium con Immagine di Copertina Hero Panoramica
+- **Sfondo Fotografico Ristorante d'Autore**: Introduzione di una suggestiva copertina fotografica panoramica ad alta risoluzione raffigurante una sala ristorante elegante con illuminazione calda e mise en place d'atmosfera.
+- **Contrasto Visivo & Glassmorphism**: Testi e claim con leggibilità perfetta in bianco puro, badge con effetto smeraldo semitrasparente e card "Ospitalità & Sala" in stile glassmorphism con riflessi e bagliore soft.
+- **Piena Personalizzazione dal Live Studio**: Modificabile in tempo reale dal ristoratore tramite il modulo *Aspetto & Brand* in Impostazioni per caricare una fotografia reale della propria location o calibrare l'opacità di scurimento della copertina.
+
+---
+
 ## Novità della Versione 1.0.6 (Patch di Sicurezza e Hardening Accessi)
 
 ### 1. 🛡️ Autenticazione a Due Fattori (2FA / MFA Volontaria con Codici di Emergenza)

@@ -5,7 +5,7 @@ import { getTenantConfig } from "@/lib/taaaac-core";
 import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
 import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
 import { getTakeawaySettings } from "@/lib/takeaway-server";
-import { parseShowcaseConfig } from "@/lib/showcase-defaults";
+import { parseShowcaseConfig, DEFAULT_HERO_COVER_IMAGE } from "@/lib/showcase-defaults";
 import {
   UtensilsCrossed,
   Coffee,
@@ -49,6 +49,9 @@ export default async function PublicShowcasePage() {
 
   const { theme } = tenantConfig;
   const showcase = parseShowcaseConfig(showcaseSetting?.value);
+  const heroCoverUrl = showcase.hero.coverImageUrl || DEFAULT_HERO_COVER_IMAGE;
+  const hasHeroCover = Boolean(heroCoverUrl && heroCoverUrl.trim().length > 0);
+  const overlayOpacity = showcase.hero.overlayOpacity ?? 75;
 
   // Calcolo dinamico coperti prenotati per ogni turno
   const shifts: PublicShiftData[] = rawShifts.map((s) => {
@@ -75,18 +78,18 @@ export default async function PublicShowcasePage() {
       {/* Hero Section */}
       {showcase.sections.showHero && (
         <section className="relative py-16 md:py-24 overflow-hidden border-b border-slate-200/80">
-          {/* Foto Copertina Hero con Overlay Regolabile */}
-          {showcase.hero.coverImageUrl ? (
+          {/* Foto Copertina Hero Panoramica con Overlay Regolabile */}
+          {hasHeroCover ? (
             <div className="absolute inset-0 z-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={showcase.hero.coverImageUrl}
-                alt="Hero Cover"
-                className="w-full h-full object-cover"
+                src={heroCoverUrl}
+                alt="Hero Cover Ristorante"
+                className="w-full h-full object-cover object-center"
               />
               <div
                 className="absolute inset-0 bg-slate-950"
-                style={{ opacity: (showcase.hero.overlayOpacity ?? 75) / 100 }}
+                style={{ opacity: overlayOpacity / 100 }}
               />
             </div>
           ) : (
@@ -105,7 +108,7 @@ export default async function PublicShowcasePage() {
                 {showcase.hero.badgeText && (
                   <div
                     className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border ${
-                      showcase.hero.coverImageUrl
+                      hasHeroCover
                         ? "bg-white/10 text-emerald-300 border-white/20"
                         : "bg-emerald-50 text-emerald-800 border-emerald-200"
                     }`}
@@ -117,7 +120,7 @@ export default async function PublicShowcasePage() {
 
                 <h1
                   className={`text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight ${
-                    showcase.hero.coverImageUrl ? "text-white" : "text-slate-900"
+                    hasHeroCover ? "text-white" : "text-slate-900"
                   }`}
                 >
                   {showcase.hero.title}
@@ -125,7 +128,7 @@ export default async function PublicShowcasePage() {
 
                 <p
                   className={`text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 ${
-                    showcase.hero.coverImageUrl ? "text-slate-200" : "text-slate-600"
+                    hasHeroCover ? "text-slate-200" : "text-slate-600"
                   }`}
                 >
                   {showcase.hero.subtitle}
@@ -154,7 +157,7 @@ export default async function PublicShowcasePage() {
                   <a
                     href="#servizi"
                     className={`px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition ${
-                      showcase.hero.coverImageUrl
+                      hasHeroCover
                         ? "bg-slate-900/80 text-white border-slate-700 hover:bg-slate-800"
                         : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
                     }`}
@@ -167,20 +170,20 @@ export default async function PublicShowcasePage() {
                 {showcase.sections.showTrustBadges && showcase.trustBadges?.length > 0 && (
                   <div
                     className={`pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t max-w-lg mx-auto lg:mx-0 text-left ${
-                      showcase.hero.coverImageUrl ? "border-white/10" : "border-slate-200/80"
+                      hasHeroCover ? "border-white/10" : "border-slate-200/80"
                     }`}
                   >
                     {showcase.trustBadges.map((tb) => (
                       <div
                         key={tb.id}
                         className={`flex items-center gap-2 p-2 rounded-lg ${
-                          showcase.hero.coverImageUrl ? "bg-slate-900/60 border border-slate-800" : ""
+                          hasHeroCover ? "bg-slate-900/60 border border-slate-800" : ""
                         }`}
                       >
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                         <span
                           className={`text-xs font-semibold ${
-                            showcase.hero.coverImageUrl ? "text-slate-200" : "text-slate-700"
+                            hasHeroCover ? "text-slate-200" : "text-slate-700"
                           }`}
                         >
                           {tb.text}
@@ -194,7 +197,7 @@ export default async function PublicShowcasePage() {
               {/* Right Column: Visual Showcase Preview / Card Turni Live */}
               <div className="lg:col-span-5">
                 <div className="relative mx-auto max-w-md">
-                  <div className="taaaac-card p-6 bg-white shadow-xl border-slate-200/90 relative z-10 space-y-4">
+                  <div className="taaaac-card p-6 bg-white/95 backdrop-blur-md shadow-2xl border border-white/30 relative z-10 space-y-4 rounded-3xl">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2.5">
                         <div

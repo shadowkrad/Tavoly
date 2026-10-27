@@ -1,3 +1,5 @@
+export const DEFAULT_HERO_COVER_IMAGE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80";
+
 export interface TrustBadgeItem {
   id: string;
   icon: "star" | "shield" | "award" | "clock" | "check";
@@ -85,7 +87,7 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
       "Benvenuti all'Osteria dei Tavoli. Dai pranzi di lavoro agli aperitivi al bancone fino alle cene d'autore, riserviamo per te il miglior tavolo con conferma istantanea.",
     ctaPrimaryText: "Prenota il tuo Tavolo",
     ctaSecondaryText: "Ordina da Asporto",
-    coverImageUrl: null,
+    coverImageUrl: DEFAULT_HERO_COVER_IMAGE,
     overlayOpacity: 75,
   },
 
