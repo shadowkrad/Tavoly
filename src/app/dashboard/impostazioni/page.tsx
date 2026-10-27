@@ -99,10 +99,10 @@ const TABS: TabItem[] = [
   },
   {
     id: "stampante",
-    label: "Stampante Termica (ESC/POS)",
+    label: "Stampante Termica",
     shortLabel: "Stampante",
     iconComponent: Printer,
-    shortDescription: "Comande cucina e pizzeria",
+    shortDescription: "Comande ESC/POS cucina & bar",
     description: "Configurazione stampante termica di rete (porta TCP 9100) per emissione scontrini comanda",
   },
   {
@@ -517,7 +517,7 @@ export default function TavolyImpostazioniPage() {
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 pr-1">
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                           isActive
@@ -527,7 +527,7 @@ export default function TavolyImpostazioniPage() {
                       >
                         <IconComp className="w-4 h-4" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="text-xs sm:text-sm font-semibold truncate flex items-center gap-1.5">
                           <span>{tab.label}</span>
                         </div>
