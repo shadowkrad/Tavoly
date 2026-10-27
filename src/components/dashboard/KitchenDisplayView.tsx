@@ -19,6 +19,7 @@ import {
   ShoppingBag,
   Flame,
   Sparkles,
+  Printer,
 } from "lucide-react";
 import {
   updateTableOrderStatusAction,
@@ -26,6 +27,8 @@ import {
   deleteTableOrderAction,
 } from "@/app/actions";
 import { WaiterOrderModal } from "@/components/dashboard/WaiterOrderModal";
+import { ThermalTicketModal } from "@/components/dashboard/ThermalTicketModal";
+import { EscPosTicketData } from "@/lib/escpos";
 
 export interface KdsOrderItem {
   dishId?: string;
@@ -77,6 +80,27 @@ export function KitchenDisplayView({
 
   // Modal nuova comanda
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [selectedTicketData, setSelectedTicketData] = useState<EscPosTicketData | null>(null);
+
+  const handlePrintOrder = (order: KdsOrder) => {
+    setSelectedTicketData({
+      orderType: order.type === "TABLE" ? "TAVOLO" : "ASPORTO",
+      title: order.type === "TABLE" ? `TAVOLO ${order.tableNumber}` : `ASPORTO - ${order.tableNumber}`,
+      subtitle: order.type === "TABLE" ? (order.waiterName ? `Cameriere: ${order.waiterName}` : undefined) : undefined,
+      coverCount: order.type === "TABLE" ? order.coverCount : undefined,
+      restaurantName,
+      items: order.items.map((it) => ({
+        name: it.name,
+        quantity: it.quantity,
+        category: it.category,
+        variants: it.variants,
+      })),
+      notes: order.notes,
+      timestamp: new Date(order.createdAt),
+    });
+    setIsPrintModalOpen(true);
+  };
 
   // Aggiorna orologio ogni secondo
   useEffect(() => {
@@ -520,6 +544,14 @@ export function KitchenDisplayView({
 
                 {/* FOOTER DEL TICKET: AZIONI TOUCH GIGANTI PER IL CUOCO */}
                 <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrintOrder(order)}
+                    title="Stampa comanda termica ESC/POS (80mm/58mm)"
+                    className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center shrink-0 border border-slate-700 active:scale-95 shadow-sm"
+                  >
+                    <Printer className="w-4 h-4 text-amber-400" />
+                  </button>
                   {order.status === "IN_CODA" && (
                     <button
                       type="button"
@@ -567,6 +599,16 @@ export function KitchenDisplayView({
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
         onOrderCreated={fetchOrders}
+      />
+
+      {/* MODALE STAMPA TERMICA COMANDE ESC/POS */}
+      <ThermalTicketModal
+        isOpen={isPrintModalOpen}
+        onClose={() => {
+          setIsPrintModalOpen(false);
+          setSelectedTicketData(null);
+        }}
+        ticketData={selectedTicketData}
       />
     </div>
   );

@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import {
   ShoppingBag,
+  Printer,
   Clock,
   Phone,
   Search,
@@ -23,6 +24,8 @@ import {
   deleteTakeawayOrderAction
 } from "@/app/actions";
 import { NewTakeawayOrderModal, MenuItemSimple, CustomerSimple } from "./NewTakeawayOrderModal";
+import { ThermalTicketModal } from "@/components/dashboard/ThermalTicketModal";
+import { EscPosTicketData } from "@/lib/escpos";
 
 export interface TakeawayOrderData {
   id: string;
@@ -57,7 +60,31 @@ export function TakeawayManagementView({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSlotFilter, setSelectedSlotFilter] = useState<string | null>(null);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
-  const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [selectedTicketData, setSelectedTicketData] = useState<EscPosTicketData | null>(null);
+
+  const handlePrintTakeaway = (ord: TakeawayOrderData) => {
+    const parsedItems = ord.itemsSummary
+      ? ord.itemsSummary.split(",").map((s: string) => ({
+          name: s.trim(),
+          quantity: 1,
+        }))
+      : [];
+
+    setSelectedTicketData({
+      orderType: "ASPORTO",
+      title: `ASPORTO - ${ord.customerName}`,
+      subtitle: `Ritiro ore ${ord.pickupTime}`,
+      customerPhone: ord.phoneNumber,
+      timeSlot: ord.pickupTime,
+      restaurantName: "Tavoly Restaurant",
+      notes: ord.notes,
+      items: parsedItems,
+      timestamp: new Date(ord.createdAt),
+    });
+    setIsPrintModalOpen(true);
+  };
+    const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
 
   // Mappa slot orario -> conteggio ordini attivi
   const slotCounts = useMemo(() => {
@@ -505,6 +532,16 @@ export function TakeawayManagementView({
                         {ord.status === "ANNULLATO" && "✕ Annullato"}
                       </span>
 
+                      {/* Tasto Stampa Comanda Termica ESC/POS */}
+                      <button
+                        type="button"
+                        onClick={() => handlePrintTakeaway(ord)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                        title="Stampa scontrino termico comanda (ESC/POS)"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                      </button>
+
                       {/* Cestino eliminazione comanda pulito e discreto in testata */}
                       <button
                         type="button"
@@ -663,6 +700,16 @@ export function TakeawayManagementView({
         onOrderCreated={() => {
           window.location.reload();
         }}
+      />
+
+      {/* MODALE STAMPA TERMICA COMANDE ESC/POS */}
+      <ThermalTicketModal
+        isOpen={isPrintModalOpen}
+        onClose={() => {
+          setIsPrintModalOpen(false);
+          setSelectedTicketData(null);
+        }}
+        ticketData={selectedTicketData}
       />
     </div>
   );

@@ -28,14 +28,16 @@ import {
   Star,
   RefreshCw,
   Sparkles,
+  Printer,
 } from "lucide-react";
 import EmailSettingsCard from "@/components/dashboard/EmailSettingsCard";
 import RegisteredDevicesCard from "@/components/dashboard/RegisteredDevicesCard";
+import ThermalPrinterSettingsCard from "@/components/dashboard/ThermalPrinterSettingsCard";
 import { toggleKdsSettingAction } from "@/app/actions";
 import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rules";
 import ShowcaseVisualStudio from "@/components/dashboard/showcase/ShowcaseVisualStudio";
 
-type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "asporto" | "dispositivi" | "aspetto";
+type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "asporto" | "stampante" | "dispositivi" | "aspetto";
 
 interface TabItem {
   id: SettingsTab;
@@ -94,6 +96,14 @@ const TABS: TabItem[] = [
     iconComponent: ShoppingBag,
     shortDescription: "Regole ritiro e capienza",
     description: "Abilitazione asporto, fasce orarie di ritiro, tempo di preparazione e max comande per slot",
+  },
+  {
+    id: "stampante",
+    label: "Stampante Termica (ESC/POS)",
+    shortLabel: "Stampante",
+    iconComponent: Printer,
+    shortDescription: "Comande cucina e pizzeria",
+    description: "Configurazione stampante termica di rete (porta TCP 9100) per emissione scontrini comanda",
   },
   {
     id: "dispositivi",
@@ -1214,6 +1224,13 @@ export default function TavolyImpostazioniPage() {
               <span>{takeawaySaving ? "Salvataggio..." : "Salva Regole Asporto & Capacità"}</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* TAB STAMPANTE TERMICA ESC/POS */}
+      {activeTab === "stampante" && (
+        <div className="space-y-4">
+          <ThermalPrinterSettingsCard />
         </div>
       )}
 

@@ -46,6 +46,15 @@
 - **PIN Rapido a 4 Cifre**: Accesso e identificazione istantanea per palmari comande sala e monitor cucina KDS senza digitare password complesse.
 - **Nuova Sezione in Sidebar**: Voce dedicata "Staff & Camerieri" con statistiche in tempo reale su organico, presenze attive e suddivisione dei reparti.
 
+### 4. 🖨️ Supporto Stampante Termica Comande ESC/POS Cucina & Pizzeria (Issue #22)
+- **Protocollo Standard ESC/POS Hardware**: Driver socket TCP nativo Node.js sulla porta standard `9100` compatibile con tutte le stampanti termiche di mercato (Epson, Xprinter, Rongta, Munbyn, Star Micronics) sia a carta 80mm che 58mm.
+- **Stampa Automatica all'Invio Ordine**: Opzione per emissione istantanea automatica del ticket termico comanda non appena il cameriere invia l'ordine dal tavolo o quando arriva una comanda d'asporto/takeaway.
+- **Ristampa Comanda con 1-Tap**:
+  - **Monitor Cucina KDS**: Pulsante stampante su ciascun ticket in lavorazione per consentire alla brigata di cucina di ristampare la comanda cartacea in qualsiasi momento.
+  - **Modulo Asporto & Takeaway**: Pulsante dedicato su ogni ordine per stampare lo scontrino da pinzare alla busta o alla scatola della pizza con orario di ritiro e recapito telefonico.
+- **Modale Anteprima Termica 80mm**: Finestra di anteprima fedele con font monospazio, taglierina virtuale e fallback `window.print` per tablet, iPad e stampanti collegate via Bluetooth o AirPrint.
+- **Pannello Configurazione Dedicato**: Nuova tab "Stampante Termica (ESC/POS)" in Impostazioni con test di stampa in tempo reale, buzzer acustico abilitabile e configurazione IP/Porta di rete.
+
 ### 3. 📱 Ottimizzazione Touch, Zoom e Vista "Pocket Cameriere" per la Mappa 2D Tavoli (Issue #14)
 - **Supporto Pieno a Touch Drag & Drop**: Spostamento e riposizionamento dei tavoli su iPad e smartphone tramite gesture touch dirette con blocco dello scroll accidentale in modalità modifica.
 - **Controlli Zoom & Pan Fluttuanti**: Pulsanti di zoom in/out (+ / -) e reset rapido 100% per esplorare agevolmente sale ampie o tavoli fitti su qualsiasi display.
