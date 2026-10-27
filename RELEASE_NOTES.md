@@ -25,6 +25,15 @@
 - **PIN Rapido a 4 Cifre**: Accesso e identificazione istantanea per palmari comande sala e monitor cucina KDS senza digitare password complesse.
 - **Nuova Sezione in Sidebar**: Voce dedicata "Staff & Camerieri" con statistiche in tempo reale su organico, presenze attive e suddivisione dei reparti.
 
+### 3. 📱 Ottimizzazione Touch, Zoom e Vista "Pocket Cameriere" per la Mappa 2D Tavoli (Issue #14)
+- **Supporto Pieno a Touch Drag & Drop**: Spostamento e riposizionamento dei tavoli su iPad e smartphone tramite gesture touch dirette con blocco dello scroll accidentale in modalità modifica.
+- **Controlli Zoom & Pan Fluttuanti**: Pulsanti di zoom in/out (+ / -) e reset rapido 100% per esplorare agevolmente sale ampie o tavoli fitti su qualsiasi display.
+- **Nuova Vista "Pocket Cameriere"**: Modalità tascabile ultra-veloce progettata per l'uso ad una mano su smartphone da parte del personale di sala:
+  - Filtri stato rapidi (Tutti, Liberi, Occupati, Conto, Da Pulire).
+  - Stepper coperti a pulsanti spessi a pollice (+ / -).
+  - **Barra 1-Tap per Cambio Stato Immediato**: Pulsanti colorati (Libero, Occupato, Conto, Pulisci) direttamente sulla scheda del tavolo per cambiare stato al volo senza aprire finestre di dialogo.
+  - Rilevamento automatico schermi mobile con switch intelligente alla vista tascabile.
+
 ---
 
 
