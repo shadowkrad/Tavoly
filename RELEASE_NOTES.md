@@ -1,4 +1,33 @@
-﻿# 🚀 Tavoly — Release Notes
+# 🚀 Tavoly — Release Notes
+
+## Novità della Versione 1.1.0 (In Sviluppo)
+
+### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
+- **Floating WhatsApp Widget sulla Vetrina Ristorante**: Pulsante galleggiante WhatsApp ufficiale in basso a destra su tutte le pagine pubbliche (`FloatingWhatsAppWidget`), per consentire ai clienti di richiedere informazioni o concordare menu speciali direttamente dalla landing page.
+- **Perfezionamento Grafico Bollino WhatsApp Ufficiale**: integrato il tracciato vettoriale ufficiale Meta WhatsApp (fumetto solido bianco puro `#FFFFFF` ad alta definizione con cornetta verde `#25D366` in risalto), eliminando il vecchio bordo vuoto wireframe e garantendo la massima nitidezza visiva su tutti i dispositivi.
+- **Pulsanti 1-Click WhatsApp Svincolati da Moduli a Pagamento**: Nelle schermate Prenotazioni e Asporto, il pulsante WhatsApp è ora sempre attivo e utilizzabile a costo 0 € per inviare conferme, promemoria tavolo e avvisi *"Ordine pronto al banco!"* direttamente via WhatsApp Web o app mobile.
+- **Client Standardizzato (`@/lib/whatsapp-client` & `@/lib/whatsapp-server`)**: Connessione al micro-servizio centralizzato di Taaaac Core per le notifiche cloud automatiche.
+
+### 2. 🌐 Hub Sincronizzazione Omnicanale (Google Maps, Meta Facebook & IG, WhatsApp Business)
+- **Aggiornamento Turni & Orari All'Unisono con 1 Click**: Dalla scheda *Dashboard > Impostazioni > Turni & Coperti*, il pulsante `🚀 Salva e Sincronizza Turni su Google & Canali` aggiorna simultaneamente gli orari di apertura pranzo/cena sulla scheda Google Business Profile (Maps & Ricerca), sulle Pagine Meta (Facebook & Instagram) e sul profilo WhatsApp Business del ristorante.
+- **Badge di Stato Canali in Tempo Reale**: Nuova scheda visiva nella gestione turni con indicatori live dello stato di connessione e sincronizzazione per Google Maps, Meta, WhatsApp Business e Google Review Booster.
+- **Architettura Centralizzata Taaaac Core**: Gestione centralizzata e sicura di tutti i token di accesso e delle API dei canali esterni tramite Taaaac Core.
+
+### 3. ⭐ Google Review Booster Automatico via Email (5 Stelle Intelligenti)
+- **Email Post-Tavolo & Asporto Automatica a Costo Zero**: Quando una prenotazione del tavolo viene contrassegnata come `COMPLETATA` o un ordine asporto viene segnato come `RITIRATO`, il sistema invia in automatico un'email con 5 stelle interattive da `noreply@taaaac.eu` senza consumare la quota messaggi WhatsApp.
+- **Routing Intelligente Reputazione**:
+  - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
+  - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
+
+### 4. 🎨 Showcase Visual Studio WYSIWYG Fedele al 100% & Priorità Assoluta Nome Attività
+- **Simulatore Live Mirroring al 100%**: Ridisegnato il pannello di anteprima del Live Studio Vetrina (`ShowcaseVisualStudio`) affinché specchi fedelmente la pagina pubblica reale sia su smartphone che su desktop:
+  - Header completo con icona/logo, nome attività e pulsanti di navigazione fedeli.
+  - Hero a 2 colonne in modalità desktop con la card turni interattiva in tempo reale (*"Ospitalità & Sala — Tavoli in tempo reale — Aperto Oggi"*).
+  - Tutte le sezioni reali renderizzate (Galleria sala & piatti, Esperienze & Momenti della giornata a 4 card, Filosofia dark e callout prenotazione rapida).
+- **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
+- **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
+
+---
 
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
 
@@ -46,7 +75,6 @@
 ---
 
 
-
 ### 5. 🖼️ Vetrina Pubblica Premium con Immagine di Copertina Hero Panoramica
 - **Sfondo Fotografico Ristorante d'Autore**: Introduzione di una suggestiva copertina fotografica panoramica ad alta risoluzione raffigurante una sala ristorante elegante con illuminazione calda e mise en place d'atmosfera.
 - **Contrasto Visivo & Glassmorphism**: Testi e claim con leggibilità perfetta in bianco puro, badge con effetto smeraldo semitrasparente e card "Ospitalità & Sala" in stile glassmorphism con riflessi e bagliore soft.
@@ -58,7 +86,6 @@
 - **Centralizzazione Sicurezza e MFA su Taaaac Core**: Le impostazioni avanzate di sicurezza (2FA TOTP, codici di recupero, cambio password) sono centralizzate al 100% nella dashboard utente di Taaaac (taaaac.eu/portal), semplificando l'esperienza all'interno del modulo satellite.
 
 ---
-
 ## Novità della Versione 1.0.6 (Patch di Sicurezza e Hardening Accessi)
 
 ### 1. 🛡️ Autenticazione a Due Fattori (2FA / MFA Volontaria con Codici di Emergenza)
@@ -118,6 +145,72 @@
    - **Su iPhone (iOS / Safari)**: tocca l'icona di condivisione in basso al centro (il quadrato con la freccia verso l'alto ⬆️), scorri il menu verso il basso e tocca **"Aggiungi alla schermata Home"**, quindi conferma con **"Aggiungi"** in alto a destra.
    - **Su Android (Chrome)**: tocca il menu con i tre puntini in alto a destra (⋮), seleziona **"Aggiungi a schermata Home"** (o **"Installa applicazione"**), e conferma con **"Aggiungi"**.
 4. **Fatto!** L'icona sulla schermata Home del tuo smartphone sarà ora perfettamente nitida, con la grafica dedicata o con il logo del tuo brand.
+
+---
+
+## Novità della Versione 1.1.0 (In Sviluppo)
+
+### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
+- **Floating WhatsApp Widget sulla Vetrina Ristorante**: Pulsante galleggiante WhatsApp ufficiale in basso a destra su tutte le pagine pubbliche (`FloatingWhatsAppWidget`), per consentire ai clienti di richiedere informazioni o concordare menu speciali direttamente dalla landing page.
+- **Perfezionamento Grafico Bollino WhatsApp Ufficiale**: integrato il tracciato vettoriale ufficiale Meta WhatsApp (fumetto solido bianco puro `#FFFFFF` ad alta definizione con cornetta verde `#25D366` in risalto), eliminando il vecchio bordo vuoto wireframe e garantendo la massima nitidezza visiva su tutti i dispositivi.
+- **Pulsanti 1-Click WhatsApp Svincolati da Moduli a Pagamento**: Nelle schermate Prenotazioni e Asporto, il pulsante WhatsApp è ora sempre attivo e utilizzabile a costo 0 € per inviare conferme, promemoria tavolo e avvisi *"Ordine pronto al banco!"* direttamente via WhatsApp Web o app mobile.
+- **Client Standardizzato (`@/lib/whatsapp-client` & `@/lib/whatsapp-server`)**: Connessione al micro-servizio centralizzato di Taaaac Core per le notifiche cloud automatiche.
+
+### 2. 🌐 Hub Sincronizzazione Omnicanale (Google Maps, Meta Facebook & IG, WhatsApp Business)
+- **Aggiornamento Turni & Orari All'Unisono con 1 Click**: Dalla scheda *Dashboard > Impostazioni > Turni & Coperti*, il pulsante `🚀 Salva e Sincronizza Turni su Google & Canali` aggiorna simultaneamente gli orari di apertura pranzo/cena sulla scheda Google Business Profile (Maps & Ricerca), sulle Pagine Meta (Facebook & Instagram) e sul profilo WhatsApp Business del ristorante.
+- **Badge di Stato Canali in Tempo Reale**: Nuova scheda visiva nella gestione turni con indicatori live dello stato di connessione e sincronizzazione per Google Maps, Meta, WhatsApp Business e Google Review Booster.
+- **Architettura Centralizzata Taaaac Core**: Gestione centralizzata e sicura di tutti i token di accesso e delle API dei canali esterni tramite Taaaac Core.
+
+### 3. ⭐ Google Review Booster Automatico via Email (5 Stelle Intelligenti)
+- **Email Post-Tavolo & Asporto Automatica a Costo Zero**: Quando una prenotazione del tavolo viene contrassegnata come `COMPLETATA` o un ordine asporto viene segnato come `RITIRATO`, il sistema invia in automatico un'email con 5 stelle interattive da `noreply@taaaac.eu` senza consumare la quota messaggi WhatsApp.
+- **Routing Intelligente Reputazione**:
+  - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
+  - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
+
+### 4. 🎨 Showcase Visual Studio WYSIWYG Fedele al 100% & Priorità Assoluta Nome Attività
+- **Simulatore Live Mirroring al 100%**: Ridisegnato il pannello di anteprima del Live Studio Vetrina (`ShowcaseVisualStudio`) affinché specchi fedelmente la pagina pubblica reale sia su smartphone che su desktop:
+  - Header completo con icona/logo, nome attività e pulsanti di navigazione fedeli.
+  - Hero a 2 colonne in modalità desktop con la card turni interattiva in tempo reale (*"Ospitalità & Sala — Tavoli in tempo reale — Aperto Oggi"*).
+  - Tutte le sezioni reali renderizzate (Galleria sala & piatti, Esperienze & Momenti della giornata a 4 card, Filosofia dark e callout prenotazione rapida).
+- **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
+- **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
+
+---
+
+## Novità della Versione 1.0.5 (Hotfix / Patch)
+
+### 1. 📱 Fix Icone PWA per Smartphone (iOS & Android) & Supporto Favicon Personalizzata
+- **Risoluzione Icone Vuote o Fallback su Mobile**: Risolto il problema per cui su iPhone e dispositivi Android le icone PWA apparivano come quadrati monocromatici vuoti o lettere di ripiego. iOS Safari richiede rigorosamente formati PNG raster per `apple-touch-icon`, scartando i file vettoriali SVG.
+- **Logica Intelligente di Fallback**:
+  - Se il cliente/tenant ha caricato un proprio logo o favicon personalizzato nelle impostazioni di brand, la PWA su smartphone adotta automaticamente l'immagine del cliente.
+  - Se il cliente non ha configurato una favicon, il sistema inietta l'icona ufficiale nativa in alta risoluzione (Cloche gourmet da portata su Mediterranean Emerald) con formati specifici (`apple-touch-icon.png` a 180x180 per Apple, `icon-192.png`, `icon-512.png` e `icon-maskable-512.png` per Android).
+- **Allineamento Universale Manifest**: Serviti contemporaneamente sia `/manifest.json` sia `/manifest.webmanifest` con MIME type standard e categorie W3C PWA valide.
+
+### 2. 🧭 Fix Navigazione Menu Impostazioni su Smartphone & PWA (Risoluzione Schermata Singola)
+- **Risoluzione Blocco Prima Pagina**: Risolto il problema per cui su smartphone e display mobile i pulsanti delle impostazioni occupavano il 100% della larghezza orizzontale nascondendo le altre sezioni e impedendo l'accesso alle schede successive (Turni, Email, WhatsApp, Cucina KDS, Asporto, Dispositivi, Aspetto).
+- **Nuovo Selettore Nativo Mobile**: Introdotto un menu a tendina rapido nativo su smartphone (< lg) ancorato stabilmente sotto l'header (sticky). Consente di selezionare ed esplorare istantaneamente qualsiasi sezione con 1 tap, sfruttando il picker nativo di iOS e Android. Su desktop la barra di navigazione verticale completa rimane intatta.
+
+### 3. 🔐 Autenticazione Master Qualificata & Accesso Rapido Passkey Biometrica
+- **Rimozione Completa Credenziali in Chiaro**: Eliminati tutti i testi e hint con credenziali di default o PIN di test esposti nell'interfaccia di login dei tenant reali.
+- **Supporto Password Master & PIN Operatore**: Accesso amministrativo unificato con password master impostata all'attivazione del tenant su Taaaac o PIN operatore, con selettore intuitivo tra inserimento classico (con toggle visibilità) e tastierino numerico touch per palmari e postazioni cassa.
+- **Accesso 1-Click su Ambiente Demo (Vercel)**: Nei canali di prova e demo pubblica, pulsante dedicato ad accesso immediato senza digitazione di credenziali.
+- **Sblocco Istantaneo con Passkey Biometrica**: Accesso in 1 secondo via impronta digitale, Face ID o PIN nativo del dispositivo (WebAuthn) per i dispositivi registrati in *Impostazioni > Dispositivi PWA*.
+
+### 4. 📲 Guida Rapida per il Cliente: Come Aggiornare l'Icona sul Tuo Smartphone
+> **⚠️ Nota Tecnica Importante sulla Cache dei Telefoni:**
+> I sistemi operativi mobili (Apple iOS e Android) memorizzano l'icona dell'applicazione nella cache locale permanente al momento del primo salvataggio sulla schermata Home. Pertanto, **le app già aggiunte in precedenza continueranno a mostrare la vecchia icona finché non vengono registrate nuovamente**.
+
+#### 🛠️ Istruzioni Passo-Passo per Sostituire la Vecchia Icona (30 secondi):
+1. **Elimina la vecchia icona dalla schermata Home**:
+   - Tieni premuto il dito sull'icona attuale dell'app sullo schermo del telefono fino a quando compare il menu a comparsa, quindi tocca **"Rimuovi app"** (oppure **"Elimina dalla schermata Home"**).
+2. **Apri il tuo gestionale nel browser**:
+   - Apri il browser dello smartphone (**Safari** su iPhone/iPad oppure **Chrome** su Android) e collegati all'indirizzo del tuo sito web.
+3. **Aggiungi nuovamente l'app alla schermata Home**:
+   - **Su iPhone (iOS / Safari)**: tocca l'icona di condivisione in basso al centro (il quadrato con la freccia verso l'alto ⬆️), scorri il menu verso il basso e tocca **"Aggiungi alla schermata Home"**, quindi conferma con **"Aggiungi"** in alto a destra.
+   - **Su Android (Chrome)**: tocca il menu con i tre puntini in alto a destra (⋮), seleziona **"Aggiungi a schermata Home"** (o **"Installa applicazione"**), e conferma con **"Aggiungi"**.
+4. **Fatto!** L'icona sulla schermata Home del tuo smartphone sarà ora perfettamente nitida, con la grafica dedicata o con il logo del tuo brand.
+
+---
 
 ---
 
