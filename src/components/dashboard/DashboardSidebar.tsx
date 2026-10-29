@@ -15,7 +15,6 @@ import {
   Users,
   Settings,
   Clock,
-  Shield,
   Gift,
   Award,
   Share2,
@@ -24,7 +23,6 @@ import {
   ChevronRight,
   ChefHat,
 } from "lucide-react";
-import UserSecurityModal from "@/components/UserSecurityModal";
 import SidebarPwaInstall from "@/components/dashboard/SidebarPwaInstall";
 
 interface NavLinkItem {
@@ -81,7 +79,6 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ kdsEnabled = false }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [securityModalOpen, setSecurityModalOpen] = useState(false);
   const { isAddonActive, config } = useTenantConfig();
 
   const activeAddons = addonNavLinks.filter((item) => isAddonActive(item.addonId));
@@ -253,22 +250,6 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
               <Settings className="w-4 h-4 shrink-0" />
               <span>Impostazioni Sala</span>
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                setSecurityModalOpen(true);
-                setMobileOpen(false);
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-emerald-200 hover:bg-emerald-900 hover:text-white transition-all cursor-pointer mt-1"
-            >
-              <div className="flex items-center gap-3">
-                <Shield className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>Sicurezza & 2FA</span>
-              </div>
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                1.0.7
-              </span>
-            </button>
           </div>
         </nav>
 
