@@ -11,7 +11,7 @@ export async function GET() {
 
     const parsed = parseShowcaseConfig(setting?.value);
 
-    // Sincronizza anche con restaurant_name e colori se presenti
+    // Sincronizza anche con restaurant_name e colori se presenti su LocalSetting
     const meta = await prisma.localSetting.findMany({
       where: {
         key: { in: ["restaurant_name", "color_primary", "color_accent", "brand_logo_url", "brand_favicon_url"] },
@@ -43,11 +43,11 @@ export async function PUT(req: NextRequest) {
       update: { value: showcaseStr },
     });
 
-    if (body.brandName) {
+    if (body.brandName && typeof body.brandName === "string" && body.brandName.trim().length > 0) {
       await prisma.localSetting.upsert({
         where: { key: "restaurant_name" },
-        create: { key: "restaurant_name", value: body.brandName },
-        update: { value: body.brandName },
+        create: { key: "restaurant_name", value: body.brandName.trim() },
+        update: { value: body.brandName.trim() },
       });
     }
     if (body.primaryColor) {
@@ -79,8 +79,18 @@ export async function PUT(req: NextRequest) {
       });
     }
 
+    // Invalida la cache locale tenant_config per aggiornare immediatamente la home page e il layout
+    try {
+      await prisma.localSetting.deleteMany({
+        where: { key: "tenant_config_cache" },
+      });
+    } catch {
+      // opzionale
+    }
+
     revalidatePath("/");
     revalidatePath("/dashboard/impostazioni");
+    revalidatePath("/dashboard");
 
     return NextResponse.json({ success: true, config: parseShowcaseConfig(showcaseStr) });
   } catch (error) {
