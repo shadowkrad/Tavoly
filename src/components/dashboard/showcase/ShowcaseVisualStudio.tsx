@@ -31,6 +31,12 @@ import {
   ArrowRight,
   Quote,
   ShoppingBag,
+  CalendarCheck,
+  Lock,
+  Coffee,
+  GlassWater,
+  Wine,
+  Phone,
 } from "lucide-react";
 
 type ControlTab = "hero" | "media" | "colori" | "cucina" | "sezioni" | "badges";
@@ -196,7 +202,7 @@ export default function ShowcaseVisualStudio() {
             <span>Editor Vetrina Interattivo</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Personalizza testi di benvenuto, cover d&apos;atmosfera, galleria piatti e sezioni pubbliche.
+            Personalizza nome attività, testi di benvenuto, cover d&apos;atmosfera, galleria piatti e sezioni pubbliche.
           </p>
         </div>
 
@@ -297,7 +303,7 @@ export default function ShowcaseVisualStudio() {
         <div className="xl:col-span-5 space-y-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-2 flex flex-wrap gap-1.5 shadow-xs">
             {[
-              { id: "hero", label: "Hero & Copy", icon: Type },
+              { id: "hero", label: "Insegna & Copy", icon: Type },
               { id: "media", label: "Cover & Foto", icon: ImageIcon },
               { id: "colori", label: "Colori", icon: Palette },
               { id: "cucina", label: "La Cucina", icon: Quote },
@@ -311,10 +317,10 @@ export default function ShowcaseVisualStudio() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveControlTab(tab.id as ControlTab)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                     isActive
-                      ? "bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent"
+                      ? "bg-emerald-700 text-white shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />
@@ -331,10 +337,26 @@ export default function ShowcaseVisualStudio() {
                 <div className="border-b border-slate-200 pb-2">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <Type className="w-4 h-4 text-emerald-600" />
-                    <span>Testi Schermata Iniziale (Hero)</span>
+                    <span>Insegna, Titoli & Testi di Benvenuto</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Prima impressione all&apos;ingresso sul sito per i tuoi clienti.
+                    Configura il nome del locale e il claim visualizzato al pubblico.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Nome Attività / Insegna Locale
+                  </label>
+                  <input
+                    type="text"
+                    value={config.brandName || ""}
+                    onChange={(e) => setConfig({ ...config, brandName: e.target.value })}
+                    placeholder="es. MECO non solo pizza!"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Nome visualizzato nella barra superiore del sito, nella scheda del browser e nei promemoria WhatsApp.
                   </p>
                 </div>
 
@@ -346,18 +368,20 @@ export default function ShowcaseVisualStudio() {
                     onChange={(e) =>
                       setConfig({ ...config, hero: { ...config.hero, badgeText: e.target.value } })
                     }
+                    placeholder="es. MECO"
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Titolo Principale</label>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Titolo Principale (Claim)</label>
                   <textarea
                     rows={2}
                     value={config.hero.title}
                     onChange={(e) =>
                       setConfig({ ...config, hero: { ...config.hero, title: e.target.value } })
                     }
+                    placeholder='es. "non solo pizza!"'
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden resize-none"
                   />
                 </div>
@@ -419,7 +443,7 @@ export default function ShowcaseVisualStudio() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">Foto Copertina Hero</h4>
-                      <p className="text-[10px] text-slate-500">Banner fotografico della sala o mise en place.</p>
+                      <p className="text-[10px] text-slate-500">Banner panoramico d&apos;atmosfera.</p>
                     </div>
                     {config.hero.coverImageUrl && (
                       <button
@@ -427,7 +451,7 @@ export default function ShowcaseVisualStudio() {
                         onClick={() =>
                           setConfig({ ...config, hero: { ...config.hero, coverImageUrl: null } })
                         }
-                        className="text-[11px] text-rose-600 hover:underline font-semibold"
+                        className="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer"
                       >
                         Rimuovi Cover
                       </button>
@@ -443,7 +467,7 @@ export default function ShowcaseVisualStudio() {
                       const file = e.target.files?.[0];
                       if (file) {
                         setImageProcessing("cover");
-                        processImageFile(file, 1280, "image/webp", (dataUrl) => {
+                        processImageFile(file, 1920, "image/webp", (dataUrl) => {
                           setConfig((prev) => ({
                             ...prev,
                             hero: { ...prev.hero, coverImageUrl: dataUrl },
@@ -461,7 +485,7 @@ export default function ShowcaseVisualStudio() {
                       <button
                         type="button"
                         onClick={() => coverInputRef.current?.click()}
-                        className="absolute inset-0 bg-slate-950/60 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5"
+                        className="absolute inset-0 bg-slate-950/60 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Upload className="w-4 h-4" />
                         <span>Cambia Copertina</span>
@@ -475,7 +499,7 @@ export default function ShowcaseVisualStudio() {
                     >
                       <Upload className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
                       <div className="text-xs text-slate-800 font-semibold">Carica Foto Copertina Ristorante</div>
-                      <p className="text-[10px] text-slate-500 mt-0.5">JPG, PNG o WebP (max 1280px)</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">JPG, PNG o WebP (max 1920px)</p>
                     </button>
                   )}
 
@@ -548,34 +572,32 @@ export default function ShowcaseVisualStudio() {
 
                   {imageProcessing === "gallery" && (
                     <div className="text-xs text-emerald-600 animate-pulse text-center">
-                      Compressione foto in corso...
+                      Ottimizzazione foto galleria...
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {config.gallery.images.map((img) => (
                       <div
                         key={img.id}
-                        className="p-2 rounded-xl bg-slate-50 border border-slate-200 relative group space-y-1.5"
+                        className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-200 bg-slate-50"
                       >
-                        <div className="h-20 rounded-lg overflow-hidden bg-slate-200 relative">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={img.url} alt={img.caption || "Piatto"} className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => removeGalleryImage(img.id)}
-                            className="absolute top-1 right-1 p-1 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt="Foto" className="w-12 h-12 object-cover rounded-lg shrink-0" />
                         <input
                           type="text"
                           value={img.caption || ""}
+                          placeholder="Didascalia piatto o ambiente..."
                           onChange={(e) => updateGalleryCaption(img.id, e.target.value)}
-                          placeholder="Didascalia piatto o sala..."
-                          className="w-full px-2 py-1 rounded-md bg-white border border-slate-200 text-[10px] text-slate-700 focus:outline-hidden"
+                          className="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:ring-1 focus:ring-emerald-600 focus:outline-hidden"
                         />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(img.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -583,7 +605,7 @@ export default function ShowcaseVisualStudio() {
               </div>
             )}
 
-            {/* COLORI */}
+            {/* COLORI & BRAND */}
             {activeControlTab === "colori" && (
               <div className="space-y-4">
                 <div className="border-b border-slate-200 pb-2">
@@ -768,86 +790,66 @@ export default function ShowcaseVisualStudio() {
                     { key: "showHero", label: "Schermata Hero di Benvenuto", desc: "Copertina, claim e pulsanti principali" },
                     { key: "showTrustBadges", label: "Badges di Affidabilità", desc: "Conferma istantanea, WhatsApp, zero attesa" },
                     { key: "showTakeawayCta", label: "Pulsante Ordina da Asporto", desc: "Mostra il tasto takeaway nella vetrina" },
-                    { key: "showServices", label: "Spazi & Servizi Ristorante", desc: "Dehors, sala interna, aperitivi" },
-                    { key: "showGallery", label: "Galleria Foto Sala & Piatti", desc: "Scatti della location e creazioni" },
-                    { key: "showAbout", label: "La Nostra Cucina & Filosofia", desc: "Storia del locale e citazione Chef" },
-                    { key: "showHours", label: "Turni di Servizio (Pranzo/Cena)", desc: "Fasce orarie e disponibilità coperti" },
-                    { key: "showContact", label: "Dove Siamo & Indicazioni", desc: "Indirizzo, telefono e recapiti" },
-                  ].map((sec) => (
-                    <div
-                      key={sec.key}
-                      className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between"
+                    { key: "showGallery", label: "Galleria Foto Sala & Cucina", desc: "Griglia immagini atmosfera e mise en place" },
+                    { key: "showServices", label: "Sezione Esperienze & Momenti", desc: "Colazioni, pranzi veloci, aperitivi e cene" },
+                    { key: "showAbout", label: "Filosofia & La Nostra Cucina", desc: "Descrizione passione artigianale e citazione" },
+                    { key: "showHours", label: "Orari di Apertura & Dove Siamo", desc: "Dettaglio turni, mappa e recapiti" },
+                  ].map((s) => (
+                    <label
+                      key={s.key}
+                      className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer"
                     >
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">{sec.label}</span>
-                        <span className="text-[10px] text-slate-500">{sec.desc}</span>
+                        <div className="text-xs font-bold text-slate-900">{s.label}</div>
+                        <div className="text-[10px] text-slate-500">{s.desc}</div>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={config.sections[sec.key as keyof typeof config.sections]}
-                          onChange={(e) =>
-                            setConfig({
-                              ...config,
-                              sections: {
-                                ...config.sections,
-                                [sec.key]: e.target.checked,
-                              },
-                            })
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
-                    </div>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(config.sections[s.key as keyof typeof config.sections])}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            sections: {
+                              ...config.sections,
+                              [s.key]: e.target.checked,
+                            },
+                          })
+                        }
+                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      />
+                    </label>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* BADGES */}
+            {/* TRUST BADGES */}
             {activeControlTab === "badges" && (
               <div className="space-y-4">
                 <div className="border-b border-slate-200 pb-2">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <Award className="w-4 h-4 text-emerald-600" />
-                    <span>Badges di Fiducia Tavoly</span>
+                    <span>Badges di Garanzia & Affidabilità</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Mostrati sotto l&apos;Hero per rassicurare i clienti.
+                    Rassicurano il cliente con punti di forza (es. Zero Attesa, Notifiche WhatsApp).
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {config.trustBadges.map((badge, idx) => (
-                    <div key={badge.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-emerald-700">Badge #{idx + 1}</span>
-                        <select
-                          value={badge.icon}
-                          onChange={(e) => {
-                            const newBadges = [...config.trustBadges];
-                            newBadges[idx] = { ...badge, icon: e.target.value as any };
-                            setConfig({ ...config, trustBadges: newBadges });
-                          }}
-                          className="text-xs bg-white border border-slate-200 text-slate-700 rounded-lg px-2 py-1"
-                        >
-                          <option value="check">✔️ Spunta / Conferma</option>
-                          <option value="star">⭐ Stella Recensioni</option>
-                          <option value="clock">⏱️ Orologio / Zero Attesa</option>
-                          <option value="shield">🛡️ Scudo / Qualità</option>
-                          <option value="award">🏆 Premio / Chef</option>
-                        </select>
-                      </div>
+                    <div key={badge.id} className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-slate-50">
+                      <span className="text-[10px] font-bold text-slate-400 w-5">#{idx + 1}</span>
                       <input
                         type="text"
                         value={badge.text}
                         onChange={(e) => {
-                          const newBadges = [...config.trustBadges];
-                          newBadges[idx] = { ...badge, text: e.target.value };
-                          setConfig({ ...config, trustBadges: newBadges });
+                          const updated = config.trustBadges.map((b) =>
+                            b.id === badge.id ? { ...b, text: e.target.value } : b
+                          );
+                          setConfig({ ...config, trustBadges: updated });
                         }}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900"
+                        className="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:ring-1 focus:ring-emerald-600 focus:outline-hidden"
                       />
                     </div>
                   ))}
@@ -857,17 +859,17 @@ export default function ShowcaseVisualStudio() {
           </div>
         </div>
 
-        {/* PANNELLO DESTRO: LIVE SIMULATOR */}
+        {/* PANNELLO DESTRO: LIVE SIMULATOR SPECCHIATO AL 100% */}
         <div className="xl:col-span-7 space-y-2">
           <div className="flex items-center justify-between px-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <span>📱 Simulatore Live Tavoly</span>
+              <span>📱 Simulatore Live WYSIWYG Fedele</span>
               <span className="text-emerald-700 text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
                 In Tempo Reale
               </span>
             </span>
             <span className="text-[11px] text-slate-400">
-              {deviceMode === "mobile" ? "Formato Smartphone (390px)" : "Formato Schermo Intero"}
+              {deviceMode === "mobile" ? "Formato Smartphone (390px)" : "Formato Schermo Intero Desktop"}
             </span>
           </div>
 
@@ -888,45 +890,72 @@ export default function ShowcaseVisualStudio() {
 
             <div
               className={`bg-slate-50 text-slate-800 overflow-y-auto no-scrollbar rounded-[32px] font-sans ${
-                deviceMode === "mobile" ? "max-h-[700px] min-h-[580px]" : "max-h-[760px] min-h-[580px]"
+                deviceMode === "mobile" ? "max-h-[720px] min-h-[580px]" : "max-h-[780px] min-h-[580px]"
               }`}
             >
-              {/* Navbar Live */}
-              <nav className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
+              {/* Navbar Fedele a ShowcaseNavbar */}
+              <nav className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {config.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={config.logoUrl} alt="Logo" className="h-7 max-w-[120px] object-contain rounded" />
+                    <img src={config.logoUrl} alt="Logo" className="h-7 sm:h-8 max-w-[120px] object-contain rounded-lg shrink-0" />
                   ) : (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                      <span
-                        className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-black text-white"
-                        style={{ backgroundColor: config.primaryColor }}
-                      >
-                        🍽️
-                      </span>
-                      <span className="truncate">{config.brandName}</span>
+                    <div
+                      style={{ backgroundColor: config.primaryColor }}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-white flex items-center justify-center shrink-0 shadow-xs"
+                    >
+                      <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                   )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs sm:text-sm font-black text-slate-900 tracking-tight truncate block leading-tight">
+                        {config.brandName || "Tavoly"}
+                      </span>
+                      <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 shrink-0">
+                        Ristorante &amp; Bar
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-medium truncate hidden sm:block">
+                      Sale, Tavoli &amp; Cucina d&apos;Autore
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {deviceMode === "desktop" && (
+                  <div className="hidden lg:flex items-center gap-4 text-xs font-semibold text-slate-600">
+                    <span className="hover:text-emerald-700 cursor-pointer">I Nostri Servizi</span>
+                    <span className="hover:text-emerald-700 cursor-pointer">Prenota un Tavolo</span>
+                    {config.sections.showTakeawayCta && (
+                      <span className="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 cursor-pointer">
+                        🥡 Ordina Asporto
+                      </span>
+                    )}
+                    <span className="hover:text-emerald-700 cursor-pointer">Orari &amp; Contatti</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span
                     style={{ backgroundColor: config.primaryColor }}
-                    className="text-[11px] font-bold text-white px-3 py-1 rounded-full shadow-xs cursor-default"
+                    className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
                   >
-                    Prenota
+                    <CalendarCheck className="w-3 h-3" />
+                    <span>Prenota Ora</span>
+                  </span>
+                  <span className="p-1 text-slate-400 rounded-lg">
+                    <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </span>
                 </div>
               </nav>
 
-              {/* HERO SECTION */}
+              {/* HERO SECTION SPECCHIATA (Responsive Mobile / Desktop a 2 Colonne) */}
               {config.sections.showHero && (
-                <section className="relative overflow-hidden py-10 sm:py-14 px-4 text-center space-y-4">
+                <section className="relative overflow-hidden py-10 sm:py-16 px-4 border-b border-slate-200/80">
                   {config.hero.coverImageUrl ? (
                     <div className="absolute inset-0 z-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={config.hero.coverImageUrl} alt="Hero Cover" className="w-full h-full object-cover" />
+                      <img src={config.hero.coverImageUrl} alt="Hero Cover" className="w-full h-full object-cover object-center" />
                       <div
                         className="absolute inset-0 bg-slate-950"
                         style={{ opacity: config.hero.overlayOpacity / 100 }}
@@ -941,84 +970,153 @@ export default function ShowcaseVisualStudio() {
                     />
                   )}
 
-                  <div className="relative z-10 space-y-3 max-w-lg mx-auto">
-                    {config.hero.badgeText && (
-                      <div
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          config.hero.coverImageUrl
-                            ? "bg-white/10 text-emerald-300 border-white/20"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        }`}
-                      >
-                        <Sparkles className="w-3 h-3" />
-                        <span>{config.hero.badgeText}</span>
+                  <div className="relative z-10 max-w-5xl mx-auto">
+                    <div className={deviceMode === "desktop" ? "grid grid-cols-12 gap-8 items-center" : "space-y-4 text-center"}>
+                      {/* Colonna Sinistra / Contenuti Principali */}
+                      <div className={deviceMode === "desktop" ? "col-span-7 space-y-4 text-left" : "space-y-3"}>
+                        {config.hero.badgeText && (
+                          <div
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                              config.hero.coverImageUrl
+                                ? "bg-white/10 text-emerald-300 border-white/20"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            }`}
+                          >
+                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                            <span>{config.hero.badgeText}</span>
+                          </div>
+                        )}
+
+                        <h1
+                          className={`text-xl sm:text-3xl font-black leading-tight tracking-tight ${
+                            config.hero.coverImageUrl ? "text-white" : "text-slate-900"
+                          }`}
+                        >
+                          {config.hero.title}
+                        </h1>
+
+                        <p
+                          className={`text-xs sm:text-sm leading-relaxed ${
+                            config.hero.coverImageUrl ? "text-slate-200" : "text-slate-600"
+                          }`}
+                        >
+                          {config.hero.subtitle}
+                        </p>
+
+                        <div className={`pt-1 flex flex-wrap items-center gap-2 ${deviceMode === "desktop" ? "justify-start" : "justify-center"}`}>
+                          <span
+                            style={{ backgroundColor: config.primaryColor }}
+                            className="px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md inline-flex items-center gap-1.5 cursor-default"
+                          >
+                            <UtensilsCrossed className="w-3.5 h-3.5" />
+                            <span>{config.hero.ctaPrimaryText || "Prenota il tuo Tavolo"}</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </span>
+
+                          {config.sections.showTakeawayCta && config.hero.ctaSecondaryText && (
+                            <span className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 inline-flex items-center gap-1.5 cursor-default">
+                              <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
+                              <span>{config.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
+                            </span>
+                          )}
+
+                          <span
+                            className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border cursor-default inline-flex items-center ${
+                              config.hero.coverImageUrl
+                                ? "bg-slate-900/80 text-white border-slate-700"
+                                : "bg-white text-slate-800 border-slate-200"
+                            }`}
+                          >
+                            I Nostri Servizi
+                          </span>
+                        </div>
+
+                        {/* Badges di Affidabilità */}
+                        {config.sections.showTrustBadges && config.trustBadges?.length > 0 && (
+                          <div
+                            className={`pt-3 flex flex-wrap items-center gap-2 border-t ${
+                              deviceMode === "desktop" ? "justify-start border-white/10" : "justify-center border-white/10"
+                            }`}
+                          >
+                            {config.trustBadges.map((tb) => (
+                              <span
+                                key={tb.id}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold ${
+                                  config.hero.coverImageUrl
+                                    ? "bg-slate-900/60 border border-slate-800 text-slate-200"
+                                    : "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                                <span>{tb.text}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
 
-                    <h1
-                      className={`text-xl sm:text-2xl font-black leading-tight tracking-tight ${
-                        config.hero.coverImageUrl ? "text-white" : "text-slate-900"
-                      }`}
-                    >
-                      {config.hero.title}
-                    </h1>
+                      {/* Colonna Destra / Card Turni LIVE Ristorante (speculare al sito reale) */}
+                      <div className={deviceMode === "desktop" ? "col-span-5" : "pt-2"}>
+                        <div className="taaaac-card p-4 sm:p-5 bg-white/95 backdrop-blur-md shadow-2xl border border-white/40 rounded-3xl space-y-3.5 text-left">
+                          <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-7 h-7 rounded-xl text-white flex items-center justify-center font-black text-[10px]"
+                                style={{ backgroundColor: config.primaryColor }}
+                              >
+                                LIVE
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-slate-900 leading-tight">Ospitalità &amp; Sala</h4>
+                                <p className="text-[10px] text-slate-500">Tavoli in tempo reale</p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Aperto Oggi
+                            </span>
+                          </div>
 
-                    <p
-                      className={`text-xs leading-relaxed max-w-md mx-auto ${
-                        config.hero.coverImageUrl ? "text-slate-200" : "text-slate-600"
-                      }`}
-                    >
-                      {config.hero.subtitle}
-                    </p>
+                          <div className="grid grid-cols-2 gap-2 text-center">
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase block">Pranzo</span>
+                              <strong className="text-xs sm:text-sm font-black text-slate-900">12:30 - 14:30</strong>
+                            </div>
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase block">Cena</span>
+                              <strong className="text-xs sm:text-sm font-black text-slate-900">19:30 - 23:00</strong>
+                            </div>
+                          </div>
 
-                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
-                      <span
-                        style={{ backgroundColor: config.primaryColor }}
-                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md inline-flex items-center justify-center gap-1.5 cursor-default"
-                      >
-                        <UtensilsCrossed className="w-3.5 h-3.5" />
-                        <span>{config.hero.ctaPrimaryText}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                      {config.sections.showTakeawayCta && config.hero.ctaSecondaryText && (
-                        <span className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 inline-flex items-center justify-center gap-1.5 cursor-default">
-                          <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
-                          <span>{config.hero.ctaSecondaryText}</span>
-                        </span>
-                      )}
+                          <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[10px] text-emerald-950 space-y-0.5">
+                            <p className="font-bold flex items-center gap-1 text-emerald-900">
+                              <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                              Pranzo di lavoro o Cena Romantica?
+                            </p>
+                            <p className="text-emerald-800 leading-relaxed text-[9px]">
+                              Specifica intolleranze alimentari e preferenze di sala direttamente alla prenotazione.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </section>
               )}
 
-              {/* TRUST BADGES */}
-              {config.sections.showTrustBadges && (
-                <div className="bg-white border-y border-slate-200 px-4 py-2.5">
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] font-semibold text-slate-700">
-                    {config.trustBadges.map((tb) => (
-                      <span key={tb.id} className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        <span>{tb.text}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* GALLERIA SALA & PIATTI */}
+              {/* GALLERIA SALA & PIATTI SPECCHIATA */}
               {config.sections.showGallery && config.gallery.images.length > 0 && (
-                <section className="p-4 space-y-3 bg-white border-b border-slate-200">
-                  <div className="text-center space-y-0.5">
-                    <h3 className="text-sm font-bold text-slate-900">{config.gallery.title}</h3>
-                    <p className="text-[10px] text-slate-500">{config.gallery.subtitle}</p>
+                <section className="p-5 sm:p-8 space-y-4 bg-white border-b border-slate-200">
+                  <div className="text-center space-y-1">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">{config.gallery.title}</h3>
+                    <p className="text-[11px] text-slate-500">{config.gallery.subtitle}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid gap-2.5 ${deviceMode === "desktop" ? "grid-cols-4" : "grid-cols-2"}`}>
                     {config.gallery.images.slice(0, 4).map((img) => (
-                      <div key={img.id} className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                      <div key={img.id} className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 aspect-4/3 group">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.url} alt={img.caption || "Sala"} className="w-full h-24 object-cover" />
+                        <img src={img.url} alt={img.caption || "Sala"} className="w-full h-full object-cover" />
                         {img.caption && (
-                          <div className="p-1.5 text-[9px] text-slate-600 truncate bg-white">
+                          <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent text-white text-[10px] font-medium truncate">
                             {img.caption}
                           </div>
                         )}
@@ -1028,21 +1126,81 @@ export default function ShowcaseVisualStudio() {
                 </section>
               )}
 
-              {/* LA CUCINA & FILOSOFIA */}
+              {/* SEZIONE ESPERIENZE & MOMENTI DELLA GIORNATA (Presente sul sito reale) */}
+              {config.sections.showServices && (
+                <section className="p-5 sm:p-8 space-y-5 bg-slate-50 border-b border-slate-200">
+                  <div className="text-center space-y-1 max-w-md mx-auto">
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-wider"
+                      style={{ color: config.accentColor }}
+                    >
+                      Esperienze
+                    </span>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900">
+                      {config.customLabels.servicesTitle || "I Nostri Momenti della Giornata"}
+                    </h3>
+                    <p className="text-[10px] text-slate-500">
+                      {config.customLabels.servicesSubtitle || "Dalla colazione all'aperitivo, fino alla cena con gli amici."}
+                    </p>
+                  </div>
+
+                  <div className={`grid gap-3 ${deviceMode === "desktop" ? "grid-cols-4" : "grid-cols-2"}`}>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <Coffee className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-900">Colazioni</h4>
+                      <p className="text-[10px] text-slate-500 leading-tight">Caffè selezionati e lievitati.</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <UtensilsCrossed className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-900">Pranzo Rapido</h4>
+                      <p className="text-[10px] text-slate-500 leading-tight">Business lunch veloci e leggeri.</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <GlassWater className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-900">Aperitivo</h4>
+                      <p className="text-[10px] text-slate-500 leading-tight">Cocktail e finger food gourmet.</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                      <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <Wine className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-900">Cena Gourmet</h4>
+                      <p className="text-[10px] text-slate-500 leading-tight">Menu alla carta e carta dei vini.</p>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* LA CUCINA & FILOSOFIA (Stile Dark elegante coerente con page.tsx) */}
               {config.sections.showAbout && config.about.enabled && (
-                <section className="p-5 text-center space-y-3 bg-emerald-950 text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                <section className="p-6 sm:p-10 text-center space-y-3 bg-slate-900 text-white border-b border-slate-800">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{ color: config.accentColor }}
+                  >
                     {config.about.subtitle}
                   </span>
-                  <h3 className="text-sm font-black text-white">{config.about.title}</h3>
-                  <p className="text-[11px] text-emerald-100 leading-relaxed max-w-sm mx-auto">
+                  <h3 className="text-sm sm:text-lg font-black text-white">{config.about.title}</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
                     {config.about.description}
                   </p>
                   {config.about.quoteText && (
-                    <blockquote className="p-3 rounded-xl bg-emerald-900/60 border border-emerald-800 italic text-[10px] text-emerald-200 space-y-1">
+                    <blockquote className="pt-3 border-t border-slate-800 italic text-[10px] text-slate-300 space-y-1 max-w-sm mx-auto">
                       <p>&ldquo;{config.about.quoteText}&rdquo;</p>
                       {config.about.quoteAuthor && (
-                        <footer className="text-amber-400 font-bold not-italic text-[9px]">
+                        <footer
+                          className="font-bold not-italic text-[10px]"
+                          style={{ color: config.accentColor }}
+                        >
                           — {config.about.quoteAuthor}
                         </footer>
                       )}
@@ -1051,16 +1209,39 @@ export default function ShowcaseVisualStudio() {
                 </section>
               )}
 
-              {/* ORARI & DOVE SIAMO */}
+              {/* CALLOUT PRENOTAZIONE RAPIDA */}
+              <section className="p-6 bg-slate-100 text-center space-y-3 border-b border-slate-200">
+                <div
+                  style={{ backgroundColor: `${config.primaryColor}20` }}
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center mx-auto shadow-xs"
+                >
+                  <CalendarCheck className="w-5 h-5" style={{ color: config.primaryColor }} />
+                </div>
+                <h4 className="text-xs sm:text-sm font-black text-slate-900">Prenota il tuo Tavolo in Tempo Reale</h4>
+                <p className="text-[10px] text-slate-500 max-w-xs mx-auto">
+                  Scegli turno, orario e numero ospiti con conferma istantanea via WhatsApp.
+                </p>
+                <div className="pt-1">
+                  <span
+                    style={{ backgroundColor: config.primaryColor }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs inline-flex items-center gap-1.5 cursor-default"
+                  >
+                    <span>Inizia Prenotazione</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </section>
+
+              {/* ORARI & DOVE SIAMO FOOTER */}
               {config.sections.showHours && (
-                <footer className="p-4 bg-white text-center space-y-2 text-[10px] text-slate-500 border-t border-slate-200">
+                <footer className="p-4 bg-white text-center space-y-2 text-[10px] text-slate-500">
                   <div className="flex items-center justify-center gap-1 text-slate-700 font-semibold">
                     <MapPin className="w-3 h-3 text-emerald-700" />
-                    <span>Piazza Grande, 12 - 52100 Arezzo (AR)</span>
+                    <span>V. D. Alighieri 74/R Capolona • Tel. +39 0575 969736</span>
                   </div>
                   <div className="flex items-center justify-center gap-1">
                     <Clock className="w-3 h-3 text-emerald-700" />
-                    <span>Pranzo 12:30 - 15:00 • Cena 19:30 - 23:00</span>
+                    <span>Pranzo 12:30 - 14:30 • Cena 19:30 - 23:00</span>
                   </div>
                   <p className="text-[9px] text-slate-400 pt-2 border-t border-slate-100">
                     Powered by Taaaac Suite • Tavoly Hospitality
