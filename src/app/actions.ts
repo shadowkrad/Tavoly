@@ -1027,6 +1027,20 @@ export async function createTakeawayOrderAction(data: {
       return { success: false, error: "Inserisci almeno un piatto o prodotto nell'ordine" };
     }
 
+    const { getRomeDateTime } = await import("@/lib/takeaway-rules");
+    const nowRome = getRomeDateTime();
+    const orderDate = (data as { pickupDate?: string }).pickupDate?.trim() || nowRome.dateStr;
+
+    if (orderDate < nowRome.dateStr) {
+      return { success: false, error: "Non è possibile registrare un ordine per una data passata" };
+    }
+
+    const [orderH, orderM] = data.pickupTime.trim().split(":").map(Number);
+    const orderMinutes = (orderH || 0) * 60 + (orderM || 0);
+    if (orderDate === nowRome.dateStr && orderMinutes < nowRome.minutesNow) {
+      return { success: false, error: "L'orario di ritiro selezionato è già trascorso" };
+    }
+
     const order = await prisma.takeawayOrder.create({
       data: {
         customerName: data.customerName.trim(),
@@ -1347,6 +1361,28 @@ export async function createPublicTakeawayOrderAction(data: {
 
     if (!data.pickupDate || !data.pickupTime) {
       return { success: false, error: "Data e orario di ritiro obbligatori" };
+    }
+
+    const { getRomeDateTime } = await import("@/lib/takeaway-rules");
+    const nowRome = getRomeDateTime();
+
+    if (data.pickupDate < nowRome.dateStr) {
+      return { success: false, error: "Non è possibile effettuare un ordine per una data passata" };
+    }
+
+    const [slotH, slotM] = data.pickupTime.split(":").map(Number);
+    const slotMinutes = (slotH || 0) * 60 + (slotM || 0);
+
+    if (data.pickupDate === nowRome.dateStr) {
+      if (slotMinutes <= nowRome.minutesNow) {
+        return { success: false, error: "L'orario di ritiro selezionato è già trascorso" };
+      }
+      if (slotMinutes < nowRome.minutesNow + settings.prepTimeMinutes) {
+        return {
+          success: false,
+          error: `L'orario di ritiro richiede almeno ${settings.prepTimeMinutes} minuti di preparazione`,
+        };
+      }
     }
 
     if (!data.items || data.items.length === 0) {

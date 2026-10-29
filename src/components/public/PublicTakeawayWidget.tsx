@@ -59,7 +59,18 @@ export function PublicTakeawayWidget({
   const [isPending, startTransition] = useTransition();
 
   // Step di compilazione: 1 = data & ora, 2 = piatti, 3 = dati cliente, 4 = conferma
-  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayStr = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Rome",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+    } catch {
+      return new Date().toISOString().split("T")[0];
+    }
+  }, []);
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -399,7 +410,7 @@ export function PublicTakeawayWidget({
                       {slotInfo.isFull
                         ? "Completo ❌"
                         : slotInfo.isPastOrTooSoon
-                        ? "Troppo presto"
+                        ? (slotInfo.reason === "Orario già trascorso" ? "Passato ⏱️" : "Troppo presto")
                         : `${slotInfo.remainingCapacity} disp.`}
                     </span>
                   </button>
