@@ -1,4 +1,4 @@
-﻿# 🚀 Tavoly — Release Notes
+# 🚀 Tavoly — Release Notes
 
 ## Novità della Versione 1.1.0 (In Sviluppo)
 
@@ -18,6 +18,14 @@
 - **Routing Intelligente Reputazione**:
   - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
   - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
+
+### 4. 🎨 Showcase Visual Studio WYSIWYG Fedele al 100% & Priorità Assoluta Nome Attività
+- **Simulatore Live Mirroring al 100%**: Ridisegnato il pannello di anteprima del Live Studio Vetrina (`ShowcaseVisualStudio`) affinché specchi fedelmente la pagina pubblica reale sia su smartphone che su desktop:
+  - Header completo con icona/logo, nome attività e pulsanti di navigazione fedeli.
+  - Hero a 2 colonne in modalità desktop con la card turni interattiva in tempo reale (*"Ospitalità & Sala — Tavoli in tempo reale — Aperto Oggi"*).
+  - Tutte le sezioni reali renderizzate (Galleria sala & piatti, Esperienze & Momenti della giornata a 4 card, Filosofia dark e callout prenotazione rapida).
+- **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
+- **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
 
 ---
 
@@ -158,6 +166,14 @@
 - **Routing Intelligente Reputazione**:
   - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
   - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
+
+### 4. 🎨 Showcase Visual Studio WYSIWYG Fedele al 100% & Priorità Assoluta Nome Attività
+- **Simulatore Live Mirroring al 100%**: Ridisegnato il pannello di anteprima del Live Studio Vetrina (`ShowcaseVisualStudio`) affinché specchi fedelmente la pagina pubblica reale sia su smartphone che su desktop:
+  - Header completo con icona/logo, nome attività e pulsanti di navigazione fedeli.
+  - Hero a 2 colonne in modalità desktop con la card turni interattiva in tempo reale (*"Ospitalità & Sala — Tavoli in tempo reale — Aperto Oggi"*).
+  - Tutte le sezioni reali renderizzate (Galleria sala & piatti, Esperienze & Momenti della giornata a 4 card, Filosofia dark e callout prenotazione rapida).
+- **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
+- **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
 
 ---
 
