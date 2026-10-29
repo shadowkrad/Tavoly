@@ -1,3 +1,4 @@
+import FloatingWhatsAppWidget from "@/components/public/FloatingWhatsAppWidget";
 import type { Metadata } from "next";
 import "./globals.css";
 import { getTenantConfig } from "@/lib/taaaac-core";
@@ -55,6 +56,7 @@ export default async function RootLayout({
       </head>
       <body style={brandStyle} className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
         {children}
+      <FloatingWhatsAppWidget />
       </body>
     </html>
   );
