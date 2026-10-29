@@ -476,7 +476,7 @@ export function PublicTakeawayWidget({
               return (
                 <div
                   key={dish.id}
-                  className={`bg-white border rounded-2xl p-4 flex gap-3.5 items-start justify-between transition-all ${
+                  className={`bg-white border rounded-2xl p-3 sm:p-4 flex gap-3 sm:gap-3.5 items-center justify-between transition-all ${
                     qtyInCart > 0
                       ? "border-emerald-500 ring-1 ring-emerald-400 bg-emerald-50/20 shadow-xs"
                       : "border-slate-200 hover:border-slate-300 shadow-2xs"
@@ -487,7 +487,7 @@ export function PublicTakeawayWidget({
                     <img
                       src={dish.imageUrl}
                       alt={dish.name}
-                      className="w-18 h-18 rounded-xl object-cover border border-slate-100 shrink-0"
+                      className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-xl object-cover border border-slate-100 bg-slate-50 shrink-0"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = "none";
                       }}
@@ -501,7 +501,7 @@ export function PublicTakeawayWidget({
                         {dish.category}
                       </span>
                     </div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug truncate">
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug line-clamp-2">
                       {dish.name}
                     </h4>
                     {dish.description && (
@@ -531,13 +531,13 @@ export function PublicTakeawayWidget({
                       <button
                         type="button"
                         onClick={() => updateQuantity(dish, 1)}
-                        className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                        className="px-2.5 sm:px-3 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs shrink-0"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Aggiungi</span>
                       </button>
                     ) : (
-                      <div className="flex items-center gap-1.5 bg-emerald-600 text-white rounded-xl p-1 shadow-xs">
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-emerald-600 text-white rounded-xl p-1 shadow-xs shrink-0">
                         <button
                           type="button"
                           onClick={() => updateQuantity(dish, -1)}
