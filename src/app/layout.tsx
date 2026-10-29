@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${brand}`,
     },
     description: `Prenotazione tavoli e menù online per ${brand}`,
-    manifest: "/manifest.json",
+    manifest: "/manifest.webmanifest",
     icons: {
       icon: config.theme.faviconUrl || "/icon.svg",
       apple: config.theme.faviconUrl || "/apple-touch-icon.png",
@@ -51,7 +51,7 @@ export default async function RootLayout({
       <head>
         <link rel="icon" href={theme.faviconUrl || "/icon.svg"} />
         <link rel="apple-touch-icon" sizes="180x180" href={theme.faviconUrl || "/apple-touch-icon.png"} />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body style={brandStyle} className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
         {children}
