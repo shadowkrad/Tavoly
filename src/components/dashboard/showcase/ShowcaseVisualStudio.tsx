@@ -53,6 +53,8 @@ export default function ShowcaseVisualStudio() {
   // File Inputs Refs
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const faviconInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetch("/api/impostazioni/vetrina")
@@ -431,11 +433,163 @@ export default function ShowcaseVisualStudio() {
                 <div className="border-b border-slate-200 pb-2">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <ImageIcon className="w-4 h-4 text-emerald-600" />
-                    <span>Cover Hero & Galleria Sala / Piatti</span>
+                    <span>Brand, Logo, Cover &amp; Galleria</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Upload con compressione client-side WebP a caricamento istantaneo.
+                    Upload con compressione client-side WebP e PNG a caricamento istantaneo.
                   </p>
+                </div>
+
+                {/* LOGO AZIENDALE */}
+                <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Logo Ufficiale Ristorante</h4>
+                      <p className="text-[10px] text-slate-500">Mostrato nella navbar e nella vetrina.</p>
+                    </div>
+                    {config.logoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setConfig({ ...config, logoUrl: null })}
+                        className="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer"
+                      >
+                        Rimuovi Logo
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={logoInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageProcessing("logo");
+                        processImageFile(file, 512, "image/webp", (dataUrl) => {
+                          setConfig((prev) => ({
+                            ...prev,
+                            logoUrl: dataUrl,
+                          }));
+                          setImageProcessing(null);
+                        });
+                      }
+                    }}
+                  />
+
+                  {config.logoUrl ? (
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center p-1 border border-slate-200 shrink-0 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={config.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">Logo Personalizzato</div>
+                        <p className="text-[10px] text-emerald-600 font-medium">Attivo su vetrina e navbar</p>
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          className="mt-1 text-xs text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>Cambia Immagine</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-xl p-3 text-center cursor-pointer bg-white hover:bg-slate-50 transition"
+                    >
+                      <Upload className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
+                      <div className="text-xs text-slate-800 font-semibold">Carica Logo del Locale</div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">PNG o WebP con sfondo trasparente (max 512px)</p>
+                    </button>
+                  )}
+
+                  {imageProcessing === "logo" && (
+                    <div className="text-xs text-emerald-600 animate-pulse text-center">
+                      Ottimizzazione logo in corso...
+                    </div>
+                  )}
+                </div>
+
+                {/* FAVICON & ICONA PWA */}
+                <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Favicon &amp; Icona App (PWA)</h4>
+                      <p className="text-[10px] text-slate-500">Icona per la scheda browser e per l&apos;installazione su smartphone.</p>
+                    </div>
+                    {config.faviconUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setConfig({ ...config, faviconUrl: null })}
+                        className="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer"
+                      >
+                        Rimuovi Favicon
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={faviconInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageProcessing("favicon");
+                        processImageFile(file, 128, "image/png", (dataUrl) => {
+                          setConfig((prev) => ({
+                            ...prev,
+                            faviconUrl: dataUrl,
+                          }));
+                          setImageProcessing(null);
+                        });
+                      }
+                    }}
+                  />
+
+                  {config.faviconUrl ? (
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center p-1 border border-slate-200 shrink-0 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={config.faviconUrl} alt="Favicon" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">Icona Browser &amp; PWA</div>
+                        <p className="text-[10px] text-emerald-600 font-medium">Formato 128x128 PNG HD</p>
+                        <button
+                          type="button"
+                          onClick={() => faviconInputRef.current?.click()}
+                          className="mt-1 text-xs text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>Cambia Favicon</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => faviconInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-xl p-3 text-center cursor-pointer bg-white hover:bg-slate-50 transition"
+                    >
+                      <Upload className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
+                      <div className="text-xs text-slate-800 font-semibold">Carica Favicon / Icona App</div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Quadrata, PNG o ICO (128x128 px)</p>
+                    </button>
+                  )}
+
+                  {imageProcessing === "favicon" && (
+                    <div className="text-xs text-emerald-600 animate-pulse text-center">
+                      Ottimizzazione favicon in corso...
+                    </div>
+                  )}
                 </div>
 
                 {/* COVER HERO */}
@@ -788,6 +942,7 @@ export default function ShowcaseVisualStudio() {
                 <div className="space-y-2.5">
                   {[
                     { key: "showHero", label: "Schermata Hero di Benvenuto", desc: "Copertina, claim e pulsanti principali" },
+                    { key: "showMenuLink", label: "Link Menù Digitale nella Vetrina", desc: "Mostra il pulsante Menù Digitale nella navbar e nella schermata di benvenuto" },
                     { key: "showTrustBadges", label: "Badges di Affidabilità", desc: "Conferma istantanea, WhatsApp, zero attesa" },
                     { key: "showTakeawayCta", label: "Pulsante Ordina da Asporto", desc: "Mostra il tasto takeaway nella vetrina" },
                     { key: "showGallery", label: "Galleria Foto Sala & Cucina", desc: "Griglia immagini atmosfera e mise en place" },
@@ -924,6 +1079,12 @@ export default function ShowcaseVisualStudio() {
 
                 {deviceMode === "desktop" && (
                   <div className="hidden lg:flex items-center gap-4 text-xs font-semibold text-slate-600">
+                    {config.sections.showMenuLink !== false && (
+                      <span className="hover:text-emerald-700 font-bold text-slate-800 cursor-pointer flex items-center gap-1">
+                        <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Menù Digitale</span>
+                      </span>
+                    )}
                     <span className="hover:text-emerald-700 cursor-pointer">I Nostri Servizi</span>
                     <span className="hover:text-emerald-700 cursor-pointer">Prenota un Tavolo</span>
                     {config.sections.showTakeawayCta && (

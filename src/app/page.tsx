@@ -74,7 +74,7 @@ export default async function PublicShowcasePage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Navbar Pubblica con discreto link staff */}
-      <ShowcaseNavbar tenantConfig={tenantConfig} takeawayEnabled={takeawaySettings.enabled} />
+      <ShowcaseNavbar tenantConfig={tenantConfig} takeawayEnabled={takeawaySettings.enabled} showMenuLink={showcase.sections?.showMenuLink !== false} />
 
       {/* Hero Section */}
       {showcase.sections.showHero && (
@@ -152,6 +152,20 @@ export default async function PublicShowcasePage() {
                     >
                       <ShoppingBag className="w-4 h-4 text-amber-600 shrink-0" />
                       <span>{showcase.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
+                    </Link>
+                  )}
+
+                  {showcase.sections?.showMenuLink !== false && (
+                    <Link
+                      href="/menu"
+                      className={`w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition inline-flex items-center justify-center gap-2 whitespace-nowrap ${
+                        hasHeroCover
+                          ? "bg-slate-900/80 text-white border-slate-700 hover:bg-slate-800"
+                          : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <UtensilsCrossed className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>Consulta il Menù</span>
                     </Link>
                   )}
 

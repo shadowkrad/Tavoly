@@ -62,6 +62,7 @@ export interface ShowcaseConfig {
     showHours: boolean;
     showContact: boolean;
     showTakeawayCta: boolean;
+    showMenuLink?: boolean;
   };
 
   // Etichette Personalizzate
@@ -145,6 +146,7 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     showHours: true,
     showContact: true,
     showTakeawayCta: true,
+    showMenuLink: true,
   },
 
   customLabels: {
@@ -185,6 +187,7 @@ export function parseShowcaseConfig(raw: string | null | undefined): ShowcaseCon
       },
       sections: {
         ...DEFAULT_TAVOLY_SHOWCASE_CONFIG.sections,
+        showMenuLink: parsed.sections?.showMenuLink !== undefined ? !!parsed.sections.showMenuLink : true,
         ...(parsed.sections || {}),
       },
       customLabels: {
