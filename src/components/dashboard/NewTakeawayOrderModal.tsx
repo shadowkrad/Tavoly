@@ -160,6 +160,14 @@ export function NewTakeawayOrderModal({
       return;
     }
 
+    const [pickH, pickM] = pickupTime.trim().split(":").map(Number);
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    if ((pickH || 0) * 60 + (pickM || 0) < currentMins) {
+      setErrorMsg("L'orario di ritiro non può essere già trascorso");
+      return;
+    }
+
     // Costruisci il riepilogo piatti
     const parts: string[] = [];
     Object.entries(dishQuantities).forEach(([id, qty]) => {

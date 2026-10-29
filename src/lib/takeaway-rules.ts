@@ -59,6 +59,38 @@ function minutesToTimeString(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+export function getRomeDateTime(date = new Date()): { dateStr: string; timeStr: string; minutesNow: number } {
+  try {
+    const dateStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Rome",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+
+    const timeParts = new Intl.DateTimeFormat("it-IT", {
+      timeZone: "Europe/Rome",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+
+    const [h, m] = timeParts.split(":").map(Number);
+    const minutesNow = (h || 0) * 60 + (m || 0);
+
+    return { dateStr, timeStr: timeParts, minutesNow };
+  } catch {
+    const isoDate = date.toISOString().split("T")[0];
+    const h = date.getHours();
+    const m = date.getMinutes();
+    return {
+      dateStr: isoDate,
+      timeStr: `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+      minutesNow: h * 60 + m,
+    };
+  }
+}
+
 export function calculateAvailableTakeawaySlots(
   dateStr: string,
   settings: TakeawaySettings,
@@ -91,7 +123,8 @@ export function calculateAvailableTakeawaySlots(
   }
 
   // Verifica se la data è oggi o nel passato
-  const nowDayStr = currentTime.toISOString().split("T")[0];
+  const nowRome = getRomeDateTime(currentTime);
+  const nowDayStr = nowRome.dateStr;
   const isToday = dateStr === nowDayStr;
   const isPast = dateStr < nowDayStr;
 
@@ -105,7 +138,7 @@ export function calculateAvailableTakeawaySlots(
     };
   }
 
-  const currentMinutesNow = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const currentMinutesNow = nowRome.minutesNow;
   const minimumPickupMinutes = currentMinutesNow + settings.prepTimeMinutes;
 
   const candidateSlots: Array<{ time: string; serviceType: "PRANZO" | "CENA" }> = [];
@@ -138,7 +171,7 @@ export function calculateAvailableTakeawaySlots(
     if (isToday) {
       if (slotMinutes < minimumPickupMinutes) {
         isPastOrTooSoon = true;
-        reason = `Richiede almeno ${settings.prepTimeMinutes} min di preparazione`;
+        reason = slotMinutes <= currentMinutesNow ? "Orario già trascorso" : `Richiede almeno ${settings.prepTimeMinutes} min di preparazione`;
       }
     }
 

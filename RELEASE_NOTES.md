@@ -111,6 +111,9 @@
 - **Notifica di Preavviso in Dashboard (7 Giorni Prima)**: Almeno una settimana prima di una festività o chiusura speciale, la mappa tavoli e la console mostrano un banner di avviso prominente con conto alla rovescia e link rapido 1-click a *Orari* per impostare turni e aperture speciali.
 - **Protezione Prenotazioni Online**: Nei giorni festivi di chiusura, le prenotazioni tavoli online vengono automaticamente disattivate evitando overbooking a serrande abbassate.
 
+### 6. 🛑 Blocco Rigoroso Ordini Asporto nel Passato (Date e Fasce Orarie Trascorse)
+- **Verifica Fuso Orario Locale (Europe/Rome)**: Allineato il calcolo degli slot disponibili e del tempo minimo di preparazione all'orario esatto del locale, impedendo l'inserimento o l'invio di comande per giorni precedenti o orari già trascorsi sia da vetrina pubblica che da console gestionale.
+
 ---
 
 ## Novità della Versione 1.0.5 (Hotfix Produzione)
