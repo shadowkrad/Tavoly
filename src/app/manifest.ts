@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   let brandName = "Tavoly";
   let themeColor = "#059669";
-  let iconSrc = "/icon-192.png";
 
   try {
     const config = await getTenantConfig();
@@ -15,9 +14,6 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     }
     if (config?.theme?.primaryColor) {
       themeColor = config.theme.primaryColor;
-    }
-    if (config?.theme?.faviconUrl || config?.theme?.logoUrl) {
-      iconSrc = config.theme.faviconUrl || config.theme.logoUrl || "/icon-192.png";
     }
   } catch (err) {
     console.error("[PWA Manifest] Fallback su default:", err);
@@ -28,18 +24,26 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     short_name: brandName,
     description: `Modulo gestionale sale, comande e coperti per ${brandName}, parte dell'ecosistema Taaaac.`,
     start_url: "/dashboard",
+    scope: "/",
     display: "standalone",
+    orientation: "portrait",
     background_color: "#0f172a",
     theme_color: themeColor,
     icons: [
       {
-        src: iconSrc,
+        src: "/api/pwa-icon?size=192",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: iconSrc,
+        src: "/api/pwa-icon?size=512",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/api/pwa-icon?size=512",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
