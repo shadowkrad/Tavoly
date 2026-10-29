@@ -1,4 +1,4 @@
-# 🚀 Tavoly — Release Notes
+﻿# 🚀 Tavoly — Release Notes
 
 ## Novità della Versione 1.1.0 (In Sviluppo)
 
@@ -71,6 +71,11 @@
 - **Sfondo Fotografico Ristorante d'Autore**: Introduzione di una suggestiva copertina fotografica panoramica ad alta risoluzione raffigurante una sala ristorante elegante con illuminazione calda e mise en place d'atmosfera.
 - **Contrasto Visivo & Glassmorphism**: Testi e claim con leggibilità perfetta in bianco puro, badge con effetto smeraldo semitrasparente e card "Ospitalità & Sala" in stile glassmorphism con riflessi e bagliore soft.
 - **Piena Personalizzazione dal Live Studio**: Modificabile in tempo reale dal ristoratore tramite il modulo *Aspetto & Brand* in Impostazioni per caricare una fotografia reale della propria location o calibrare l'opacità di scurimento della copertina.
+
+### 6. 🔐 Autenticazione Distinta: Email + Password Titolare & PIN Staff Sala
+- **Accesso Titolare Diretto con Email e Password**: Il ristoratore accede inserendo l'indirizzo email e la password ricevuti al momento della registrazione o aggiornati nel proprio account Taaaac, eliminando la richiesta confusa del solo PIN anonimo.
+- **PIN Tastierino Touch Dedicato ai Collaboratori**: Il tastierino numerico PIN rapido è ora dedicato esclusivamente ai collaboratori e camerieri di sala/staff presenti nell'organico per sbloccare rapidamente i tablet e le postazioni di comanda.
+- **Centralizzazione Sicurezza e MFA su Taaaac Core**: Le impostazioni avanzate di sicurezza (2FA TOTP, codici di recupero, cambio password) sono centralizzate al 100% nella dashboard utente di Taaaac (taaaac.eu/portal), semplificando l'esperienza all'interno del modulo satellite.
 
 ---
 ## Novità della Versione 1.0.6 (Patch di Sicurezza e Hardening Accessi)
