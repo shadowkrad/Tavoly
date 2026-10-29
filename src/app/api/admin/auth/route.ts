@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setStaffSession, verifyStaffPasswordOrPin, isDemoEnvironment } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { verifyTotpCode, verifyAndConsumeBackupCode } from "@/lib/totp";
 import {
   checkBruteForce,
   recordFailedAttempt,
   resetBruteForceAttempts,
-  checkAndRegisterTrustedDevice,
   logAccessAttempt,
   getClientIp,
 } from "@/lib/security";
@@ -17,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
     const body = await req.json().catch(() => ({}));
-    const host = req.headers.get("host");
+    const host = req.headers.get("host") || "";
     const userAgent = req.headers.get("user-agent");
 
     // 1. Honey-pot invisibile anti-bot
@@ -25,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Accesso non autorizzato" }, { status: 400 });
     }
 
-    // 2. Accesso 1-Click per ambiente Demo
+    // 2. Accesso 1-Click per ambiente Demo (Vercel)
     if (body.demo) {
       if (!isDemoEnvironment(host)) {
         return NextResponse.json(
@@ -34,7 +32,7 @@ export async function POST(req: NextRequest) {
         );
       }
       await setStaffSession();
-      return NextResponse.json({ success: true, isDemo: true });
+      return NextResponse.json({ success: true, isDemo: true, role: "ADMIN" });
     }
 
     // 3. Controllo Anti-Brute-Force
@@ -50,13 +48,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Controllo stato blocco tenant
-    const tenant = await prisma.tenantLocalCache.findUnique({
+    // 4. Controllo stato blocco temporaneo tenant
+    const tenantCache = await prisma.tenantLocalCache.findUnique({
       where: { id: "singleton" },
     });
 
-    if (tenant?.lockedUntil && new Date() < tenant.lockedUntil) {
-      const diffSec = Math.ceil((tenant.lockedUntil.getTime() - Date.now()) / 1000);
+    if (tenantCache?.lockedUntil && new Date() < tenantCache.lockedUntil) {
+      const diffSec = Math.ceil((tenantCache.lockedUntil.getTime() - Date.now()) / 1000);
       return NextResponse.json(
         {
           error: `Accesso temporaneamente sospeso per sicurezza. Riprova tra ${Math.ceil(diffSec / 60)} minuti.`,
@@ -67,120 +65,150 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Accesso con Password Master o PIN
-    const secret = body.password || body.pin || "";
-    if (!secret || !verifyStaffPasswordOrPin(secret)) {
-      const fail = recordFailedAttempt(ip, "admin");
-      const currentAttempts = (tenant?.failedLoginAttempts || 0) + 1;
-      const lockedUntil = currentAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+    let authSuccess = false;
+    let authRole = "ADMIN";
+    let operatorName = "Titolare";
 
-      if (tenant) {
-        await prisma.tenantLocalCache.update({
-          where: { id: "singleton" },
-          data: { failedLoginAttempts: currentAttempts, lockedUntil },
+    // ── MODALITÀ A: ACCESSO TITOLARE CON EMAIL + PASSWORD ──
+    if (body.email && body.password) {
+      const cleanEmail = String(body.email).trim().toLowerCase();
+      const rawPassword = String(body.password);
+      const coreApiUrl = process.env.TAAAAC_CORE_API_URL?.trim() || "https://taaaac.eu";
+      const tenantDomain = process.env.TAAAAC_TENANT_DOMAIN || host;
+      const subdomain = tenantDomain ? tenantDomain.split(".")[0].toLowerCase() : null;
+
+      // 1. Verifica centralizzata su Taaaac Core
+      try {
+        const coreRes = await fetch(`${coreApiUrl}/api/internal/auth/verify-tenant-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: cleanEmail,
+            password: rawPassword,
+            subdomain,
+          }),
         });
+
+        if (coreRes.ok) {
+          const coreData = await coreRes.json();
+          if (coreData.valid) {
+            authSuccess = true;
+            authRole = "ADMIN";
+            operatorName = coreData.user?.nome || "Titolare";
+          }
+        }
+      } catch (coreErr) {
+        console.warn("Verifica con Taaaac Core non disponibile, applico fallback locale:", coreErr);
       }
 
-      await logAccessAttempt({
-        esito: "FAILED_PASSWORD",
-        ip,
-        userAgent,
-        dettaglio: "Password errata",
-      });
+      // 2. Fallback locale / env (se offline o credenziali di inizializzazione)
+      if (!authSuccess) {
+        const initialEmail = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+        const initialPass = process.env.INITIAL_ADMIN_PASSWORD?.trim();
+        const adminPass = process.env.ADMIN_PASSWORD?.trim();
 
-      return NextResponse.json(
-        {
-          error: "Password non valida o errata",
-          locked: fail.locked,
-        },
-        { status: 401 }
-      );
-    }
-
-    // 6. Verifica MFA / 2FA se attiva
-    if (tenant?.mfaEnabled && tenant?.mfaSecret) {
-      const mfaCode = body.mfaCode as string | undefined;
-      if (!mfaCode) {
-        return NextResponse.json(
-          { error: "MFA_REQUIRED", mfaRequired: true },
-          { status: 403 }
-        );
-      }
-
-      let mfaValid = false;
-      const cleanCode = mfaCode.trim().replace(/\s/g, "");
-
-      if (/^\d{6}$/.test(cleanCode)) {
-        mfaValid = verifyTotpCode(cleanCode, tenant.mfaSecret);
-      }
-
-      if (!mfaValid && tenant.mfaBackupCodes) {
-        const backupRes = await verifyAndConsumeBackupCode(cleanCode, tenant.mfaBackupCodes);
-        if (backupRes.valid) {
-          mfaValid = true;
-          await prisma.tenantLocalCache.update({
-            where: { id: "singleton" },
-            data: { mfaBackupCodes: backupRes.remainingCodesJson },
-          });
+        if (
+          (initialEmail && cleanEmail === initialEmail && (rawPassword === initialPass || rawPassword === adminPass)) ||
+          verifyStaffPasswordOrPin(rawPassword)
+        ) {
+          authSuccess = true;
+          authRole = "ADMIN";
         }
       }
 
-      if (!mfaValid) {
-        recordFailedAttempt(ip, "admin");
+      if (!authSuccess) {
+        const fail = recordFailedAttempt(ip, "admin");
         await logAccessAttempt({
-          esito: "FAILED_MFA",
+          esito: "FAILED_PASSWORD",
           ip,
           userAgent,
-          mfaUsed: true,
-          dettaglio: "Codice 2FA o di emergenza errato",
+          dettaglio: `Tentativo errato per email: ${cleanEmail}`,
         });
         return NextResponse.json(
-          { error: "Codice di sicurezza non valido o scaduto." },
+          { error: "Email o password errati. Verifica le credenziali ricevute via email.", locked: fail.locked },
           { status: 401 }
         );
       }
+    }
+    // ── MODALITÀ B: ACCESSO COLLABORATORE SALA CON PIN RAPIDO ──
+    else if (body.pin) {
+      const cleanPin = String(body.pin).trim();
+
+      // Cerca collaboratore attivo con questo PIN nel database locale del ristorante
+      const staffMember = await prisma.staffMember.findFirst({
+        where: {
+          pin: cleanPin,
+          isActive: true,
+        },
+      });
+
+      const masterPin = process.env.INITIAL_ADMIN_PIN || process.env.ADMIN_PIN || process.env.STAFF_PIN;
+
+      if (staffMember) {
+        authSuccess = true;
+        authRole = staffMember.role || "CAMERIERE";
+        operatorName = staffMember.name;
+      } else if (masterPin && cleanPin === masterPin.trim()) {
+        authSuccess = true;
+        authRole = "ADMIN";
+        operatorName = "Postazione Sala";
+      } else {
+        const fail = recordFailedAttempt(ip, "admin");
+        await logAccessAttempt({
+          esito: "FAILED_PASSWORD",
+          ip,
+          userAgent,
+          dettaglio: "PIN collaboratore non riconosciuto",
+        });
+        return NextResponse.json(
+          { error: "PIN non valido o collaboratore non attivo.", locked: fail.locked },
+          { status: 401 }
+        );
+      }
+    }
+    // ── MODALITÀ C: COMPATIBILITÀ RETROATTIVA (SOLO PASSWORD MASTER) ──
+    else if (body.password) {
+      if (verifyStaffPasswordOrPin(body.password)) {
+        authSuccess = true;
+        authRole = "ADMIN";
+      } else {
+        const fail = recordFailedAttempt(ip, "admin");
+        return NextResponse.json(
+          { error: "Password non valida.", locked: fail.locked },
+          { status: 401 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        { error: "Inserisci email e password per il titolare, oppure il PIN collaboratore." },
+        { status: 400 }
+      );
     }
 
     // Accesso autorizzato con successo!
     resetBruteForceAttempts(ip, "admin");
 
-    if (tenant && (tenant.failedLoginAttempts > 0 || tenant.lockedUntil)) {
+    if (tenantCache && (tenantCache.failedLoginAttempts > 0 || tenantCache.lockedUntil)) {
       await prisma.tenantLocalCache.update({
         where: { id: "singleton" },
         data: { failedLoginAttempts: 0, lockedUntil: null },
       });
     }
 
-    // Verifica / registrazione dispositivo fidato
-    const existingDeviceId = req.cookies.get("taaaac_device_id")?.value;
-    const deviceResult = await checkAndRegisterTrustedDevice({
-      userEmail: tenant?.contactEmail,
-      ip,
-      userAgent,
-      existingDeviceId,
-    });
-
     await logAccessAttempt({
       esito: "SUCCESS",
       ip,
       userAgent,
-      mfaUsed: Boolean(tenant?.mfaEnabled),
+      dettaglio: `Accesso autorizzato per ${operatorName} (${authRole})`,
     });
 
     await setStaffSession();
 
-    const response = NextResponse.json({ success: true });
-
-    // Salva cookie persistente dispositivo fidato per 1 anno
-    response.cookies.set("taaaac_device_id", deviceResult.deviceId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 365 * 24 * 60 * 60,
-      path: "/",
+    return NextResponse.json({
+      success: true,
+      role: authRole,
+      operatorName,
     });
-
-    return response;
   } catch (error) {
     console.error("POST /api/admin/auth error:", error);
     return NextResponse.json(
