@@ -121,6 +121,11 @@
 - **Nuovo Layout Pulsanti Azione**:
   - Il pulsante **Menù Digitale** è stato spostato sul lato destro nel blocco delle azioni principali.
   - Il pulsante **Ordina Asporto** è stato posizionato strategicamente al centro, esattamente tra **Menù Digitale** e **Prenota Ora**, garantendo una navigazione chiara, ordinata e senza duplicati sia da computer che da smartphone.
+
+### 8. 🍽️ Personalizzazione Completa Sezione "Esperienze & Momenti" e "Orari & Contatti" nel Live Studio Vetrina
+- **Esperienze & Momenti Dinamici al 100%**: Aggiunta la possibilità per il ristoratore di personalizzare liberamente titolo, descrizione e icona di ciascuna card nella sezione Esperienze della vetrina pubblica (es. Pizzeria con Forno a Legna, Cene d'Autore, Aperitivi al Bancone, Pranzo Rapido) con selettore di icone dedicate (Pizza, Forno/Fiamma, Calice, Posate, Cocktail, Caffè, Stella, Birra, Cuore, Cappello Chef), aggiunta e rimozione di card.
+- **Orari di Servizio e Informazioni di Contatto Personalizzabili**: Nuova scheda di configurazione dedicata a orari feriali, orari weekend, apertura cucina, indirizzo reale del locale, note di parcheggio e recapiti WhatsApp/email diretti, eliminando ogni testo predefinito generico.
+- **Header Mobile Salva-Spazio**: Ottimizzazione della larghezza dei tasti di azione su smartphone per garantire la perfetta leggibilità del logo e del nome del locale senza tagli o sovrapposizioni.
 ---
 
 ## Novità della Versione 1.0.5 (Hotfix Produzione)

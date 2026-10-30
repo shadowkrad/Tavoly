@@ -23,9 +23,41 @@ import {
   ShoppingBag,
   Star,
   Award,
+  Pizza,
+  Flame,
+  Beer,
+  Heart,
+  ChefHat,
 } from "lucide-react";
+import { ExperienceIconType, DEFAULT_TAVOLY_EXPERIENCES } from "@/lib/showcase-defaults";
 
 export const dynamic = "force-dynamic";
+
+function renderExperienceIcon(icon: ExperienceIconType) {
+  switch (icon) {
+    case "coffee":
+      return <Coffee className="w-6 h-6" />;
+    case "utensils":
+      return <UtensilsCrossed className="w-6 h-6" />;
+    case "glass":
+      return <GlassWater className="w-6 h-6" />;
+    case "wine":
+      return <Wine className="w-6 h-6" />;
+    case "pizza":
+      return <Pizza className="w-6 h-6" />;
+    case "flame":
+      return <Flame className="w-6 h-6" />;
+    case "beer":
+      return <Beer className="w-6 h-6" />;
+    case "heart":
+      return <Heart className="w-6 h-6" />;
+    case "chef":
+      return <ChefHat className="w-6 h-6" />;
+    case "sparkles":
+    default:
+      return <Sparkles className="w-6 h-6" />;
+  }
+}
 
 export default async function PublicShowcasePage() {
   const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting] = await Promise.all([
@@ -322,45 +354,23 @@ export default async function PublicShowcasePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="taaaac-card space-y-3 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Coffee className="w-6 h-6" />
+            {(showcase.experiences && showcase.experiences.length > 0 ? showcase.experiences : DEFAULT_TAVOLY_EXPERIENCES).map((exp) => (
+              <div key={exp.id} className="taaaac-card space-y-3 hover:shadow-md transition-shadow">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  style={{
+                    backgroundColor: `${showcase.accentColor || "#059669"}18`,
+                    color: showcase.accentColor || "#059669",
+                  }}
+                >
+                  {renderExperienceIcon(exp.icon)}
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">{exp.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {exp.description}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Caffetteria & Colazioni</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Caffè selezionati, lievitati artigianali e colazioni per iniziare al meglio la giornata.
-              </p>
-            </div>
-
-            <div className="taaaac-card space-y-3 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <UtensilsCrossed className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Pranzo di Lavoro</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Business lunch veloci e leggeri con ingredienti di prima scelta e servizio rapido.
-              </p>
-            </div>
-
-            <div className="taaaac-card space-y-3 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <GlassWater className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Aperitivo al Bancone</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Cocktail signature, birre artigianali e finger food gourmet per il tuo aperitivo dopo il lavoro.
-              </p>
-            </div>
-
-            <div className="taaaac-card space-y-3 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                <Wine className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Cena Gourmet</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Menu alla carta con materie prime stagionali, carta dei vini curata e atmosfera rilassante.
-              </p>
-            </div>
+            ))}
           </div>
         </section>
       )}
@@ -446,9 +456,15 @@ export default async function PublicShowcasePage() {
                 </h4>
               </div>
               <div className="text-xs text-slate-600 space-y-1 pl-13">
-                <p><strong>Lunedì - Venerdì:</strong> 07:30 - 23:30</p>
-                <p><strong>Sabato e Domenica:</strong> 08:30 - 00:30</p>
-                <p className="text-slate-400">Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)</p>
+                {showcase.contactInfo?.hoursWeekday && (
+                  <p><strong>{showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.split(":")[0] + ":" : "Lunedì - Venerdì:"}</strong> {showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.substring(showcase.contactInfo.hoursWeekday.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekday}</p>
+                )}
+                {showcase.contactInfo?.hoursWeekend && (
+                  <p><strong>{showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.split(":")[0] + ":" : "Sabato e Domenica:"}</strong> {showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.substring(showcase.contactInfo.hoursWeekend.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekend}</p>
+                )}
+                {showcase.contactInfo?.hoursNote && (
+                  <p className="text-slate-400">{showcase.contactInfo.hoursNote}</p>
+                )}
               </div>
             </div>
 
@@ -460,9 +476,10 @@ export default async function PublicShowcasePage() {
                 <h4 className="text-base font-bold text-slate-900">Posizione & Location</h4>
               </div>
               <div className="text-xs text-slate-600 space-y-1 pl-13">
-                <p className="font-semibold text-slate-900">Piazza Grande, 12 - Arezzo (AR)</p>
-                <p>Parcheggio convenzionato a 50 metri.</p>
-                <p className="text-slate-400">Accesso disabili disponibile in tutta la struttura.</p>
+                <p className="font-semibold text-slate-900">{showcase.contactInfo?.address || "Piazza Grande, 12 - Arezzo (AR)"}</p>
+                {showcase.contactInfo?.addressNote && (
+                  <p>{showcase.contactInfo.addressNote}</p>
+                )}
               </div>
             </div>
 
@@ -476,8 +493,8 @@ export default async function PublicShowcasePage() {
                 </h4>
               </div>
               <div className="text-xs text-slate-600 space-y-1 pl-13">
-                <p><strong>Telefono / WhatsApp:</strong> +39 0575 654321</p>
-                <p><strong>Email:</strong> info@osteriatavoli.it</p>
+                <p><strong>Telefono / WhatsApp:</strong> {showcase.contactInfo?.phone || tenantConfig.contact?.phone || "+39 0575 654321"}</p>
+                <p><strong>Email:</strong> {showcase.contactInfo?.email || tenantConfig.contact?.email || "info@osteriatavoli.it"}</p>
                 <p className="text-slate-400">Rispondiamo rapidamente durante gli orari di servizio.</p>
               </div>
             </div>
