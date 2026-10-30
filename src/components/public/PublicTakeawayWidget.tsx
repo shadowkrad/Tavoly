@@ -286,6 +286,27 @@ export function PublicTakeawayWidget({
           </div>
         </div>
 
+        {/* Banner Notifiche Telegram Gratuite & Fidelity */}
+        <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-2xl p-4 text-left space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 bg-sky-500 text-white rounded-lg text-xs">🚀</span>
+            <span className="text-xs font-bold text-sky-900 dark:text-sky-200">
+              Ricevi gli aggiornamenti in tempo reale su Telegram
+            </span>
+          </div>
+          <p className="text-[11px] text-sky-700 dark:text-sky-300">
+            Attiva le notifiche gratuite su Telegram con un click per sapere quando la tua comanda è pronta al pass e per verificare il saldo punti fedeltà.
+          </p>
+          <a
+            href={"https://t.me/TaaaacBot?start=auth_" + encodeURIComponent(phoneNumber || "")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 w-full py-2 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+          >
+            <span>Avvia Bot Telegram per Notifiche Ordine</span>
+          </a>
+        </div>
+
         {/* Azioni finali */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button

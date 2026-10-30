@@ -20,6 +20,12 @@ export async function GET() {
             "menu_show_dish_images",
             "kds_enabled",
             "showcase_config",
+            "telegram_enabled",
+            "telegram_bot_token",
+            "telegram_bot_username",
+            "telegram_staff_chat_id",
+            "fidelity_enabled",
+            "fidelity_rules",
           ],
         },
       },
@@ -43,6 +49,15 @@ export async function GET() {
     if (map["color_primary"]) showcaseConfig.primaryColor = map["color_primary"];
     if (map["color_accent"]) showcaseConfig.accentColor = map["color_accent"];
 
+    let fidelityRules = null;
+    try {
+      if (map["fidelity_rules"]) {
+        fidelityRules = JSON.parse(map["fidelity_rules"]);
+      }
+    } catch {
+      fidelityRules = null;
+    }
+
     return NextResponse.json({
       nomeRistorante: map["restaurant_name"] || "Osteria dei Tavoli",
       logoUrl: map["brand_logo_url"] || "",
@@ -56,6 +71,23 @@ export async function GET() {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
+      telegramSettings: {
+        enabled: map["telegram_enabled"] === "true",
+        botToken: map["telegram_bot_token"] || "",
+        botUsername: map["telegram_bot_username"] || "",
+        staffChatId: map["telegram_staff_chat_id"] || "",
+      },
+      fidelitySettings: {
+        enabled: map["fidelity_enabled"] === "true",
+        pointsPerEuro: fidelityRules?.pointsPerEuro || 1,
+        welcomeBonusPoints: fidelityRules?.welcomeBonusPoints || 10,
+        minPointsToRedeem: fidelityRules?.minPointsToRedeem || 50,
+        rewards: fidelityRules?.rewards || [
+          { id: "rew_1", name: "Dolce della Casa in Omaggio", pointsRequired: 50, rewardType: "FREE_ITEM", freeItemName: "Dolce artigianale a scelta" },
+          { id: "rew_2", name: "Sconto 10€ sul Conto", pointsRequired: 100, rewardType: "DISCOUNT", discountAmount: 10 },
+          { id: "rew_3", name: "Bottiglia di Vino Riserva", pointsRequired: 200, rewardType: "FREE_ITEM", freeItemName: "Vino selezione della cantina" },
+        ],
+      },
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -79,6 +111,8 @@ export async function PUT(req: NextRequest) {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
+      telegramSettings,
+      fidelitySettings,
     } = body;
 
     const showcaseConfigStr =
@@ -100,6 +134,12 @@ export async function PUT(req: NextRequest) {
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
+      telegramSettings?.enabled !== undefined && { key: "telegram_enabled", value: String(telegramSettings.enabled) },
+      telegramSettings?.botToken !== undefined && { key: "telegram_bot_token", value: String(telegramSettings.botToken || "") },
+      telegramSettings?.botUsername !== undefined && { key: "telegram_bot_username", value: String(telegramSettings.botUsername || "") },
+      telegramSettings?.staffChatId !== undefined && { key: "telegram_staff_chat_id", value: String(telegramSettings.staffChatId || "") },
+      fidelitySettings?.enabled !== undefined && { key: "fidelity_enabled", value: String(fidelitySettings.enabled) },
+      fidelitySettings !== undefined && { key: "fidelity_rules", value: JSON.stringify(fidelitySettings) },
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {

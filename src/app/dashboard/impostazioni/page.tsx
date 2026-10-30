@@ -36,8 +36,11 @@ import ThermalPrinterSettingsCard from "@/components/dashboard/ThermalPrinterSet
 import { toggleKdsSettingAction } from "@/app/actions";
 import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rules";
 import ShowcaseVisualStudio from "@/components/dashboard/showcase/ShowcaseVisualStudio";
+import TelegramSettingsPanel, { TelegramSettingsData } from "@/components/dashboard/TelegramSettingsPanel";
+import FidelitySettingsPanel, { FidelitySettingsData } from "@/components/dashboard/FidelitySettingsPanel";
+import { Send, Award } from "lucide-react";
 
-type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "cucina" | "asporto" | "stampante" | "dispositivi" | "aspetto";
+type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "telegram" | "fidelity" | "cucina" | "asporto" | "stampante" | "dispositivi" | "aspetto";
 
 interface TabItem {
   id: SettingsTab;
@@ -80,6 +83,22 @@ const TABS: TabItem[] = [
     iconComponent: MessageSquare,
     shortDescription: "Notifiche comande e tavoli",
     description: "Notifiche automatiche WhatsApp di conferma tavolo e stato comande",
+  },
+  {
+    id: "telegram",
+    label: "Telegram Hub & Staff",
+    shortLabel: "Telegram",
+    iconComponent: Send,
+    shortDescription: "Bot ed avvisi staff",
+    description: "Notifiche comande staff su gruppo Telegram e One-Tap Connect clienti a zero crediti",
+  },
+  {
+    id: "fidelity",
+    label: "Fidelity & Punti",
+    shortLabel: "Fidelity",
+    iconComponent: Award,
+    shortDescription: "Raccolta punti e premi",
+    description: "Fidelizzazione clienti con numero di telefono, accredito punti e catalogo premi",
   },
   {
     id: "cucina",
@@ -134,6 +153,21 @@ export default function TavolyImpostazioniPage() {
   const [takeaway, setTakeaway] = useState<TakeawaySettings>(DEFAULT_TAKEAWAY_SETTINGS);
   const [takeawaySaving, setTakeawaySaving] = useState(false);
   const [takeawaySavedNotice, setTakeawaySavedNotice] = useState(false);
+  // Telegram & Fidelity State
+  const [telegramSettings, setTelegramSettings] = useState<TelegramSettingsData>({
+    enabled: false,
+    botToken: "",
+    botUsername: "",
+    staffChatId: "",
+  });
+
+  const [fidelitySettings, setFidelitySettings] = useState<FidelitySettingsData>({
+    enabled: false,
+    pointsPerEuro: 1,
+    welcomeBonusPoints: 10,
+    minPointsToRedeem: 50,
+    rewards: [],
+  });
 
   const handleToggleTakeaway = async (newVal: boolean) => {
     setTakeaway((prev) => ({ ...prev, enabled: newVal }));
@@ -279,6 +313,8 @@ export default function TavolyImpostazioniPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) {
+          if (data.telegramSettings) setTelegramSettings(data.telegramSettings);
+          if (data.fidelitySettings) setFidelitySettings(data.fidelitySettings);
           if (data.takeawaySettings) {
             setTakeaway(data.takeawaySettings);
           }
@@ -378,6 +414,8 @@ export default function TavolyImpostazioniPage() {
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
           takeawaySettings: takeaway,
+          telegramSettings,
+          fidelitySettings,
         }),
       });
 
