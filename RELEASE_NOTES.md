@@ -114,6 +114,13 @@
 ### 6. 🛑 Blocco Rigoroso Ordini Asporto nel Passato (Date e Fasce Orarie Trascorse)
 - **Verifica Fuso Orario Locale (Europe/Rome)**: Allineato il calcolo degli slot disponibili e del tempo minimo di preparazione all'orario esatto del locale, impedendo l'inserimento o l'invio di comande per giorni precedenti o orari già trascorsi sia da vetrina pubblica che da console gestionale.
 
+
+
+### 7. 🧭 Riposizionamento e Ottimizzazione Tasti Navbar Vetrina
+- **Eliminazione Tasto Duplicato Menù**: Risolta la ridondanza visiva che presentava contemporaneamente due pulsanti menù ('Menù Digitale' a sinistra e 'Menù' a destra).
+- **Nuovo Layout Pulsanti Azione**:
+  - Il pulsante **Menù Digitale** è stato spostato sul lato destro nel blocco delle azioni principali.
+  - Il pulsante **Ordina Asporto** è stato posizionato strategicamente al centro, esattamente tra **Menù Digitale** e **Prenota Ora**, garantendo una navigazione chiara, ordinata e senza duplicati sia da computer che da smartphone.
 ---
 
 ## Novità della Versione 1.0.5 (Hotfix Produzione)
