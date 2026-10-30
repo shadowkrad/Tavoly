@@ -50,26 +50,12 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled, showMenuLink = t
 
         {/* Navigation links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-          {showMenuLink && (
-            <Link href="/menu" className="hover:text-emerald-700 transition-colors flex items-center gap-1.5 font-bold text-slate-800">
-              <UtensilsCrossed className="w-4 h-4 text-emerald-600" />
-              <span>Menù Digitale</span>
-            </Link>
-          )}
           <a href="/#servizi" className="hover:text-emerald-700 transition-colors">
             I Nostri Servizi
           </a>
           <Link href="/prenotazione" className="hover:text-emerald-700 transition-colors">
             Prenota un Tavolo
           </Link>
-          {takeawayEnabled && (
-            <Link
-              href="/asporto"
-              className="hover:text-amber-600 text-amber-700 font-bold transition-colors flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200"
-            >
-              <span>🥡 Ordina Asporto</span>
-            </Link>
-          )}
           <a href="/#contatti" className="hover:text-emerald-700 transition-colors">
             Orari &amp; Contatti
           </a>
@@ -80,10 +66,18 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled, showMenuLink = t
           {showMenuLink && (
             <Link
               href="/menu"
-              className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl transition"
+              className="text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl transition"
             >
               <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>Menù</span>
+              <span>Menù Digitale</span>
+            </Link>
+          )}
+          {takeawayEnabled && (
+            <Link
+              href="/asporto"
+              className="text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 font-bold rounded-xl transition"
+            >
+              <span>🥡 Ordina Asporto</span>
             </Link>
           )}
           <Link
