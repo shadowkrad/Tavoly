@@ -1,5 +1,34 @@
 export const DEFAULT_HERO_COVER_IMAGE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80";
 
+export type ExperienceIconType =
+  | "coffee"
+  | "utensils"
+  | "glass"
+  | "wine"
+  | "pizza"
+  | "flame"
+  | "sparkles"
+  | "beer"
+  | "heart"
+  | "chef";
+
+export interface ExperienceItem {
+  id: string;
+  icon: ExperienceIconType;
+  title: string;
+  description: string;
+}
+
+export interface ShowcaseContactInfo {
+  address?: string;
+  addressNote?: string;
+  phone?: string;
+  email?: string;
+  hoursWeekday?: string;
+  hoursWeekend?: string;
+  hoursNote?: string;
+}
+
 export interface TrustBadgeItem {
   id: string;
   icon: "star" | "shield" | "award" | "clock" | "check";
@@ -65,6 +94,12 @@ export interface ShowcaseConfig {
     showMenuLink?: boolean;
   };
 
+  // Esperienze & Momenti Personalizzabili
+  experiences?: ExperienceItem[];
+
+  // Informazioni di Contatto & Orari
+  contactInfo?: ShowcaseContactInfo;
+
   // Etichette Personalizzate
   customLabels: {
     servicesTitle: string;
@@ -73,6 +108,43 @@ export interface ShowcaseConfig {
     contactTitle: string;
   };
 }
+
+export const DEFAULT_TAVOLY_EXPERIENCES: ExperienceItem[] = [
+  {
+    id: "exp_1",
+    icon: "coffee",
+    title: "Caffetteria & Colazioni",
+    description: "Caffè selezionati, lievitati artigianali e colazioni per iniziare al meglio la giornata.",
+  },
+  {
+    id: "exp_2",
+    icon: "utensils",
+    title: "Pranzo di Lavoro",
+    description: "Business lunch veloci e leggeri con ingredienti di prima scelta e servizio rapido.",
+  },
+  {
+    id: "exp_3",
+    icon: "glass",
+    title: "Aperitivo al Bancone",
+    description: "Cocktail signature, birre artigianali e finger food gourmet per il tuo aperitivo dopo il lavoro.",
+  },
+  {
+    id: "exp_4",
+    icon: "wine",
+    title: "Cena Gourmet",
+    description: "Menu alla carta con materie prime stagionali, carta dei vini curata e atmosfera rilassante.",
+  },
+];
+
+export const DEFAULT_TAVOLY_CONTACT_INFO: ShowcaseContactInfo = {
+  address: "Piazza Grande, 12 - Arezzo (AR)",
+  addressNote: "Parcheggio convenzionato a 50 metri. Accesso disabili disponibile in tutta la struttura.",
+  phone: "+39 0575 654321",
+  email: "info@osteriatavoli.it",
+  hoursWeekday: "Lunedì - Venerdì: 07:30 - 23:30",
+  hoursWeekend: "Sabato e Domenica: 08:30 - 00:30",
+  hoursNote: "Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)",
+};
 
 export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
   brandName: "Osteria dei Tavoli",
@@ -149,6 +221,9 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     showMenuLink: true,
   },
 
+  experiences: DEFAULT_TAVOLY_EXPERIENCES,
+  contactInfo: DEFAULT_TAVOLY_CONTACT_INFO,
+
   customLabels: {
     servicesTitle: "I Nostri Spazi & Esperienze",
     servicesSubtitle: "Dalla sala interna riservata al dehors estivo fino all'angolo aperitivi al bancone.",
@@ -189,6 +264,13 @@ export function parseShowcaseConfig(raw: string | null | undefined): ShowcaseCon
         ...DEFAULT_TAVOLY_SHOWCASE_CONFIG.sections,
         showMenuLink: parsed.sections?.showMenuLink !== undefined ? !!parsed.sections.showMenuLink : true,
         ...(parsed.sections || {}),
+      },
+      experiences: Array.isArray(parsed.experiences) && parsed.experiences.length > 0
+        ? parsed.experiences
+        : DEFAULT_TAVOLY_EXPERIENCES,
+      contactInfo: {
+        ...DEFAULT_TAVOLY_CONTACT_INFO,
+        ...(parsed.contactInfo || {}),
       },
       customLabels: {
         ...DEFAULT_TAVOLY_SHOWCASE_CONFIG.customLabels,

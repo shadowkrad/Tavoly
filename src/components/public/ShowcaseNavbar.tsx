@@ -62,30 +62,32 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled, showMenuLink = t
         </nav>
 
         {/* CTA & Discreet Login Link */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           {showMenuLink && (
             <Link
               href="/menu"
-              className="text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl transition"
+              className="text-[11px] sm:text-sm px-2 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl transition"
             >
-              <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>Menù Digitale</span>
+              <UtensilsCrossed className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-emerald-600 shrink-0" />
+              <span className="sm:hidden">Menù</span>
+              <span className="hidden sm:inline">Menù Digitale</span>
             </Link>
           )}
           {takeawayEnabled && (
             <Link
               href="/asporto"
-              className="text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 font-bold rounded-xl transition"
+              className="text-[11px] sm:text-sm px-2 sm:px-3.5 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 font-bold rounded-xl transition"
             >
-              <span>🥡 Ordina Asporto</span>
+              <span className="sm:hidden">🥡 Asporto</span>
+              <span className="hidden sm:inline">🥡 Ordina Asporto</span>
             </Link>
           )}
           <Link
             href="/prenotazione"
             style={{ backgroundColor: theme.primaryColor || "#064e3b" }}
-            className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1.5 shrink-0 text-white font-bold rounded-xl shadow-xs hover:opacity-95 transition"
+            className="text-[11px] sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 text-white font-bold rounded-xl shadow-xs hover:opacity-95 transition"
           >
-            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <CalendarCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" />
             <span>Prenota</span>
             <span className="hidden sm:inline">&nbsp;Ora</span>
           </Link>

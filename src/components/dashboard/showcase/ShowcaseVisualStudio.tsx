@@ -4,7 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   ShowcaseConfig,
   DEFAULT_TAVOLY_SHOWCASE_CONFIG,
+  DEFAULT_TAVOLY_EXPERIENCES,
+  DEFAULT_TAVOLY_CONTACT_INFO,
   GalleryPhotoItem,
+  ExperienceIconType,
+  ExperienceItem,
 } from "@/lib/showcase-defaults";
 import {
   Sparkles,
@@ -37,9 +41,53 @@ import {
   GlassWater,
   Wine,
   Phone,
+  Pizza,
+  Flame,
+  Beer,
+  Heart,
+  ChefHat,
 } from "lucide-react";
 
-type ControlTab = "hero" | "media" | "colori" | "cucina" | "sezioni" | "badges";
+type ControlTab = "hero" | "media" | "colori" | "esperienze" | "contatti" | "cucina" | "sezioni" | "badges";
+
+const AVAILABLE_EXPERIENCE_ICONS: { id: ExperienceIconType; label: string; icon: React.ElementType }[] = [
+  { id: "coffee", label: "Caffè", icon: Coffee },
+  { id: "utensils", label: "Posate", icon: UtensilsCrossed },
+  { id: "glass", label: "Cocktail", icon: GlassWater },
+  { id: "wine", label: "Calice", icon: Wine },
+  { id: "pizza", label: "Pizza", icon: Pizza },
+  { id: "flame", label: "Forno / Grill", icon: Flame },
+  { id: "sparkles", label: "Stella", icon: Sparkles },
+  { id: "beer", label: "Birra", icon: Beer },
+  { id: "heart", label: "Cuore", icon: Heart },
+  { id: "chef", label: "Chef", icon: ChefHat },
+];
+
+function renderExpIcon(icon: ExperienceIconType, className = "w-4 h-4") {
+  switch (icon) {
+    case "coffee":
+      return <Coffee className={className} />;
+    case "utensils":
+      return <UtensilsCrossed className={className} />;
+    case "glass":
+      return <GlassWater className={className} />;
+    case "wine":
+      return <Wine className={className} />;
+    case "pizza":
+      return <Pizza className={className} />;
+    case "flame":
+      return <Flame className={className} />;
+    case "beer":
+      return <Beer className={className} />;
+    case "heart":
+      return <Heart className={className} />;
+    case "chef":
+      return <ChefHat className={className} />;
+    case "sparkles":
+    default:
+      return <Sparkles className={className} />;
+  }
+}
 
 export default function ShowcaseVisualStudio() {
   const [config, setConfig] = useState<ShowcaseConfig>(DEFAULT_TAVOLY_SHOWCASE_CONFIG);
@@ -308,6 +356,8 @@ export default function ShowcaseVisualStudio() {
               { id: "hero", label: "Insegna & Copy", icon: Type },
               { id: "media", label: "Cover & Foto", icon: ImageIcon },
               { id: "colori", label: "Colori", icon: Palette },
+              { id: "esperienze", label: "Esperienze", icon: UtensilsCrossed },
+              { id: "contatti", label: "Orari & Info", icon: MapPin },
               { id: "cucina", label: "La Cucina", icon: Quote },
               { id: "sezioni", label: "Sezioni", icon: Eye },
               { id: "badges", label: "Badges", icon: Award },
@@ -1306,37 +1356,21 @@ export default function ShowcaseVisualStudio() {
                   </div>
 
                   <div className={`grid gap-3 ${deviceMode === "desktop" ? "grid-cols-4" : "grid-cols-2"}`}>
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
-                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <Coffee className="w-4 h-4" />
+                    {((config.experiences && config.experiences.length > 0) ? config.experiences : DEFAULT_TAVOLY_EXPERIENCES).map((exp) => (
+                      <div key={exp.id} className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center"
+                          style={{
+                            backgroundColor: `${config.accentColor || "#059669"}18`,
+                            color: config.accentColor || "#059669",
+                          }}
+                        >
+                          {renderExpIcon(exp.icon, "w-4 h-4")}
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900 truncate">{exp.title}</h4>
+                        <p className="text-[10px] text-slate-500 leading-tight line-clamp-2">{exp.description}</p>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900">Colazioni</h4>
-                      <p className="text-[10px] text-slate-500 leading-tight">Caffè selezionati e lievitati.</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <UtensilsCrossed className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-900">Pranzo Rapido</h4>
-                      <p className="text-[10px] text-slate-500 leading-tight">Business lunch veloci e leggeri.</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                        <GlassWater className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-900">Aperitivo</h4>
-                      <p className="text-[10px] text-slate-500 leading-tight">Cocktail e finger food gourmet.</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
-                      <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                        <Wine className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-900">Cena Gourmet</h4>
-                      <p className="text-[10px] text-slate-500 leading-tight">Menu alla carta e carta dei vini.</p>
-                    </div>
+                    ))}
                   </div>
                 </section>
               )}
@@ -1398,11 +1432,11 @@ export default function ShowcaseVisualStudio() {
                 <footer className="p-4 bg-white text-center space-y-2 text-[10px] text-slate-500">
                   <div className="flex items-center justify-center gap-1 text-slate-700 font-semibold">
                     <MapPin className="w-3 h-3 text-emerald-700" />
-                    <span>V. D. Alighieri 74/R Capolona • Tel. +39 0575 969736</span>
+                    <span>{config.contactInfo?.address || "Piazza Grande, 12 - Arezzo (AR)"} • Tel. {config.contactInfo?.phone || "+39 0575 654321"}</span>
                   </div>
                   <div className="flex items-center justify-center gap-1">
                     <Clock className="w-3 h-3 text-emerald-700" />
-                    <span>Pranzo 12:30 - 14:30 • Cena 19:30 - 23:00</span>
+                    <span>{config.contactInfo?.hoursWeekday || "Lun - Ven: 07:30 - 23:30"} • {config.contactInfo?.hoursWeekend || "Sab - Dom: 08:30 - 00:30"}</span>
                   </div>
                   <p className="text-[9px] text-slate-400 pt-2 border-t border-slate-100">
                     Powered by Taaaac Suite • Tavoly Hospitality
