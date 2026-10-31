@@ -1094,27 +1094,14 @@ export default function ShowcaseVisualStudio() {
             {/* LA CUCINA & FILOSOFIA */}
             {activeControlTab === "cucina" && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <Quote className="w-4 h-4 text-emerald-600" />
-                      <span>La Nostra Cucina & Filosofia</span>
-                    </h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Descrivi l&apos;amore per le materie prime e la tradizione culinaria.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.about.enabled}
-                      onChange={(e) =>
-                        setConfig({ ...config, about: { ...config.about, enabled: e.target.checked } })
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                  </label>
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Quote className="w-4 h-4 text-emerald-600" />
+                    <span>La Nostra Cucina & Filosofia</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Descrivi l&apos;amore per le materie prime e la tradizione culinaria.
+                  </p>
                 </div>
 
                 <div>
@@ -1811,6 +1798,9 @@ export default function ShowcaseVisualStudio() {
                               ...config.sections,
                               [s.key]: e.target.checked,
                             },
+                            ...(s.key === "showAbout"
+                              ? { about: { ...config.about, enabled: e.target.checked } }
+                              : {}),
                           })
                         }
                         className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
@@ -2169,7 +2159,7 @@ export default function ShowcaseVisualStudio() {
               )}
 
               {/* LA CUCINA & FILOSOFIA (Stile Dark elegante coerente con page.tsx) */}
-              {config.sections.showAbout && config.about.enabled && (
+              {config.sections.showAbout && (
                 <section className="p-6 sm:p-10 text-center space-y-3 bg-slate-900 text-white border-b border-slate-800">
                   <span
                     className="text-[10px] font-bold uppercase tracking-wider"
