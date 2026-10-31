@@ -29,6 +29,16 @@
 
 ---
 
+## Novità della Versione 1.0.8 (Hotfix / Patch)
+
+### 1. 🍽️ Vetrina Ristorante 100% Personalizzabile & Live Studio Completo
+- **Pannello Esperienze & Momenti della Giornata nello Studio**: Aggiunta la gestione visuale completa nel Live Studio per creare, ordinare, modificare icone e rimuovere le schede delle esperienze culinarie (*Colazioni, Pranzo di Lavoro, Aperitivo, Cena Gourmet*).
+- **Pannello Orari di Servizio, Posizione & Recapiti nello Studio**: Configurazione diretta di tutti i recapiti (telefono/WhatsApp, email, indirizzo bottega, note parcheggio e accessibilità) e degli orari feriali/weekend con note cucina, eliminando ogni testo cablato.
+- **Card Live Turni & Invito Prenotazione Editabili**: Possibilità di personalizzare le etichette dei turni (es. *"Cena 18:30 - 23:00"* per pizzerie serali), badge di stato, note sala e testi dei pulsanti di prenotazione.
+- **Dinamizzazione Integrale della Pagina Vetrina (`page.tsx`)**: Ogni intestazione (*Posizione & Location*, *Turni di Servizio & Orari*, *Dove Trovarci & Prenotazioni*, nota tempi di risposta) ora riflette fedelmente i dati configurati dall'esercente.
+
+---
+
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
 
 ### 1. 📅 Griglia Oraria e Vista Calendario Interattiva per Prenotazioni (Issue #18)
