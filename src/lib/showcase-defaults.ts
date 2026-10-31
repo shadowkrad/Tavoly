@@ -27,6 +27,7 @@ export interface ShowcaseContactInfo {
   hoursWeekday?: string;
   hoursWeekend?: string;
   hoursNote?: string;
+  responseNote?: string;
 }
 
 export interface TrustBadgeItem {
@@ -105,7 +106,20 @@ export interface ShowcaseConfig {
     servicesTitle: string;
     servicesSubtitle: string;
     hoursTitle: string;
+    locationTitle?: string;
     contactTitle: string;
+    bookingCtaTitle?: string;
+    bookingCtaSubtitle?: string;
+    bookingCtaButton?: string;
+    heroCardTitle?: string;
+    heroCardSubtitle?: string;
+    heroCardBadge?: string;
+    heroShift1Label?: string;
+    heroShift1Hours?: string;
+    heroShift2Label?: string;
+    heroShift2Hours?: string;
+    heroCardNoteTitle?: string;
+    heroCardNoteDesc?: string;
   };
 }
 
@@ -144,6 +158,7 @@ export const DEFAULT_TAVOLY_CONTACT_INFO: ShowcaseContactInfo = {
   hoursWeekday: "Lunedì - Venerdì: 07:30 - 23:30",
   hoursWeekend: "Sabato e Domenica: 08:30 - 00:30",
   hoursNote: "Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)",
+  responseNote: "Rispondiamo rapidamente durante gli orari di servizio.",
 };
 
 export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
@@ -228,7 +243,20 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     servicesTitle: "I Nostri Spazi & Esperienze",
     servicesSubtitle: "Dalla sala interna riservata al dehors estivo fino all'angolo aperitivi al bancone.",
     hoursTitle: "Turni di Servizio & Orari",
+    locationTitle: "Posizione & Location",
     contactTitle: "Dove Trovarci & Prenotazioni",
+    bookingCtaTitle: "Prenota il tuo Tavolo in pochi secondi",
+    bookingCtaSubtitle: "Scegli il turno, l'orario e i coperti desiderati. Riceverai la conferma immediata della sala e il promemoria su WhatsApp.",
+    bookingCtaButton: "Apri Form Prenotazione",
+    heroCardTitle: "Ospitalità & Sala",
+    heroCardSubtitle: "Tavoli in tempo reale",
+    heroCardBadge: "Aperto Oggi",
+    heroShift1Label: "Pranzo",
+    heroShift1Hours: "12:30 - 14:30",
+    heroShift2Label: "Cena",
+    heroShift2Hours: "19:30 - 23:00",
+    heroCardNoteTitle: "Pranzo di lavoro o Cena Romantica?",
+    heroCardNoteDesc: "Puoi specificare intolleranze alimentari e preferenze di sala direttamente nel modulo di prenotazione.",
   },
 };
 

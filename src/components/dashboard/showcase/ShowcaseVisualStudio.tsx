@@ -474,6 +474,210 @@ export default function ShowcaseVisualStudio() {
                     />
                   </div>
                 </div>
+
+                {/* Card Live Turni (Colonna Destra Hero) */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Card Live Turni & Orari (Schermata Destra)</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Card</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Ospitalità & Sala"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Sottotitolo Card</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardSubtitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardSubtitle: e.target.value },
+                          })
+                        }
+                        placeholder="Tavoli in tempo reale"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Badge Stato</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardBadge || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardBadge: e.target.value },
+                          })
+                        }
+                        placeholder="Aperto Oggi"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 1</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift1Label || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift1Label: e.target.value },
+                          })
+                        }
+                        placeholder="Pranzo"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 1</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift1Hours || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift1Hours: e.target.value },
+                          })
+                        }
+                        placeholder="12:30 - 14:30"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 2</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift2Label || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift2Label: e.target.value },
+                          })
+                        }
+                        placeholder="Cena"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 2</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift2Hours || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift2Hours: e.target.value },
+                          })
+                        }
+                        placeholder="19:30 - 23:00"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 pt-1 border-t border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Nota Sala</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardNoteTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardNoteTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Pranzo di lavoro o Cena Romantica?"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Descrizione Nota Sala</label>
+                      <textarea
+                        rows={2}
+                        value={config.customLabels?.heroCardNoteDesc || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardNoteDesc: e.target.value },
+                          })
+                        }
+                        placeholder="Puoi specificare intolleranze alimentari e preferenze..."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sezione Invito Prenotazione CTA */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <CalendarCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Sezione Invito Prenotazione Rapida</span>
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Invito</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.bookingCtaTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Prenota il tuo Tavolo in pochi secondi"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Sottotitolo Spiegazione</label>
+                      <textarea
+                        rows={2}
+                        value={config.customLabels?.bookingCtaSubtitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaSubtitle: e.target.value },
+                          })
+                        }
+                        placeholder="Scegli il turno, l'orario e i coperti desiderati..."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Testo Pulsante</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.bookingCtaButton || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaButton: e.target.value },
+                          })
+                        }
+                        placeholder="Apri Form Prenotazione"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -971,6 +1175,595 @@ export default function ShowcaseVisualStudio() {
                       }
                       className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
                     />
+                  </div>
+                </div>
+
+                {/* Card Live Turni (Colonna Destra Hero) */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Card Live Turni & Orari (Schermata Destra)</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Card</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Ospitalità & Sala"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Sottotitolo Card</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardSubtitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardSubtitle: e.target.value },
+                          })
+                        }
+                        placeholder="Tavoli in tempo reale"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Badge Stato</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardBadge || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardBadge: e.target.value },
+                          })
+                        }
+                        placeholder="Aperto Oggi"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 1</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift1Label || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift1Label: e.target.value },
+                          })
+                        }
+                        placeholder="Pranzo"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 1</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift1Hours || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift1Hours: e.target.value },
+                          })
+                        }
+                        placeholder="12:30 - 14:30"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 2</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift2Label || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift2Label: e.target.value },
+                          })
+                        }
+                        placeholder="Cena"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 2</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroShift2Hours || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroShift2Hours: e.target.value },
+                          })
+                        }
+                        placeholder="19:30 - 23:00"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 pt-1 border-t border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Nota Sala</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.heroCardNoteTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardNoteTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Pranzo di lavoro o Cena Romantica?"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Descrizione Nota Sala</label>
+                      <textarea
+                        rows={2}
+                        value={config.customLabels?.heroCardNoteDesc || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, heroCardNoteDesc: e.target.value },
+                          })
+                        }
+                        placeholder="Puoi specificare intolleranze alimentari e preferenze..."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sezione Invito Prenotazione CTA */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <CalendarCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Sezione Invito Prenotazione Rapida</span>
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Invito</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.bookingCtaTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Prenota il tuo Tavolo in pochi secondi"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Sottotitolo Spiegazione</label>
+                      <textarea
+                        rows={2}
+                        value={config.customLabels?.bookingCtaSubtitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaSubtitle: e.target.value },
+                          })
+                        }
+                        placeholder="Scegli il turno, l'orario e i coperti desiderati..."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Testo Pulsante</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.bookingCtaButton || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, bookingCtaButton: e.target.value },
+                          })
+                        }
+                        placeholder="Apri Form Prenotazione"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ESPERIENZE & MOMENTI DELLA GIORNATA */}
+            {activeControlTab === "esperienze" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <UtensilsCrossed className="w-4 h-4 text-emerald-600" />
+                      <span>Esperienze & Momenti della Giornata</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Personalizza i momenti di ristorazione (colazioni, pranzi, aperitivi, cene) mostrati nella vetrina.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newId = `exp_${Date.now()}`;
+                      const updated = [
+                        ...(config.experiences || DEFAULT_TAVOLY_EXPERIENCES),
+                        {
+                          id: newId,
+                          icon: "utensils" as ExperienceIconType,
+                          title: "Nuova Esperienza",
+                          description: "Descrizione dell'esperienza culinaria...",
+                        },
+                      ];
+                      setConfig({ ...config, experiences: updated });
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Aggiungi</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Titolo Principale Sezione
+                    </label>
+                    <input
+                      type="text"
+                      value={config.customLabels?.servicesTitle || ""}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          customLabels: { ...config.customLabels, servicesTitle: e.target.value },
+                        })
+                      }
+                      placeholder="I Nostri Spazi & Esperienze"
+                      className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Sottotitolo Descrittivo Sezione
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={config.customLabels?.servicesSubtitle || ""}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          customLabels: { ...config.customLabels, servicesSubtitle: e.target.value },
+                        })
+                      }
+                      placeholder="Dalla sala interna riservata al dehors estivo..."
+                      className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    Schede Esperienze ({((config.experiences || DEFAULT_TAVOLY_EXPERIENCES)).length})
+                  </h4>
+                  {(config.experiences || DEFAULT_TAVOLY_EXPERIENCES).map((exp, idx) => (
+                    <div key={exp.id} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">
+                          Momento #{idx + 1}
+                        </span>
+                        {(config.experiences || DEFAULT_TAVOLY_EXPERIENCES).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (config.experiences || DEFAULT_TAVOLY_EXPERIENCES).filter(
+                                (item) => item.id !== exp.id
+                              );
+                              setConfig({ ...config, experiences: updated });
+                            }}
+                            className="p-1 rounded-lg text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                            title="Elimina Momento"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Icona</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {AVAILABLE_EXPERIENCE_ICONS.map((ic) => {
+                            const isSelected = exp.icon === ic.id;
+                            const IconC = ic.icon;
+                            return (
+                              <button
+                                key={ic.id}
+                                type="button"
+                                onClick={() => {
+                                  const updated = (config.experiences || DEFAULT_TAVOLY_EXPERIENCES).map((item) =>
+                                    item.id === exp.id ? { ...item, icon: ic.id } : item
+                                  );
+                                  setConfig({ ...config, experiences: updated });
+                                }}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                                  isSelected
+                                    ? "bg-emerald-600 text-white shadow-xs"
+                                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                <IconC className="w-3 h-3" />
+                                <span>{ic.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Momento</label>
+                        <input
+                          type="text"
+                          value={exp.title}
+                          onChange={(e) => {
+                            const updated = (config.experiences || DEFAULT_TAVOLY_EXPERIENCES).map((item) =>
+                              item.id === exp.id ? { ...item, title: e.target.value } : item
+                            );
+                            setConfig({ ...config, experiences: updated });
+                          }}
+                          className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                          placeholder="es. Pranzo di Lavoro"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">Descrizione</label>
+                        <textarea
+                          rows={2}
+                          value={exp.description}
+                          onChange={(e) => {
+                            const updated = (config.experiences || DEFAULT_TAVOLY_EXPERIENCES).map((item) =>
+                              item.id === exp.id ? { ...item, description: e.target.value } : item
+                            );
+                            setConfig({ ...config, experiences: updated });
+                          }}
+                          className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                          placeholder="es. Business lunch veloci con materie prime del territorio..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CONTATTI, ORARI & LOCATION */}
+            {activeControlTab === "contatti" && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-200 pb-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    <span>Orari di Servizio, Posizione & Recapiti</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Modifica tutti i dati di contatto, orari e indirizzo visibili nella vetrina pubblica.
+                  </p>
+                </div>
+
+                {/* Intestazioni Sezioni */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                    Intestazioni delle Schede
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Box Orari</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.hoursTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, hoursTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Turni di Servizio & Orari"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Box Posizione</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.locationTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, locationTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Posizione & Location"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Box Contatti</label>
+                      <input
+                        type="text"
+                        value={config.customLabels?.contactTitle || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            customLabels: { ...config.customLabels, contactTitle: e.target.value },
+                          })
+                        }
+                        placeholder="Dove Trovarci & Prenotazioni"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Orari di Servizio */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Orari di Apertura</span>
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orari Feriali (Lun - Ven)</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.hoursWeekday || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursWeekday: e.target.value },
+                          })
+                        }
+                        placeholder="Lunedì - Venerdì: 07:30 - 23:30"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orari Weekend (Sab - Dom)</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.hoursWeekend || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursWeekend: e.target.value },
+                          })
+                        }
+                        placeholder="Sabato e Domenica: 08:30 - 00:30"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Nota Cucina / Chiusura</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.hoursNote || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursNote: e.target.value },
+                          })
+                        }
+                        placeholder="Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Posizione & Indirizzo */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Posizione & Location</span>
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Indirizzo Completo</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.address || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), address: e.target.value },
+                          })
+                        }
+                        placeholder="Via Dante Alighieri, 74/R, 52010 Capolona (AR)"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Note Parcheggio & Accessibilità</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.addressNote || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), addressNote: e.target.value },
+                          })
+                        }
+                        placeholder="Parcheggio convenzionato a 50 metri. Accesso disabili..."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recapiti Diretti */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Recapiti & Assistenza</span>
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Telefono / WhatsApp</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.phone || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), phone: e.target.value },
+                          })
+                        }
+                        placeholder="+39 0575 969736"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Email di Contatto</label>
+                      <input
+                        type="email"
+                        value={config.contactInfo?.email || ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), email: e.target.value },
+                          })
+                        }
+                        placeholder="info@meco.taaaac.eu"
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Nota Tempi di Risposta</label>
+                      <input
+                        type="text"
+                        value={config.contactInfo?.responseNote !== undefined ? config.contactInfo.responseNote : ""}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), responseNote: e.target.value },
+                          })
+                        }
+                        placeholder="Rispondiamo rapidamente durante gli orari di servizio."
+                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
