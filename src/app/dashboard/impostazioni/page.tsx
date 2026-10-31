@@ -228,8 +228,9 @@ export default function TavolyImpostazioniPage() {
     copertiVeranda: "20",
     pranzoInizio: "12:30",
     pranzoFine: "15:00",
-    cenaPrimoTurno: "19:30 - 21:15",
-    cenaSecondoTurno: "21:30 - 23:30",
+    fasciaPranzo: "12:30 - 15:00",
+    cenaPrimoTurno: "19:30 - 22:00",
+    cenaSecondoTurno: "", // Opzionale per locali a turno unico
     tolleranzaRitardoMinuti: "15",
     whatsappAbilitato: true,
     colorePrimario: "#064e3b",
@@ -332,6 +333,13 @@ export default function TavolyImpostazioniPage() {
               indirizzo: data.indirizzo || f.indirizzo,
               menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
               kdsEnabled: resolvedKds,
+              copertiInterni: data.copertiInterni || f.copertiInterni,
+              copertiDehors: data.copertiDehors || f.copertiDehors,
+              copertiVeranda: data.copertiVeranda || f.copertiVeranda,
+              cenaPrimoTurno: data.cenaPrimoTurno || f.cenaPrimoTurno,
+              cenaSecondoTurno: data.cenaSecondoTurno !== undefined ? data.cenaSecondoTurno : f.cenaSecondoTurno,
+              fasciaPranzo: data.fasciaPranzo !== undefined ? data.fasciaPranzo : f.fasciaPranzo,
+              tolleranzaRitardoMinuti: data.tolleranzaRitardoMinuti || f.tolleranzaRitardoMinuti,
             };
           });
         }
@@ -413,6 +421,13 @@ export default function TavolyImpostazioniPage() {
           indirizzo: form.indirizzo,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
+          copertiInterni: form.copertiInterni,
+          copertiDehors: form.copertiDehors,
+          copertiVeranda: form.copertiVeranda,
+          cenaPrimoTurno: form.cenaPrimoTurno,
+          cenaSecondoTurno: form.cenaSecondoTurno,
+          fasciaPranzo: form.fasciaPranzo,
+          tolleranzaRitardoMinuti: form.tolleranzaRitardoMinuti,
           takeawaySettings: takeaway,
           telegramSettings,
           fidelitySettings,
@@ -714,18 +729,26 @@ export default function TavolyImpostazioniPage() {
                 <span className="font-bold text-slate-800 block text-xs uppercase tracking-wide">Servizio Cena</span>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-600">Primo Turno:</span>
+                    <div>
+                      <span className="font-semibold text-slate-600 block">Primo Turno:</span>
+                      <span className="text-[10px] text-slate-400 font-normal">Orario di inizio o primo slot</span>
+                    </div>
                     <input
                       type="text"
+                      placeholder="19:30 - 22:00"
                       value={form.cenaPrimoTurno}
                       onChange={(e) => setForm({ ...form, cenaPrimoTurno: e.target.value })}
                       className="px-2 py-1 rounded-lg border border-slate-300 font-mono font-bold text-emerald-700 text-xs w-36 text-center"
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-600">Secondo Turno:</span>
+                    <div>
+                      <span className="font-semibold text-slate-600 block">Secondo Turno:</span>
+                      <span className="text-[10px] text-slate-400 font-normal">(Opzionale, vuoto per turno unico)</span>
+                    </div>
                     <input
                       type="text"
+                      placeholder="Opzionale (es. 21:30 - 23:30)"
                       value={form.cenaSecondoTurno}
                       onChange={(e) => setForm({ ...form, cenaSecondoTurno: e.target.value })}
                       className="px-2 py-1 rounded-lg border border-slate-300 font-mono font-bold text-emerald-700 text-xs w-36 text-center"
@@ -750,8 +773,17 @@ export default function TavolyImpostazioniPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-600">Fascia Pranzo:</span>
-                    <span className="font-mono text-xs text-slate-700 font-bold">12:30 - 15:00</span>
+                    <div>
+                      <span className="font-semibold text-slate-600 block">Fascia Pranzo:</span>
+                      <span className="text-[10px] text-slate-400 font-normal">(Lascia vuoto se chiuso a pranzo)</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Es. 12:30 - 15:00 o Chiuso"
+                      value={form.fasciaPranzo}
+                      onChange={(e) => setForm({ ...form, fasciaPranzo: e.target.value })}
+                      className="px-2 py-1 rounded-lg border border-slate-300 font-mono font-bold text-emerald-700 text-xs w-36 text-center"
+                    />
                   </div>
                 </div>
               </div>
