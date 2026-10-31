@@ -1889,9 +1889,7 @@ export default function ShowcaseVisualStudio() {
                       <span className="text-xs sm:text-sm font-black text-slate-900 tracking-tight truncate block leading-tight">
                         {config.brandName || "Tavoly"}
                       </span>
-                      <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 shrink-0">
-                        Ristorante &amp; Bar
-                      </span>
+                      
                     </div>
                     <p className="text-[10px] text-slate-500 font-medium truncate hidden sm:block">
                       Sale, Tavoli &amp; Cucina d&apos;Autore
@@ -1908,23 +1906,12 @@ export default function ShowcaseVisualStudio() {
                 )}
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {config.sections.showMenuLink !== false && (
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-xl inline-flex items-center gap-1 cursor-default whitespace-nowrap">
-                      <UtensilsCrossed className="w-3 h-3 text-emerald-600" />
-                      <span>Menù Digitale</span>
-                    </span>
-                  )}
-                  {config.sections.showTakeawayCta && (
-                    <span className="text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-xl inline-flex items-center gap-1 cursor-default whitespace-nowrap">
-                      <span>🥡 Ordina Asporto</span>
-                    </span>
-                  )}
                   <span
                     style={{ backgroundColor: config.primaryColor }}
-                    className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
+                    className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
                   >
                     <CalendarCheck className="w-3 h-3" />
-                    <span>Prenota Ora</span>
+                    <span>Prenota un Tavolo</span>
                   </span>
                   <span className="p-1 text-slate-400 rounded-lg">
                     <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
