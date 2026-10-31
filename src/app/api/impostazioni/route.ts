@@ -20,14 +20,12 @@ export async function GET() {
             "menu_show_dish_images",
             "kds_enabled",
             "showcase_config",
-<<<<<<< HEAD
             "telegram_enabled",
             "telegram_bot_token",
             "telegram_bot_username",
             "telegram_staff_chat_id",
             "fidelity_enabled",
             "fidelity_rules",
-=======
             "turni_cena_primo",
             "turni_cena_secondo",
             "turni_fascia_pranzo",
@@ -35,7 +33,6 @@ export async function GET() {
             "coperti_interni",
             "coperti_dehors",
             "coperti_veranda",
->>>>>>> hotfix/1.0.8
           ],
         },
       },
@@ -81,7 +78,13 @@ export async function GET() {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
-<<<<<<< HEAD
+      cenaPrimoTurno: map["turni_cena_primo"] || "19:30 - 22:00",
+      cenaSecondoTurno: map["turni_cena_secondo"] || "",
+      fasciaPranzo: map["turni_fascia_pranzo"] !== undefined ? map["turni_fascia_pranzo"] : "12:30 - 15:00",
+      tolleranzaRitardoMinuti: map["turni_tolleranza_minuti"] || "15",
+      copertiInterni: map["coperti_interni"] || "45",
+      copertiDehors: map["coperti_dehors"] || "30",
+      copertiVeranda: map["coperti_veranda"] || "20",
       telegramSettings: {
         enabled: map["telegram_enabled"] === "true",
         botToken: map["telegram_bot_token"] || "",
@@ -99,15 +102,6 @@ export async function GET() {
           { id: "rew_3", name: "Bottiglia di Vino Riserva", pointsRequired: 200, rewardType: "FREE_ITEM", freeItemName: "Vino selezione della cantina" },
         ],
       },
-=======
-      cenaPrimoTurno: map["turni_cena_primo"] || "19:30 - 22:00",
-      cenaSecondoTurno: map["turni_cena_secondo"] || "",
-      fasciaPranzo: map["turni_fascia_pranzo"] !== undefined ? map["turni_fascia_pranzo"] : "12:30 - 15:00",
-      tolleranzaRitardoMinuti: map["turni_tolleranza_minuti"] || "15",
-      copertiInterni: map["coperti_interni"] || "45",
-      copertiDehors: map["coperti_dehors"] || "30",
-      copertiVeranda: map["coperti_veranda"] || "20",
->>>>>>> hotfix/1.0.8
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -131,10 +125,8 @@ export async function PUT(req: NextRequest) {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
-<<<<<<< HEAD
       telegramSettings,
       fidelitySettings,
-=======
       cenaPrimoTurno,
       cenaSecondoTurno,
       fasciaPranzo,
@@ -142,7 +134,6 @@ export async function PUT(req: NextRequest) {
       copertiInterni,
       copertiDehors,
       copertiVeranda,
->>>>>>> hotfix/1.0.8
     } = body;
 
     const showcaseConfigStr =
@@ -164,14 +155,12 @@ export async function PUT(req: NextRequest) {
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
-<<<<<<< HEAD
       telegramSettings?.enabled !== undefined && { key: "telegram_enabled", value: String(telegramSettings.enabled) },
       telegramSettings?.botToken !== undefined && { key: "telegram_bot_token", value: String(telegramSettings.botToken || "") },
       telegramSettings?.botUsername !== undefined && { key: "telegram_bot_username", value: String(telegramSettings.botUsername || "") },
       telegramSettings?.staffChatId !== undefined && { key: "telegram_staff_chat_id", value: String(telegramSettings.staffChatId || "") },
       fidelitySettings?.enabled !== undefined && { key: "fidelity_enabled", value: String(fidelitySettings.enabled) },
       fidelitySettings !== undefined && { key: "fidelity_rules", value: JSON.stringify(fidelitySettings) },
-=======
       cenaPrimoTurno !== undefined && { key: "turni_cena_primo", value: String(cenaPrimoTurno) },
       cenaSecondoTurno !== undefined && { key: "turni_cena_secondo", value: String(cenaSecondoTurno || "") },
       fasciaPranzo !== undefined && { key: "turni_fascia_pranzo", value: String(fasciaPranzo || "") },
@@ -179,7 +168,6 @@ export async function PUT(req: NextRequest) {
       copertiInterni !== undefined && { key: "coperti_interni", value: String(copertiInterni) },
       copertiDehors !== undefined && { key: "coperti_dehors", value: String(copertiDehors) },
       copertiVeranda !== undefined && { key: "coperti_veranda", value: String(copertiVeranda) },
->>>>>>> hotfix/1.0.8
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {

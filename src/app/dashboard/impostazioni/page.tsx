@@ -142,6 +142,87 @@ const TABS: TabItem[] = [
   },
 ];
 
+interface NumberStepperProps {
+  value: number | string;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  onChange: (val: number | string) => void;
+}
+
+function NumberStepper({
+  value,
+  min = 0,
+  max = 999,
+  step = 1,
+  unit,
+  onChange,
+}: NumberStepperProps) {
+  const numVal = typeof value === "number" ? value : parseInt(String(value), 10) || min;
+
+  const handleDec = () => {
+    const next = Math.max(min, numVal - step);
+    onChange(next);
+  };
+
+  const handleInc = () => {
+    const next = Math.min(max, numVal + step);
+    onChange(next);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      onChange("");
+      return;
+    }
+    const clean = raw.replace(/\D/g, "");
+    if (clean === "") {
+      onChange("");
+      return;
+    }
+    const parsed = parseInt(clean, 10);
+    if (!isNaN(parsed)) {
+      onChange(Math.max(min, Math.min(max, parsed)));
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="inline-flex items-center rounded-xl border border-slate-300 bg-white shadow-xs overflow-hidden">
+        <button
+          type="button"
+          onClick={handleDec}
+          disabled={numVal <= min}
+          className="w-9 h-9 flex items-center justify-center bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed select-none transition"
+          aria-label="Diminuisci"
+        >
+          −
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={value}
+          onChange={handleChange}
+          className="w-14 text-center font-mono font-bold text-slate-900 text-sm border-x border-slate-200 py-1.5 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleInc}
+          disabled={numVal >= max}
+          className="w-9 h-9 flex items-center justify-center bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed select-none transition"
+          aria-label="Aumenta"
+        >
+          +
+        </button>
+      </div>
+      {unit && <span className="text-xs text-slate-500 font-medium select-none">{unit}</span>}
+    </div>
+  );
+}
+
 export default function TavolyImpostazioniPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("ristorante");
   const [saving, setSaving] = useState(false);
@@ -681,40 +762,37 @@ export default function TavolyImpostazioniPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <label className="block font-semibold text-slate-700 mb-1">Sala Interna</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={form.copertiInterni}
-                    onChange={(e) => setForm({ ...form, copertiInterni: e.target.value })}
-                    className="w-20 px-2 py-1.5 rounded-lg border border-slate-300 font-mono font-bold text-slate-900 text-sm"
-                  />
-                  <span className="text-slate-500 font-medium">Coperti</span>
-                </div>
+                <label className="block font-semibold text-slate-700 mb-2">Sala Interna</label>
+                <NumberStepper
+                  value={form.copertiInterni}
+                  min={0}
+                  max={300}
+                  step={5}
+                  unit="Coperti"
+                  onChange={(val) => setForm({ ...form, copertiInterni: String(val) })}
+                />
               </div>
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <label className="block font-semibold text-slate-700 mb-1">Dehors Estivo</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={form.copertiDehors}
-                    onChange={(e) => setForm({ ...form, copertiDehors: e.target.value })}
-                    className="w-20 px-2 py-1.5 rounded-lg border border-slate-300 font-mono font-bold text-slate-900 text-sm"
-                  />
-                  <span className="text-slate-500 font-medium">Coperti</span>
-                </div>
+                <label className="block font-semibold text-slate-700 mb-2">Dehors Estivo</label>
+                <NumberStepper
+                  value={form.copertiDehors}
+                  min={0}
+                  max={300}
+                  step={5}
+                  unit="Coperti"
+                  onChange={(val) => setForm({ ...form, copertiDehors: String(val) })}
+                />
               </div>
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <label className="block font-semibold text-slate-700 mb-1">Veranda Panoramica</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={form.copertiVeranda}
-                    onChange={(e) => setForm({ ...form, copertiVeranda: e.target.value })}
-                    className="w-20 px-2 py-1.5 rounded-lg border border-slate-300 font-mono font-bold text-slate-900 text-sm"
-                  />
-                  <span className="text-slate-500 font-medium">Coperti</span>
-                </div>
+                <label className="block font-semibold text-slate-700 mb-2">Veranda Panoramica</label>
+                <NumberStepper
+                  value={form.copertiVeranda}
+                  min={0}
+                  max={300}
+                  step={5}
+                  unit="Coperti"
+                  onChange={(val) => setForm({ ...form, copertiVeranda: String(val) })}
+                />
               </div>
             </div>
           </div>
@@ -762,15 +840,14 @@ export default function TavolyImpostazioniPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-slate-600">Tolleranza Ritardo:</span>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        value={form.tolleranzaRitardoMinuti}
-                        onChange={(e) => setForm({ ...form, tolleranzaRitardoMinuti: e.target.value })}
-                        className="w-16 px-2 py-1 rounded-lg border border-slate-300 font-mono text-center text-xs"
-                      />
-                      <span className="text-slate-500">minuti</span>
-                    </div>
+                    <NumberStepper
+                      value={form.tolleranzaRitardoMinuti}
+                      min={0}
+                      max={60}
+                      step={5}
+                      unit="minuti"
+                      onChange={(val) => setForm({ ...form, tolleranzaRitardoMinuti: String(val) })}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
@@ -1213,20 +1290,16 @@ export default function TavolyImpostazioniPage() {
                 <label className="block text-xs font-bold text-slate-800">
                   Tempo Minimo Preparazione
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="10"
-                    max="180"
-                    step="5"
-                    value={takeaway.prepTimeMinutes}
-                    onChange={(e) =>
-                      setTakeaway({ ...takeaway, prepTimeMinutes: parseInt(e.target.value, 10) || 30 })
-                    }
-                    className="taaaac-input text-xs w-24 font-bold"
-                  />
-                  <span className="text-xs text-slate-500">minuti</span>
-                </div>
+                <NumberStepper
+                  value={takeaway.prepTimeMinutes}
+                  min={5}
+                  max={180}
+                  step={5}
+                  unit="minuti"
+                  onChange={(val) =>
+                    setTakeaway({ ...takeaway, prepTimeMinutes: typeof val === "number" ? val : parseInt(String(val), 10) || 30 })
+                  }
+                />
                 <p className="text-[11px] text-slate-500 leading-tight">
                   Preavviso minimo. Gli orari online partono da <strong>ora attuale + questo tempo</strong>.
                 </p>
@@ -1259,19 +1332,16 @@ export default function TavolyImpostazioniPage() {
                 <label className="block text-xs font-bold text-slate-800">
                   Max Comande per Slot
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={takeaway.maxOrdersPerSlot}
-                    onChange={(e) =>
-                      setTakeaway({ ...takeaway, maxOrdersPerSlot: parseInt(e.target.value, 10) || 4 })
-                    }
-                    className="taaaac-input text-xs w-24 font-bold"
-                  />
-                  <span className="text-xs text-slate-500">ordini / slot</span>
-                </div>
+                <NumberStepper
+                  value={takeaway.maxOrdersPerSlot}
+                  min={1}
+                  max={50}
+                  step={1}
+                  unit="ordini / slot"
+                  onChange={(val) =>
+                    setTakeaway({ ...takeaway, maxOrdersPerSlot: typeof val === "number" ? val : parseInt(String(val), 10) || 4 })
+                  }
+                />
                 <p className="text-[11px] text-slate-500 leading-tight">
                   Raggiunto questo tetto, lo slot risulta <strong>Completo ❌</strong> per non ingolfare la cucina.
                 </p>
