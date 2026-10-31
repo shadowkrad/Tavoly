@@ -412,18 +412,7 @@ export default function ShowcaseVisualStudio() {
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Badge Promozionale Top</label>
-                  <input
-                    type="text"
-                    value={config.hero.badgeText}
-                    onChange={(e) =>
-                      setConfig({ ...config, hero: { ...config.hero, badgeText: e.target.value } })
-                    }
-                    placeholder="es. MECO"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                  />
-                </div>
+                {/* Badge rimosso per interfaccia pulita */}
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">Titolo Principale (Claim)</label>
@@ -452,7 +441,7 @@ export default function ShowcaseVisualStudio() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Tavolo (CTA 1)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Prenotazione (A Fondo Pagina)</label>
                     <input
                       type="text"
                       value={config.hero.ctaPrimaryText}
@@ -463,7 +452,7 @@ export default function ShowcaseVisualStudio() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Asporto (CTA 2)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tasto Asporto (A Fondo Pagina)</label>
                     <input
                       type="text"
                       value={config.hero.ctaSecondaryText}
@@ -1900,9 +1889,7 @@ export default function ShowcaseVisualStudio() {
                       <span className="text-xs sm:text-sm font-black text-slate-900 tracking-tight truncate block leading-tight">
                         {config.brandName || "Tavoly"}
                       </span>
-                      <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-100 shrink-0">
-                        Ristorante &amp; Bar
-                      </span>
+                      
                     </div>
                     <p className="text-[10px] text-slate-500 font-medium truncate hidden sm:block">
                       Sale, Tavoli &amp; Cucina d&apos;Autore
@@ -1919,23 +1906,12 @@ export default function ShowcaseVisualStudio() {
                 )}
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {config.sections.showMenuLink !== false && (
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-xl inline-flex items-center gap-1 cursor-default whitespace-nowrap">
-                      <UtensilsCrossed className="w-3 h-3 text-emerald-600" />
-                      <span>Menù Digitale</span>
-                    </span>
-                  )}
-                  {config.sections.showTakeawayCta && (
-                    <span className="text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-xl inline-flex items-center gap-1 cursor-default whitespace-nowrap">
-                      <span>🥡 Ordina Asporto</span>
-                    </span>
-                  )}
                   <span
                     style={{ backgroundColor: config.primaryColor }}
-                    className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
+                    className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
                   >
                     <CalendarCheck className="w-3 h-3" />
-                    <span>Prenota Ora</span>
+                    <span>Prenota un Tavolo</span>
                   </span>
                   <span className="p-1 text-slate-400 rounded-lg">
                     <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -1968,18 +1944,7 @@ export default function ShowcaseVisualStudio() {
                     <div className={deviceMode === "desktop" ? "grid grid-cols-12 gap-8 items-center" : "space-y-4 text-center"}>
                       {/* Colonna Sinistra / Contenuti Principali */}
                       <div className={deviceMode === "desktop" ? "col-span-7 space-y-4 text-left" : "space-y-3"}>
-                        {config.hero.badgeText && (
-                          <div
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                              config.hero.coverImageUrl
-                                ? "bg-white/10 text-emerald-300 border-white/20"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            }`}
-                          >
-                            <Sparkles className="w-3 h-3 text-emerald-400" />
-                            <span>{config.hero.badgeText}</span>
-                          </div>
-                        )}
+                        {/* Badge rimosso */}
 
                         <h1
                           className={`text-xl sm:text-3xl font-black leading-tight tracking-tight ${
@@ -1997,31 +1962,12 @@ export default function ShowcaseVisualStudio() {
                           {config.hero.subtitle}
                         </p>
 
-                        <div className={`pt-1 flex flex-wrap items-center gap-2 ${deviceMode === "desktop" ? "justify-start" : "justify-center"}`}>
+                        <div className={`pt-1 flex items-center ${deviceMode === "desktop" ? "justify-start" : "justify-center"}`}>
                           <span
-                            style={{ backgroundColor: config.primaryColor }}
-                            className="px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md inline-flex items-center gap-1.5 cursor-default"
+                            className="px-3.5 py-2 rounded-xl text-xs font-bold border cursor-default inline-flex items-center gap-1.5 bg-white/90 text-slate-800 border-slate-200/80 shadow-xs"
                           >
-                            <UtensilsCrossed className="w-3.5 h-3.5" />
-                            <span>{config.hero.ctaPrimaryText || "Prenota il tuo Tavolo"}</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </span>
-
-                          {config.sections.showTakeawayCta && config.hero.ctaSecondaryText && (
-                            <span className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 inline-flex items-center gap-1.5 cursor-default">
-                              <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
-                              <span>{config.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
-                            </span>
-                          )}
-
-                          <span
-                            className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border cursor-default inline-flex items-center ${
-                              config.hero.coverImageUrl
-                                ? "bg-slate-900/80 text-white border-slate-700"
-                                : "bg-white text-slate-800 border-slate-200"
-                            }`}
-                          >
-                            I Nostri Servizi
+                            <span>I Nostri Servizi &amp; Specialità</span>
+                            <ArrowRight className="w-3 h-3 text-emerald-600" />
                           </span>
                         </div>
 
