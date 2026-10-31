@@ -42,6 +42,10 @@
 - **Secondo Turno Cena Opzionale**: Il secondo turno serale è ora esplicitamente opzionale con placeholder chiarificatore; i ristoranti o pizzerie a turno unico possono lasciarlo vuoto senza alcun vincolo o errore di validazione.
 - **Persistenza & Sincronizzazione Database**: I turni (primo turno cena, secondo turno, fascia pranzo, tolleranza ritardo e coperti delle sale) vengono ora salvati stabilmente nel database (`LocalSetting`) e ricaricati automaticamente all'apertura del pannello impostazioni.
 
+### 3. 🛵 Sincronizzazione Dinamica Orari Asporto e Vetrina Live
+- **Allineamento Automatico Card Live e Asporto**: Quando l'esercente modifica gli orari del takeaway da *Dashboard > Impostazioni > Asporto & Takeaway*, la card orari della vetrina pubblica riflette all'istante la nuova fascia oraria di apertura e chiusura dell'asporto senza rimanere ancorata a valori statici precedenti.
+- **Sincronizzazione Bidirezionale**: Il salvataggio delle impostazioni di asporto aggiorna automaticamente anche i parametri di vetrina collegati all'asporto, garantendo una coerenza totale tra form d'ordine, orari del pass cucina e landing page.
+
 ---
 
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)

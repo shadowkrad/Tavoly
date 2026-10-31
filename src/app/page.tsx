@@ -102,6 +102,34 @@ export default async function PublicShowcasePage() {
     };
   });
 
+  // Calcolo dinamico orari asporto e turni per la Hero Card Live
+  const takeawayHoursText = takeawaySettings.enabled
+    ? (takeawaySettings.lunchEnabled && takeawaySettings.dinnerEnabled
+        ? `${takeawaySettings.lunchStart} - ${takeawaySettings.lunchEnd} / ${takeawaySettings.dinnerStart} - ${takeawaySettings.dinnerEnd}`
+        : takeawaySettings.dinnerEnabled
+        ? `${takeawaySettings.dinnerStart} - ${takeawaySettings.dinnerEnd}`
+        : takeawaySettings.lunchEnabled
+        ? `${takeawaySettings.lunchStart} - ${takeawaySettings.lunchEnd}`
+        : "")
+    : "";
+
+  const isShift1Asporto = Boolean(
+    showcase.customLabels?.heroShift1Label?.toLowerCase().includes("asporto") ||
+    showcase.customLabels?.heroShift1Label?.toLowerCase().includes("takeaway")
+  );
+  const isShift2Asporto = Boolean(
+    showcase.customLabels?.heroShift2Label?.toLowerCase().includes("asporto") ||
+    showcase.customLabels?.heroShift2Label?.toLowerCase().includes("takeaway")
+  );
+
+  const heroShift1HoursFinal = (isShift1Asporto && takeawayHoursText)
+    ? takeawayHoursText
+    : (showcase.customLabels?.heroShift1Hours || "12:30 - 14:30");
+
+  const heroShift2HoursFinal = (isShift2Asporto && takeawayHoursText)
+    ? takeawayHoursText
+    : (showcase.customLabels?.heroShift2Hours || "19:30 - 23:00");
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Navbar Pubblica con discreto link staff */}
@@ -265,11 +293,11 @@ export default async function PublicShowcasePage() {
                     <div className="grid grid-cols-2 gap-3 text-center">
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                         <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift1Label || "Pranzo"}</span>
-                        <strong className="text-base font-black text-slate-900">{showcase.customLabels?.heroShift1Hours || "12:30 - 14:30"}</strong>
+                        <strong className="text-base font-black text-slate-900">{heroShift1HoursFinal}</strong>
                       </div>
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                         <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift2Label || "Cena"}</span>
-                        <strong className="text-base font-black text-slate-900">{showcase.customLabels?.heroShift2Hours || "19:30 - 23:00"}</strong>
+                        <strong className="text-base font-black text-slate-900">{heroShift2HoursFinal}</strong>
                       </div>
                     </div>
 
