@@ -382,7 +382,7 @@ export default async function PublicShowcasePage() {
       )}
 
       {/* Sezione La Nostra Cucina / Filosofia */}
-      {showcase.sections.showAbout && showcase.about.enabled && (
+      {showcase.sections.showAbout && (
         <section className="bg-slate-900 text-white py-16 my-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
             <span

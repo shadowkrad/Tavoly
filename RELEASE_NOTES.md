@@ -50,6 +50,10 @@
 - **Risoluzione Errore Registrazione Dispositivi Mobili**: Corretta la lettura dei payload crittografici (`clientDataJSON`) nella procedura di registrazione di smartphone e palmari sala, risolvendo il blocco *"Dati di registrazione biometrica mancanti"* e garantendo la piena compatibilità con `@simplewebauthn` su tutti i browser mobile (iOS Safari e Android Chrome).
 - **Riconoscimento Multi-Dominio Flessibile**: Riconoscimento dinamico sicuro di `rpID` e `origin` sia su domini personalizzati che su sottodomini `taaaac.eu` con reverse proxy e connessioni cifrate HTTPS.
 
+### 5. 🎯 Unificazione Controllo Visibilità Sezione "Filosofia & La Nostra Cucina"
+- **Eliminazione Doppio Flag Ridondante**: Rimosso il selettore toggle duplicato presente nell'intestazione della scheda *La Cucina*, uniformando l'interfaccia a tutte le altre schede tematiche del Live Studio.
+- **Pannello "Sezioni" come Unica Sorgente di Verità**: La visibilità pubblica e l'anteprima live della sezione cucina/filosofia sono ora governate in modo univoco e immediato dal checkbox *Filosofia & La Nostra Cucina* nella scheda *Sezioni*, garantendo che l'attivazione o la disattivazione operi all'istante senza conflitti di stato.
+
 ---
 
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
