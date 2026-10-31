@@ -16,9 +16,11 @@ export function getWebAuthnConfig(req?: Request | NextRequest) {
   let origin = "https://tavoly.taaaac.eu";
 
   if (req) {
-    const hostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+    const rawHostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+    const hostHeader = rawHostHeader.split(",")[0].trim();
+    const rawProtoHeader = req.headers.get("x-forwarded-proto") || "";
     const protoHeader =
-      req.headers.get("x-forwarded-proto") ||
+      rawProtoHeader.split(",")[0].trim() ||
       (hostHeader.includes("localhost") || hostHeader.includes("127.0.0.1") ? "http" : "https");
 
     if (hostHeader) {
@@ -126,11 +128,18 @@ export async function verifyAndSaveDeviceRegistration(
   }
 
   const { response, deviceName, deviceType } = body;
-  if (!response || !response.clientDataJSON) {
+  const rawClientDataJSON = response?.response?.clientDataJSON || response?.clientDataJSON;
+  if (!response || !rawClientDataJSON) {
     return { ok: false, error: "Dati di registrazione biometrica mancanti", status: 400 };
   }
 
-  const clientData = JSON.parse(Buffer.from(response.clientDataJSON, "base64url").toString("utf-8"));
+  let clientData: any;
+  try {
+    clientData = JSON.parse(Buffer.from(rawClientDataJSON, "base64url").toString("utf-8"));
+  } catch (e) {
+    return { ok: false, error: "Dati di autenticazione non validi (clientDataJSON errato)", status: 400 };
+  }
+
   const challengeValid = await consumeChallenge(clientData.challenge, "registration");
   if (!challengeValid) {
     return { ok: false, error: "Challenge di registrazione scaduta o non valida", status: 400 };
@@ -138,11 +147,45 @@ export async function verifyAndSaveDeviceRegistration(
 
   const config = getWebAuthnConfig(req);
 
+  const normalizedResponse = response.response
+    ? response
+    : {
+        id: response.id,
+        rawId: response.rawId || response.id,
+        response: {
+          clientDataJSON: response.clientDataJSON,
+          attestationObject: response.attestationObject,
+          transports: response.transports,
+        },
+        type: response.type || "public-key",
+        clientExtensionResults: response.clientExtensionResults || {},
+      };
+
+  const expectedOrigins = Array.from(
+    new Set(
+      [
+        config.origin,
+        `https://${config.rpID}`,
+        `http://${config.rpID}`,
+        clientData.origin,
+      ].filter(Boolean)
+    )
+  );
+
+  const expectedRPIDs = Array.from(
+    new Set(
+      [
+        config.rpID,
+        config.rpID.includes(".") ? config.rpID.split(".").slice(-2).join(".") : config.rpID,
+      ].filter(Boolean)
+    )
+  );
+
   const verification = await verifyRegistrationResponse({
-    response,
+    response: normalizedResponse,
     expectedChallenge: clientData.challenge,
-    expectedOrigin: config.origin,
-    expectedRPID: config.rpID,
+    expectedOrigin: expectedOrigins,
+    expectedRPID: expectedRPIDs,
   });
 
   if (!verification.verified || !verification.registrationInfo) {
@@ -241,7 +284,8 @@ export async function getDeviceLoginOptions(req: NextRequest) {
  */
 export async function verifyDeviceLoginAndAuthenticate(req: NextRequest, body: { response: any }) {
   const { response } = body;
-  if (!response?.id || !response?.response?.clientDataJSON) {
+  const rawClientDataJSON = response?.response?.clientDataJSON || response?.clientDataJSON;
+  if (!response?.id || !rawClientDataJSON) {
     return { ok: false, error: "Dati di autenticazione biometrica non validi", status: 400 };
   }
 
@@ -269,7 +313,13 @@ export async function verifyDeviceLoginAndAuthenticate(req: NextRequest, body: {
     };
   }
 
-  const clientData = JSON.parse(Buffer.from(response.response.clientDataJSON, "base64url").toString("utf-8"));
+  let clientData: any;
+  try {
+    clientData = JSON.parse(Buffer.from(rawClientDataJSON, "base64url").toString("utf-8"));
+  } catch (e) {
+    return { ok: false, error: "Dati di autenticazione non validi (clientDataJSON errato)", status: 400 };
+  }
+
   const challengeValid = await consumeChallenge(clientData.challenge, "authentication");
   if (!challengeValid) {
     return { ok: false, error: "Challenge di autenticazione scaduta. Riprova.", status: 400 };
@@ -277,11 +327,46 @@ export async function verifyDeviceLoginAndAuthenticate(req: NextRequest, body: {
 
   const config = getWebAuthnConfig(req);
 
+  const normalizedResponse = response.response
+    ? response
+    : {
+        id: response.id,
+        rawId: response.rawId || response.id,
+        response: {
+          clientDataJSON: response.clientDataJSON,
+          authenticatorData: response.authenticatorData,
+          signature: response.signature,
+          userHandle: response.userHandle,
+        },
+        type: response.type || "public-key",
+        clientExtensionResults: response.clientExtensionResults || {},
+      };
+
+  const expectedOrigins = Array.from(
+    new Set(
+      [
+        config.origin,
+        `https://${config.rpID}`,
+        `http://${config.rpID}`,
+        clientData.origin,
+      ].filter(Boolean)
+    )
+  );
+
+  const expectedRPIDs = Array.from(
+    new Set(
+      [
+        config.rpID,
+        config.rpID.includes(".") ? config.rpID.split(".").slice(-2).join(".") : config.rpID,
+      ].filter(Boolean)
+    )
+  );
+
   const verification = await verifyAuthenticationResponse({
-    response,
+    response: normalizedResponse,
     expectedChallenge: clientData.challenge,
-    expectedOrigin: config.origin,
-    expectedRPID: config.rpID,
+    expectedOrigin: expectedOrigins,
+    expectedRPID: expectedRPIDs,
     credential: {
       id: device.credentialId,
       publicKey: Uint8Array.from(Buffer.from(device.publicKey, "base64url")),

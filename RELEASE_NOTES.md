@@ -46,6 +46,10 @@
 - **Allineamento Automatico Card Live e Asporto**: Quando l'esercente modifica gli orari del takeaway da *Dashboard > Impostazioni > Asporto & Takeaway*, la card orari della vetrina pubblica riflette all'istante la nuova fascia oraria di apertura e chiusura dell'asporto senza rimanere ancorata a valori statici precedenti.
 - **Sincronizzazione Bidirezionale**: Il salvataggio delle impostazioni di asporto aggiorna automaticamente anche i parametri di vetrina collegati all'asporto, garantendo una coerenza totale tra form d'ordine, orari del pass cucina e landing page.
 
+### 4. 🔑 Autenticazione Rapida & Biometria Hardware (FIDO2 / WebAuthn)
+- **Risoluzione Errore Registrazione Dispositivi Mobili**: Corretta la lettura dei payload crittografici (`clientDataJSON`) nella procedura di registrazione di smartphone e palmari sala, risolvendo il blocco *"Dati di registrazione biometrica mancanti"* e garantendo la piena compatibilità con `@simplewebauthn` su tutti i browser mobile (iOS Safari e Android Chrome).
+- **Riconoscimento Multi-Dominio Flessibile**: Riconoscimento dinamico sicuro di `rpID` e `origin` sia su domini personalizzati che su sottodomini `taaaac.eu` con reverse proxy e connessioni cifrate HTTPS.
+
 ---
 
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
