@@ -142,18 +142,7 @@ export default async function PublicShowcasePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               {/* Left Column: Text & Claim */}
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                {showcase.hero.badgeText && (
-                  <div
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border ${
-                      hasHeroCover
-                        ? "bg-white/10 text-emerald-300 border-white/20"
-                        : "bg-emerald-50 text-emerald-800 border-emerald-200"
-                    }`}
-                  >
-                    <Sparkles className="w-4 h-4 text-emerald-500" />
-                    <span>{showcase.hero.badgeText}</span>
-                  </div>
-                )}
+                {/* Badge rimosso per vetrina minimale */}
 
                 <h1
                   className={`text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight ${
@@ -171,49 +160,13 @@ export default async function PublicShowcasePage() {
                   {showcase.hero.subtitle}
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                  <Link
-                    href="/prenotazione"
-                    style={{ backgroundColor: showcase.primaryColor || "#064e3b" }}
-                    className="text-white px-6 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center gap-2 rounded-xl hover:opacity-95 transition"
-                  >
-                    <span>{showcase.hero.ctaPrimaryText || "Prenota il tuo Tavolo"}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-
-                  {takeawaySettings.enabled && showcase.sections.showTakeawayCta && (
-                    <Link
-                      href="/asporto"
-                      className="px-6 py-3.5 text-sm sm:text-base font-bold inline-flex items-center gap-2 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 rounded-xl shadow-xs transition"
-                    >
-                      <ShoppingBag className="w-4 h-4 text-amber-600" />
-                      <span>{showcase.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
-                    </Link>
-                  )}
-
-                  {showcase.sections?.showMenuLink !== false && (
-                    <Link
-                      href="/menu"
-                      className={`w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition inline-flex items-center justify-center gap-2 whitespace-nowrap ${
-                        hasHeroCover
-                          ? "bg-slate-900/80 text-white border-slate-700 hover:bg-slate-800"
-                          : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <UtensilsCrossed className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Consulta il Menù</span>
-                    </Link>
-                  )}
-
+                <div className="pt-2 flex items-center justify-center lg:justify-start gap-4">
                   <a
                     href="#servizi"
-                    className={`px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition ${
-                      hasHeroCover
-                        ? "bg-slate-900/80 text-white border-slate-700 hover:bg-slate-800"
-                        : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
-                    }`}
+                    className="px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition shadow-xs inline-flex items-center gap-2 bg-white/90 hover:bg-white text-slate-800 border-slate-200/80 backdrop-blur-xs"
                   >
-                    I Nostri Servizi
+                    <span>I Nostri Servizi &amp; Specialità</span>
+                    <ArrowRight className="w-4 h-4 text-emerald-600" />
                   </a>
                 </div>
 

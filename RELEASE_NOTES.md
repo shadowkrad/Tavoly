@@ -27,6 +27,12 @@
 - **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
 - **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
 
+### 6. 🎨 Pulizia Estetica Vetrina & Studio: Navbar Minimale e Hero Pulita
+- **Navbar Elegante & Senza Badge Invasivi**: Rimosso il micro-badge fisso "Ristorante & Bar" accanto al nome del locale. Centralizzato il menu su un unico pulsante primario chiaro ("Prenota un Tavolo") e lucchetto discreto, spostando Menù Digitale e Asporto nella barra di navigazione orizzontale come link puliti.
+- **Hero Vetrina Minimale Senza Affollamento**: Eliminato il micro-badge slogan sopra l'insegna e rimossi i tre grossi pulsanti CTA duplicati dalla copertina di benvenuto. L'insegna e il claim del locale risaltano con la massima eleganza, guidando l'ospite verso la sezione servizi.
+- **Pulsanti di Azione a Fondo Pagina**: Confermato il posizionamento dei pulsanti di prenotazione tavolo e asporto a chiusura della pagina, dove il visitatore conclude naturalmente la navigazione.
+- **Allineamento Live Studio Vetrina**: Rimosso il campo badge promozionale dall'editor e sincronizzato il simulatore in tempo reale per rispecchiare fedelmente la nuova veste grafica pulita sia su desktop che su smartphone.
+
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)
