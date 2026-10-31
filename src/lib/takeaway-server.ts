@@ -144,50 +144,6 @@ export async function saveTakeawaySettings(
       });
     }
 
-    // Sincronizza automaticamente le etichette orari asporto della vetrina se presenti in showcase_config
-    try {
-      const showcaseSetting = await prisma.localSetting.findUnique({
-        where: { key: "showcase_config" },
-      });
-      if (showcaseSetting?.value) {
-        const sc = JSON.parse(showcaseSetting.value);
-        if (sc && sc.customLabels) {
-          const lEnabled = settings.lunchEnabled !== undefined ? settings.lunchEnabled : true;
-          const dEnabled = settings.dinnerEnabled !== undefined ? settings.dinnerEnabled : true;
-          const lStart = settings.lunchStart || "12:00";
-          const lEnd = settings.lunchEnd || "14:30";
-          const dStart = settings.dinnerStart || "19:00";
-          const dEnd = settings.dinnerEnd || "21:30";
-
-          const formattedTakeawayHours = (lEnabled && dEnabled)
-            ? `${lStart} - ${lEnd} / ${dStart} - ${dEnd}`
-            : dEnabled
-            ? `${dStart} - ${dEnd}`
-            : lEnabled
-            ? `${lStart} - ${lEnd}`
-            : "";
-
-          let modified = false;
-          if (sc.customLabels.heroShift1Label?.toLowerCase().includes("asporto") && formattedTakeawayHours) {
-            sc.customLabels.heroShift1Hours = formattedTakeawayHours;
-            modified = true;
-          }
-          if (sc.customLabels.heroShift2Label?.toLowerCase().includes("asporto") && formattedTakeawayHours) {
-            sc.customLabels.heroShift2Hours = formattedTakeawayHours;
-            modified = true;
-          }
-          if (modified) {
-            await prisma.localSetting.update({
-              where: { key: "showcase_config" },
-              data: { value: JSON.stringify(sc) },
-            });
-          }
-        }
-      }
-    } catch (syncErr) {
-      console.warn("Sincronizzazione orari vetrina asporto non bloccante:", syncErr);
-    }
-
     return true;
   } catch (error) {
     console.error("Errore salvataggio takeaway settings:", error);

@@ -102,33 +102,10 @@ export default async function PublicShowcasePage() {
     };
   });
 
-  // Calcolo dinamico orari asporto e turni per la Hero Card Live
-  const takeawayHoursText = takeawaySettings.enabled
-    ? (takeawaySettings.lunchEnabled && takeawaySettings.dinnerEnabled
-        ? `${takeawaySettings.lunchStart} - ${takeawaySettings.lunchEnd} / ${takeawaySettings.dinnerStart} - ${takeawaySettings.dinnerEnd}`
-        : takeawaySettings.dinnerEnabled
-        ? `${takeawaySettings.dinnerStart} - ${takeawaySettings.dinnerEnd}`
-        : takeawaySettings.lunchEnabled
-        ? `${takeawaySettings.lunchStart} - ${takeawaySettings.lunchEnd}`
-        : "")
-    : "";
-
-  const isShift1Asporto = Boolean(
-    showcase.customLabels?.heroShift1Label?.toLowerCase().includes("asporto") ||
-    showcase.customLabels?.heroShift1Label?.toLowerCase().includes("takeaway")
-  );
-  const isShift2Asporto = Boolean(
-    showcase.customLabels?.heroShift2Label?.toLowerCase().includes("asporto") ||
-    showcase.customLabels?.heroShift2Label?.toLowerCase().includes("takeaway")
-  );
-
-  const heroShift1HoursFinal = (isShift1Asporto && takeawayHoursText)
-    ? takeawayHoursText
-    : (showcase.customLabels?.heroShift1Hours || "12:30 - 14:30");
-
-  const heroShift2HoursFinal = (isShift2Asporto && takeawayHoursText)
-    ? takeawayHoursText
-    : (showcase.customLabels?.heroShift2Hours || "19:30 - 23:00");
+  // Orari Ufficiali di Apertura dell'Attività / Locale (Svincolati dai turni interni di cucina e asporto)
+  const activityHoursShift1 = showcase.customLabels?.heroShift1Hours || showcase.contactInfo?.hoursWeekday || "12:00 - 23:30";
+  const activityHoursShift2 = showcase.customLabels?.heroShift2Hours || showcase.contactInfo?.hoursWeekend || "12:00 - 00:00";
+  const showActivityHours = showcase.sections?.showHours !== false;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -290,16 +267,18 @@ export default async function PublicShowcasePage() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-center">
-                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift1Label || "Pranzo"}</span>
-                        <strong className="text-base font-black text-slate-900">{heroShift1HoursFinal}</strong>
+                    {showActivityHours && (
+                      <div className="grid grid-cols-2 gap-3 text-center">
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift1Label || "Lunedì - Venerdì"}</span>
+                          <strong className="text-base font-black text-slate-900">{activityHoursShift1}</strong>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift2Label || "Sabato e Domenica"}</span>
+                          <strong className="text-base font-black text-slate-900">{activityHoursShift2}</strong>
+                        </div>
                       </div>
-                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift2Label || "Cena"}</span>
-                        <strong className="text-base font-black text-slate-900">{heroShift2HoursFinal}</strong>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-950 space-y-1">
                       <p className="font-bold flex items-center gap-1.5 text-emerald-900">
@@ -470,30 +449,32 @@ export default async function PublicShowcasePage() {
       </section>
 
       {/* Orari & Dove Siamo */}
-      {showcase.sections.showHours && (
+      {(showcase.sections.showHours || showcase.sections.showContact !== false) && (
         <section id="contatti" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="taaaac-card bg-white p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <Clock className="w-5 h-5" />
+          <div className={`taaaac-card bg-white p-8 grid grid-cols-1 ${showcase.sections.showHours ? "md:grid-cols-3" : "md:grid-cols-2"} gap-8`}>
+            {showcase.sections.showHours && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900">
+                    {showcase.customLabels.hoursTitle || "Orari di Apertura"}
+                  </h4>
                 </div>
-                <h4 className="text-base font-bold text-slate-900">
-                  {showcase.customLabels.hoursTitle || "Turni & Orari"}
-                </h4>
+                <div className="text-xs text-slate-600 space-y-1 pl-13">
+                  {showcase.contactInfo?.hoursWeekday && (
+                    <p><strong>{showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.split(":")[0] + ":" : "Lunedì - Venerdì:"}</strong> {showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.substring(showcase.contactInfo.hoursWeekday.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekday}</p>
+                  )}
+                  {showcase.contactInfo?.hoursWeekend && (
+                    <p><strong>{showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.split(":")[0] + ":" : "Sabato e Domenica:"}</strong> {showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.substring(showcase.contactInfo.hoursWeekend.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekend}</p>
+                  )}
+                  {showcase.contactInfo?.hoursNote && (
+                    <p className="text-slate-400">{showcase.contactInfo.hoursNote}</p>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-slate-600 space-y-1 pl-13">
-                {showcase.contactInfo?.hoursWeekday && (
-                  <p><strong>{showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.split(":")[0] + ":" : "Lunedì - Venerdì:"}</strong> {showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.substring(showcase.contactInfo.hoursWeekday.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekday}</p>
-                )}
-                {showcase.contactInfo?.hoursWeekend && (
-                  <p><strong>{showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.split(":")[0] + ":" : "Sabato e Domenica:"}</strong> {showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.substring(showcase.contactInfo.hoursWeekend.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekend}</p>
-                )}
-                {showcase.contactInfo?.hoursNote && (
-                  <p className="text-slate-400">{showcase.contactInfo.hoursNote}</p>
-                )}
-              </div>
-            </div>
+            )}
 
             <div className="space-y-3">
               <div className="flex items-center gap-3">
