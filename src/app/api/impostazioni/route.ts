@@ -20,6 +20,13 @@ export async function GET() {
             "menu_show_dish_images",
             "kds_enabled",
             "showcase_config",
+            "turni_cena_primo",
+            "turni_cena_secondo",
+            "turni_fascia_pranzo",
+            "turni_tolleranza_minuti",
+            "coperti_interni",
+            "coperti_dehors",
+            "coperti_veranda",
           ],
         },
       },
@@ -56,6 +63,13 @@ export async function GET() {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
+      cenaPrimoTurno: map["turni_cena_primo"] || "19:30 - 22:00",
+      cenaSecondoTurno: map["turni_cena_secondo"] || "",
+      fasciaPranzo: map["turni_fascia_pranzo"] !== undefined ? map["turni_fascia_pranzo"] : "12:30 - 15:00",
+      tolleranzaRitardoMinuti: map["turni_tolleranza_minuti"] || "15",
+      copertiInterni: map["coperti_interni"] || "45",
+      copertiDehors: map["coperti_dehors"] || "30",
+      copertiVeranda: map["coperti_veranda"] || "20",
     });
   } catch (error) {
     console.error("Errore recupero impostazioni Tavoly:", error);
@@ -79,6 +93,13 @@ export async function PUT(req: NextRequest) {
       kdsEnabled,
       takeawaySettings,
       showcaseConfig,
+      cenaPrimoTurno,
+      cenaSecondoTurno,
+      fasciaPranzo,
+      tolleranzaRitardoMinuti,
+      copertiInterni,
+      copertiDehors,
+      copertiVeranda,
     } = body;
 
     const showcaseConfigStr =
@@ -100,6 +121,13 @@ export async function PUT(req: NextRequest) {
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
+      cenaPrimoTurno !== undefined && { key: "turni_cena_primo", value: String(cenaPrimoTurno) },
+      cenaSecondoTurno !== undefined && { key: "turni_cena_secondo", value: String(cenaSecondoTurno || "") },
+      fasciaPranzo !== undefined && { key: "turni_fascia_pranzo", value: String(fasciaPranzo || "") },
+      tolleranzaRitardoMinuti !== undefined && { key: "turni_tolleranza_minuti", value: String(tolleranzaRitardoMinuti) },
+      copertiInterni !== undefined && { key: "coperti_interni", value: String(copertiInterni) },
+      copertiDehors !== undefined && { key: "coperti_dehors", value: String(copertiDehors) },
+      copertiVeranda !== undefined && { key: "coperti_veranda", value: String(copertiVeranda) },
     ].filter(Boolean) as Array<{ key: string; value: string }>;
 
     for (const item of upserts) {

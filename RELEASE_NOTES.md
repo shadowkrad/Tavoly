@@ -37,6 +37,11 @@
 - **Card Live Turni & Invito Prenotazione Editabili**: Possibilità di personalizzare le etichette dei turni (es. *"Cena 18:30 - 23:00"* per pizzerie serali), badge di stato, note sala e testi dei pulsanti di prenotazione.
 - **Dinamizzazione Integrale della Pagina Vetrina (`page.tsx`)**: Ogni intestazione (*Posizione & Location*, *Turni di Servizio & Orari*, *Dove Trovarci & Prenotazioni*, nota tempi di risposta) ora riflette fedelmente i dati configurati dall'esercente.
 
+### 2. ⏰ Orari di Servizio Flessibili: Fascia Pranzo Modificabile & Secondo Turno Opzionale
+- **Fascia Pranzo 100% Editabile**: Sostituito il vecchio testo fisso con un campo di input personalizzabile per la fascia del pranzo. I locali possono ora inserire liberamente il proprio orario (es. `12:30 - 15:00`), personalizzarlo o lasciarlo vuoto nel caso di attività a sola apertura serale (es. pizzerie).
+- **Secondo Turno Cena Opzionale**: Il secondo turno serale è ora esplicitamente opzionale con placeholder chiarificatore; i ristoranti o pizzerie a turno unico possono lasciarlo vuoto senza alcun vincolo o errore di validazione.
+- **Persistenza & Sincronizzazione Database**: I turni (primo turno cena, secondo turno, fascia pranzo, tolleranza ritardo e coperti delle sale) vengono ora salvati stabilmente nel database (`LocalSetting`) e ricaricati automaticamente all'apertura del pannello impostazioni.
+
 ---
 
 ## Novità della Versione 1.0.7 (Hotfix & Griglia Oraria Calendario)
