@@ -174,6 +174,17 @@ export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWi
             </p>
           </div>
         </div>
+        {customerPhone && (
+          <a
+            href={`https://admin.taaaac.eu/api/telegram/connect?subdomain=${typeof window !== "undefined" ? window.location.hostname.split(".")[0] : ""}&phone=${encodeURIComponent(customerPhone)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 p-3 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-2xl text-xs font-bold transition shadow-xs"
+          >
+            <span>✈️ Vuoi ricevere il promemoria anche su Telegram?</span>
+            <span className="text-[11px] underline">Attiva in 1 tocco →</span>
+          </a>
+        )}
 
         <button
           type="button"
