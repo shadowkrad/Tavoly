@@ -35,6 +35,18 @@
 
 ---
 
+## Novità della Versione 1.0.9 (Hotfix / Patch)
+
+### 1. ✈️ Promemoria Tavoli Gratuiti su Telegram
+- **Invito 1-Tocco a Fine Prenotazione**: Al termine della prenotazione del tavolo online, il cliente può attivare con un semplice tocco i promemoria automatici tramite Telegram sul proprio smartphone.
+- **Zero Costi & Zero Spam**: Il cliente riceve il promemoria il giorno prima senza alcun costo per il ristorante, in modo comodo e riservato.
+
+### 2. ⏰ Sincronizzazione Notifiche 24 Ore Prima con Taaaac Core
+- **Canale Unificato con la Console Centrale**: Predisposto il canale protetto per permettere al motore centrale di Taaaac di recapitare i promemoria dei tavoli all'orario preferito scelto dal ristorante (es. ogni mattina alle 09:00).
+- **Trasparenza Totale**: Pieno supporto ai promemoria via Email, Telegram e WhatsApp (con account dell'attività).
+
+---
+
 ## Novità della Versione 1.0.8 (Hotfix / Patch)
 
 ### 1. 🍽️ Vetrina Ristorante 100% Personalizzabile & Live Studio Completo
