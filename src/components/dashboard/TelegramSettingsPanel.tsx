@@ -60,10 +60,11 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
 
   function normalizeTelegramChatId(input: string): string {
     let clean = input.trim();
-    if (clean.includes("#")) clean = clean.split("#")[1];
+    if (clean.includes("#")) clean = clean.split("#")[1].trim();
     if (clean.startsWith("@")) return clean;
-    if (/^-\d{9,}$/.test(clean) && !clean.startsWith("-100")) return "-100" + clean.slice(1);
-    if (/^\d{9,}$/.test(clean)) return "-100" + clean;
+    clean = clean.replace(/\s+/g, "");
+    if (/^-\d{7,}$/.test(clean) && !clean.startsWith("-100")) return "-100" + clean.slice(1);
+    if (/^\d{7,}$/.test(clean)) return "-100" + clean;
     return clean;
   }
 
