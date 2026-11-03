@@ -517,67 +517,20 @@ export default function ShowcaseVisualStudio() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 1</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift1Label || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift1Label: e.target.value },
-                          })
-                        }
-                        placeholder="Pranzo"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
+                  <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-[11px] text-emerald-900 space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-950">
+                      <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Orari Sincronizzati Automaticamente</span>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 1</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift1Hours || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift1Hours: e.target.value },
-                          })
-                        }
-                        placeholder="12:30 - 14:30"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 2</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift2Label || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift2Label: e.target.value },
-                          })
-                        }
-                        placeholder="Cena"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 2</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift2Hours || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift2Hours: e.target.value },
-                          })
-                        }
-                        placeholder="19:30 - 23:00"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
+                    <p className="text-[10px] text-emerald-800 leading-relaxed">
+                      I giorni e gli orari di apertura mostrati in questa card sono alimentati dall&apos;<strong>Orario Ufficiale del Locale</strong> (modificabile in <em>Impostazioni &gt; Ristorante &amp; Sede</em>) per garantire assoluta coerenza con il resto della vetrina.
+                    </p>
+                    {(config.contactInfo?.hoursWeekday || config.contactInfo?.hoursWeekend) && (
+                      <div className="pt-1 text-[10px] text-slate-700 font-mono space-y-0.5">
+                        {config.contactInfo?.hoursWeekday && <div>• {config.contactInfo.hoursWeekday}</div>}
+                        {config.contactInfo?.hoursWeekend && <div>• {config.contactInfo.hoursWeekend}</div>}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5 pt-1 border-t border-slate-200">
                     <div>
@@ -1154,155 +1107,6 @@ export default function ShowcaseVisualStudio() {
                   </div>
                 </div>
 
-                {/* Card Live Turni (Colonna Destra Hero) */}
-                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Card Live Turni & Orari (Schermata Destra)</span>
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Card</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroCardTitle || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroCardTitle: e.target.value },
-                          })
-                        }
-                        placeholder="Ospitalità & Sala"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Sottotitolo Card</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroCardSubtitle || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroCardSubtitle: e.target.value },
-                          })
-                        }
-                        placeholder="Tavoli in tempo reale"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Badge Stato</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroCardBadge || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroCardBadge: e.target.value },
-                          })
-                        }
-                        placeholder="Aperto Oggi"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 1</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift1Label || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift1Label: e.target.value },
-                          })
-                        }
-                        placeholder="Pranzo"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 1</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift1Hours || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift1Hours: e.target.value },
-                          })
-                        }
-                        placeholder="12:30 - 14:30"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Etichetta Turno 2</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift2Label || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift2Label: e.target.value },
-                          })
-                        }
-                        placeholder="Cena"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orario Turno 2</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroShift2Hours || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroShift2Hours: e.target.value },
-                          })
-                        }
-                        placeholder="19:30 - 23:00"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 pt-1 border-t border-slate-200">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Titolo Nota Sala</label>
-                      <input
-                        type="text"
-                        value={config.customLabels?.heroCardNoteTitle || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroCardNoteTitle: e.target.value },
-                          })
-                        }
-                        placeholder="Pranzo di lavoro o Cena Romantica?"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Descrizione Nota Sala</label>
-                      <textarea
-                        rows={2}
-                        value={config.customLabels?.heroCardNoteDesc || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            customLabels: { ...config.customLabels, heroCardNoteDesc: e.target.value },
-                          })
-                        }
-                        placeholder="Puoi specificare intolleranze alimentari e preferenze..."
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Sezione Invito Prenotazione CTA */}
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                   <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
@@ -1593,57 +1397,27 @@ export default function ShowcaseVisualStudio() {
                   </div>
                 </div>
 
-                {/* Orari di Servizio */}
+                {/* Orari di Servizio (Informativo Sincronizzato) */}
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                  <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Orari di Apertura</span>
-                  </h4>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orari Feriali (Lun - Ven)</label>
-                      <input
-                        type="text"
-                        value={config.contactInfo?.hoursWeekday || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursWeekday: e.target.value },
-                          })
-                        }
-                        placeholder="Lunedì - Venerdì: 07:30 - 23:30"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Orari Weekend (Sab - Dom)</label>
-                      <input
-                        type="text"
-                        value={config.contactInfo?.hoursWeekend || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursWeekend: e.target.value },
-                          })
-                        }
-                        placeholder="Sabato e Domenica: 08:30 - 00:30"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Nota Cucina / Chiusura</label>
-                      <input
-                        type="text"
-                        value={config.contactInfo?.hoursNote || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), hoursNote: e.target.value },
-                          })
-                        }
-                        placeholder="Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
-                      />
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Orari Ufficiali del Locale</span>
+                    </h4>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800">
+                      Gestito in Ristorante &amp; Sede
+                    </span>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Per evitare discrepanze tra la card in evidenza e il fondo pagina, gli orari ufficiali sono configurabili centralmente in <strong>Impostazioni &gt; Ristorante &amp; Sede</strong>.
+                    </p>
+                    <div className="pt-1.5 text-[11px] text-slate-800 font-mono space-y-1 border-t border-slate-100">
+                      <div><strong className="text-slate-500 font-sans">Feriali:</strong> {config.contactInfo?.hoursWeekday || "Non impostato"}</div>
+                      <div><strong className="text-slate-500 font-sans">Weekend:</strong> {config.contactInfo?.hoursWeekend || "Non impostato"}</div>
+                      {config.contactInfo?.hoursNote && (
+                        <div><strong className="text-slate-500 font-sans">Note / Chiusura:</strong> {config.contactInfo.hoursNote}</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1652,7 +1426,7 @@ export default function ShowcaseVisualStudio() {
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                   <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Posizione & Location</span>
+                    <span>Posizione &amp; Location</span>
                   </h4>
                   <div className="space-y-2">
                     <div>
@@ -1671,7 +1445,7 @@ export default function ShowcaseVisualStudio() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Note Parcheggio & Accessibilità</label>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Note Parcheggio &amp; Accessibilità</label>
                       <input
                         type="text"
                         value={config.contactInfo?.addressNote || ""}
@@ -1686,6 +1460,68 @@ export default function ShowcaseVisualStudio() {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Modulo Flaggabile Pianta / Mappa Locale */}
+                <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Pianta &amp; Mappa del Locale</span>
+                    </h4>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(config.sections.showLocationMap)}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            sections: {
+                              ...config.sections,
+                              showLocationMap: e.target.checked,
+                            },
+                          })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      <span className="ml-2 text-[10px] font-bold text-slate-700">
+                        {config.sections.showLocationMap ? "Attiva" : "Disattivata"}
+                      </span>
+                    </label>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    Mostra una mappa o la piantina del locale nella vetrina pubblica per aiutare i clienti a raggiungerti o a orientarsi tra i tavoli.
+                  </p>
+
+                  {config.sections.showLocationMap && (
+                    <div className="space-y-2 pt-1 border-t border-slate-200">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                          Codice Iframe Mappa Google / OpenStreetMap o Link Immagine Pianta
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={config.contactInfo?.mapEmbed || ""}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              contactInfo: {
+                                ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO),
+                                mapEmbed: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder='es. <iframe src="https://www.google.com/maps/embed?..." ...></iframe> oppure https://mio-sito.it/pianta.jpg'
+                          className="w-full text-xs font-mono px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                        />
+                        <p className="text-[9px] text-slate-400 mt-1">
+                          💡 Suggerimento: Su Google Maps clicca <em>Condividi &gt; Incorpora una mappa</em> e incolla qui l&apos;intero tag <code>&lt;iframe&gt;</code>, oppure inserisci direttamente l&apos;URL di un&apos;immagine raffigurante la pianta della sala.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Recapiti Diretti */}
@@ -1768,6 +1604,7 @@ export default function ShowcaseVisualStudio() {
                     { key: "showServices", label: "Sezione Esperienze & Momenti", desc: "Colazioni, pranzi veloci, aperitivi e cene" },
                     { key: "showAbout", label: "Filosofia & La Nostra Cucina", desc: "Descrizione passione artigianale e citazione" },
                     { key: "showHours", label: "Orari di Apertura & Dove Siamo", desc: "Dettaglio turni, mappa e recapiti" },
+                    { key: "showLocationMap", label: "Mappa / Pianta del Locale", desc: "Mostra la piantina o la mappa interattiva nella sezione posizione" },
                   ].map((s) => (
                     <label
                       key={s.key}
@@ -2007,33 +1844,53 @@ export default function ShowcaseVisualStudio() {
                                 LIVE
                               </div>
                               <div>
-                                <h4 className="text-xs font-bold text-slate-900 leading-tight">Ospitalità &amp; Sala</h4>
-                                <p className="text-[10px] text-slate-500">Tavoli in tempo reale</p>
+                                <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                                  {config.customLabels?.heroCardTitle || "Ospitalità & Sala"}
+                                </h4>
+                                <p className="text-[10px] text-slate-500">
+                                  {config.customLabels?.heroCardSubtitle || "Tavoli in tempo reale"}
+                                </p>
                               </div>
                             </div>
                             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              Aperto Oggi
+                              {config.customLabels?.heroCardBadge || "Aperto Oggi"}
                             </span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2 text-center">
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase block">Pranzo</span>
-                              <strong className="text-xs sm:text-sm font-black text-slate-900">12:30 - 14:30</strong>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase block truncate">
+                                {config.contactInfo?.hoursWeekday && config.contactInfo.hoursWeekday.includes(":")
+                                  ? config.contactInfo.hoursWeekday.split(":")[0].trim()
+                                  : "Feriali"}
+                              </span>
+                              <strong className="text-xs sm:text-sm font-black text-slate-900 line-clamp-2">
+                                {config.contactInfo?.hoursWeekday && config.contactInfo.hoursWeekday.includes(":")
+                                  ? config.contactInfo.hoursWeekday.substring(config.contactInfo.hoursWeekday.indexOf(":") + 1).trim()
+                                  : config.contactInfo?.hoursWeekday || "12:30 - 23:00"}
+                              </strong>
                             </div>
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase block">Cena</span>
-                              <strong className="text-xs sm:text-sm font-black text-slate-900">19:30 - 23:00</strong>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase block truncate">
+                                {config.contactInfo?.hoursWeekend && config.contactInfo.hoursWeekend.includes(":")
+                                  ? config.contactInfo.hoursWeekend.split(":")[0].trim()
+                                  : "Weekend"}
+                              </span>
+                              <strong className="text-xs sm:text-sm font-black text-slate-900 line-clamp-2">
+                                {config.contactInfo?.hoursWeekend && config.contactInfo.hoursWeekend.includes(":")
+                                  ? config.contactInfo.hoursWeekend.substring(config.contactInfo.hoursWeekend.indexOf(":") + 1).trim()
+                                  : config.contactInfo?.hoursWeekend || "16:00 - 23:00"}
+                              </strong>
                             </div>
                           </div>
 
                           <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[10px] text-emerald-950 space-y-0.5">
                             <p className="font-bold flex items-center gap-1 text-emerald-900">
                               <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
-                              Pranzo di lavoro o Cena Romantica?
+                              {config.customLabels?.heroCardNoteTitle || "Pranzo di lavoro o Cena Romantica?"}
                             </p>
                             <p className="text-emerald-800 leading-relaxed text-[9px]">
-                              Specifica intolleranze alimentari e preferenze di sala direttamente alla prenotazione.
+                              {config.customLabels?.heroCardNoteDesc || "Specifica intolleranze alimentari e preferenze di sala direttamente alla prenotazione."}
                             </p>
                           </div>
                         </div>
@@ -2167,6 +2024,17 @@ export default function ShowcaseVisualStudio() {
                     <Clock className="w-3 h-3 text-emerald-700" />
                     <span>{config.contactInfo?.hoursWeekday || "Lun - Ven: 07:30 - 23:30"} • {config.contactInfo?.hoursWeekend || "Sab - Dom: 08:30 - 00:30"}</span>
                   </div>
+                  {config.sections.showLocationMap && config.contactInfo?.mapEmbed && (
+                    <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden text-center text-[10px] text-slate-500">
+                      <div className="font-bold flex items-center justify-center gap-1 text-slate-700 mb-1">
+                        <MapPin className="w-3 h-3 text-emerald-600" />
+                        <span>Mappa / Pianta del Locale Attiva</span>
+                      </div>
+                      <div className="bg-slate-200/70 rounded-lg p-2 text-[9px] font-mono text-slate-600 truncate max-w-xs mx-auto">
+                        {config.contactInfo.mapEmbed.substring(0, 50)}...
+                      </div>
+                    </div>
+                  )}
                   <p className="text-[9px] text-slate-400 pt-2 border-t border-slate-100">
                     Powered by Taaaac Suite • Tavoly Hospitality
                   </p>

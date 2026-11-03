@@ -304,6 +304,9 @@ export default function TavolyImpostazioniPage() {
     indirizzo: "Piazza Grande, 12 - 52100 Arezzo (AR)",
     telefono: "+39 0575 654321",
     email: "prenotazioni@osteriatavoli.it",
+    hoursWeekday: "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00",
+    hoursWeekend: "Sabato e Domenica: 16:00 - 23:00",
+    hoursNote: "Lunedì Chiuso",
     copertiInterni: "45",
     copertiDehors: "30",
     copertiVeranda: "20",
@@ -412,6 +415,9 @@ export default function TavolyImpostazioniPage() {
               email: data.email || f.email,
               telefono: data.telefono || f.telefono,
               indirizzo: data.indirizzo || f.indirizzo,
+              hoursWeekday: data.hoursWeekday !== undefined ? data.hoursWeekday : f.hoursWeekday,
+              hoursWeekend: data.hoursWeekend !== undefined ? data.hoursWeekend : f.hoursWeekend,
+              hoursNote: data.hoursNote !== undefined ? data.hoursNote : f.hoursNote,
               menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
               kdsEnabled: resolvedKds,
               copertiInterni: data.copertiInterni || f.copertiInterni,
@@ -500,6 +506,9 @@ export default function TavolyImpostazioniPage() {
           email: form.email,
           telefono: form.telefono,
           indirizzo: form.indirizzo,
+          hoursWeekday: form.hoursWeekday,
+          hoursWeekend: form.hoursWeekend,
+          hoursNote: form.hoursNote,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
           copertiInterni: form.copertiInterni,
@@ -745,6 +754,58 @@ export default function TavolyImpostazioniPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200/80 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                <span>Orario Ufficiale del Locale (Vetrina &amp; Scheda Pubblica)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Questi orari rappresentano l&apos;orario ufficiale del locale visualizzato dai clienti. Alimentano automaticamente la card informativa in alto a destra e la sezione Turni &amp; Orari della vetrina.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Orario Feriale (es. Martedì - Venerdì)
+                </label>
+                <input
+                  type="text"
+                  value={form.hoursWeekday}
+                  onChange={(e) => setForm({ ...form, hoursWeekday: e.target.value })}
+                  placeholder="Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Orario Weekend (es. Sabato e Domenica)
+                </label>
+                <input
+                  type="text"
+                  value={form.hoursWeekend}
+                  onChange={(e) => setForm({ ...form, hoursWeekend: e.target.value })}
+                  placeholder="Sabato e Domenica: 16:00 - 23:00"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Giorno di Chiusura / Note Orari
+              </label>
+              <input
+                type="text"
+                value={form.hoursNote}
+                onChange={(e) => setForm({ ...form, hoursNote: e.target.value })}
+                placeholder="es. Lunedì Chiuso"
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
               />
             </div>

@@ -11,10 +11,10 @@ export async function GET() {
 
     const parsed = parseShowcaseConfig(setting?.value);
 
-    // Sincronizza anche con restaurant_name e colori se presenti su LocalSetting
+    // Sincronizza anche con restaurant_name, colori e orari se presenti su LocalSetting
     const meta = await prisma.localSetting.findMany({
       where: {
-        key: { in: ["restaurant_name", "color_primary", "color_accent", "brand_logo_url", "brand_favicon_url"] },
+        key: { in: ["restaurant_name", "color_primary", "color_accent", "brand_logo_url", "brand_favicon_url", "hours_weekday", "hours_weekend", "hours_note"] },
       },
     });
     for (const m of meta) {
@@ -23,6 +23,18 @@ export async function GET() {
       if (m.key === "color_accent" && m.value) parsed.accentColor = m.value;
       if (m.key === "brand_logo_url") parsed.logoUrl = m.value || null;
       if (m.key === "brand_favicon_url") parsed.faviconUrl = m.value || null;
+      if (m.key === "hours_weekday" && m.value) {
+        if (!parsed.contactInfo) parsed.contactInfo = {};
+        parsed.contactInfo.hoursWeekday = m.value;
+      }
+      if (m.key === "hours_weekend" && m.value) {
+        if (!parsed.contactInfo) parsed.contactInfo = {};
+        parsed.contactInfo.hoursWeekend = m.value;
+      }
+      if (m.key === "hours_note" && m.value) {
+        if (!parsed.contactInfo) parsed.contactInfo = {};
+        parsed.contactInfo.hoursNote = m.value;
+      }
     }
 
     return NextResponse.json(parsed);
