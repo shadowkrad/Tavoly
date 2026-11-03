@@ -1781,7 +1781,22 @@ export default function ShowcaseVisualStudio() {
                     <div className={deviceMode === "desktop" ? "grid grid-cols-12 gap-8 items-center" : "space-y-4 text-center"}>
                       {/* Colonna Sinistra / Contenuti Principali */}
                       <div className={deviceMode === "desktop" ? "col-span-7 space-y-4 text-left" : "space-y-3"}>
-                        {/* Badge rimosso */}
+                        {/* Badge Menù Digitale nella Vetrina se attivo */}
+                        {config.sections.showMenuLink !== false && (
+                          <div className={deviceMode === "desktop" ? "flex justify-start" : "flex justify-center"}>
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border ${
+                                config.hero.coverImageUrl
+                                  ? "bg-white/15 text-white border-white/30 backdrop-blur-md"
+                                  : "bg-emerald-50 text-emerald-900 border-emerald-200"
+                              }`}
+                            >
+                              <UtensilsCrossed className="w-3 h-3 text-emerald-500" />
+                              <span>Menù Digitale &amp; Specialità</span>
+                              <span className="text-[9px] font-normal opacity-80">&rarr;</span>
+                            </span>
+                          </div>
+                        )}
 
                         <h1
                           className={`text-xl sm:text-3xl font-black leading-tight tracking-tight ${
@@ -1799,13 +1814,32 @@ export default function ShowcaseVisualStudio() {
                           {config.hero.subtitle}
                         </p>
 
-                        <div className={`pt-1 flex items-center ${deviceMode === "desktop" ? "justify-start" : "justify-center"}`}>
+                        <div className={`pt-1 flex flex-wrap items-center gap-2 ${deviceMode === "desktop" ? "justify-start" : "justify-center"}`}>
                           <span
-                            className="px-3.5 py-2 rounded-xl text-xs font-bold border cursor-default inline-flex items-center gap-1.5 bg-white/90 text-slate-800 border-slate-200/80 shadow-xs"
+                            style={{ backgroundColor: config.primaryColor }}
+                            className="px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-xs inline-flex items-center gap-1.5 cursor-default"
                           >
-                            <span>I Nostri Servizi &amp; Specialità</span>
-                            <ArrowRight className="w-3 h-3 text-emerald-600" />
+                            <span>{config.hero.ctaPrimaryText || "Prenota un Tavolo"}</span>
+                            <ArrowRight className="w-3 h-3" />
                           </span>
+
+                          {config.sections.showTakeawayCta && (
+                            <span
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold border border-amber-300 bg-amber-50 text-amber-900 shadow-xs inline-flex items-center gap-1.5 cursor-default"
+                            >
+                              <ShoppingBag className="w-3 h-3 text-amber-600" />
+                              <span>{config.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
+                            </span>
+                          )}
+
+                          {!config.sections.showTakeawayCta && (
+                            <span
+                              className="px-3 py-2 rounded-xl text-xs font-bold border cursor-default inline-flex items-center gap-1.5 bg-white/90 text-slate-800 border-slate-200/80 shadow-xs"
+                            >
+                              <span>I Nostri Servizi &amp; Specialità</span>
+                              <ArrowRight className="w-3 h-3 text-emerald-600" />
+                            </span>
+                          )}
                         </div>
 
                         {/* Badges di Affidabilità */}
@@ -1834,8 +1868,8 @@ export default function ShowcaseVisualStudio() {
 
                       {/* Colonna Destra / Card Turni LIVE Ristorante (speculare al sito reale) */}
                       <div className={deviceMode === "desktop" ? "col-span-5" : "pt-2"}>
-                        <div className="taaaac-card p-4 sm:p-5 bg-white/95 backdrop-blur-md shadow-2xl border border-white/40 rounded-3xl space-y-3.5 text-left">
-                          <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                        <div className="taaaac-card p-4 sm:p-5 bg-white/95 backdrop-blur-md shadow-2xl border border-white/40 rounded-3xl space-y-3 text-left">
+                          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                             <div className="flex items-center gap-2">
                               <div
                                 className="w-7 h-7 rounded-xl text-white flex items-center justify-center font-black text-[10px]"
@@ -1852,47 +1886,46 @@ export default function ShowcaseVisualStudio() {
                                 </p>
                               </div>
                             </div>
-                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {config.customLabels?.heroCardBadge || "Aperto Oggi"}
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 inline-flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>{config.customLabels?.heroCardBadge || "Aperto Adesso"}</span>
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-center">
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase block truncate">
-                                {config.contactInfo?.hoursWeekday && config.contactInfo.hoursWeekday.includes(":")
-                                  ? config.contactInfo.hoursWeekday.split(":")[0].trim()
-                                  : "Feriali"}
+                          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-center">
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
+                              Orario di Apertura di Oggi
+                            </span>
+                            <strong className="text-sm sm:text-base font-black text-slate-900 block tracking-tight">
+                              {config.contactInfo?.hoursWeekday && config.contactInfo.hoursWeekday.includes(":")
+                                ? config.contactInfo.hoursWeekday.substring(config.contactInfo.hoursWeekday.indexOf(":") + 1).trim()
+                                : "11:00 - 15:00 / 17:00 - 23:00"}
+                            </strong>
+                            <div className="pt-1.5 border-t border-slate-200/70 grid grid-cols-2 gap-1 text-[9px] text-slate-500">
+                              <span className="truncate text-left">
+                                {config.contactInfo?.hoursWeekday ? config.contactInfo.hoursWeekday.split(":")[0] : "Feriali"}
                               </span>
-                              <strong className="text-xs sm:text-sm font-black text-slate-900 line-clamp-2">
-                                {config.contactInfo?.hoursWeekday && config.contactInfo.hoursWeekday.includes(":")
-                                  ? config.contactInfo.hoursWeekday.substring(config.contactInfo.hoursWeekday.indexOf(":") + 1).trim()
-                                  : config.contactInfo?.hoursWeekday || "12:30 - 23:00"}
-                              </strong>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase block truncate">
-                                {config.contactInfo?.hoursWeekend && config.contactInfo.hoursWeekend.includes(":")
-                                  ? config.contactInfo.hoursWeekend.split(":")[0].trim()
-                                  : "Weekend"}
+                              <span className="truncate text-right">
+                                {config.contactInfo?.hoursWeekend ? config.contactInfo.hoursWeekend.split(":")[0] : "Weekend"}
                               </span>
-                              <strong className="text-xs sm:text-sm font-black text-slate-900 line-clamp-2">
-                                {config.contactInfo?.hoursWeekend && config.contactInfo.hoursWeekend.includes(":")
-                                  ? config.contactInfo.hoursWeekend.substring(config.contactInfo.hoursWeekend.indexOf(":") + 1).trim()
-                                  : config.contactInfo?.hoursWeekend || "16:00 - 23:00"}
-                              </strong>
                             </div>
                           </div>
 
-                          <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[10px] text-emerald-950 space-y-0.5">
-                            <p className="font-bold flex items-center gap-1 text-emerald-900">
-                              <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
-                              {config.customLabels?.heroCardNoteTitle || "Pranzo di lavoro o Cena Romantica?"}
-                            </p>
-                            <p className="text-emerald-800 leading-relaxed text-[9px]">
-                              {config.customLabels?.heroCardNoteDesc || "Specifica intolleranze alimentari e preferenze di sala direttamente alla prenotazione."}
-                            </p>
-                          </div>
+                          {Boolean((config.customLabels?.heroCardNoteTitle || "").trim() || (config.customLabels?.heroCardNoteDesc || "").trim()) && (
+                            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[10px] text-emerald-950 space-y-0.5">
+                              {config.customLabels?.heroCardNoteTitle && (
+                                <p className="font-bold flex items-center gap-1 text-emerald-900">
+                                  <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                                  {config.customLabels.heroCardNoteTitle}
+                                </p>
+                              )}
+                              {config.customLabels?.heroCardNoteDesc && (
+                                <p className="text-emerald-800 leading-relaxed text-[9px]">
+                                  {config.customLabels.heroCardNoteDesc}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
