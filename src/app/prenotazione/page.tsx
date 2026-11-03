@@ -12,7 +12,7 @@ import { ArrowLeft, Sparkles, UtensilsCrossed } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function PrenotazioneTavoloPage() {
-  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, rawTakeawayDishes, existingTakeawayOrders] =
+  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, rawTakeawayDishes, existingTakeawayOrders, localSettings] =
     await Promise.all([
       getTenantConfig(),
       prisma.serviceShift.findMany({
@@ -36,9 +36,27 @@ export default async function PrenotazioneTavoloPage() {
         where: { status: { not: "ANNULLATO" } },
         select: { pickupTime: true, pickupDate: true },
       }),
+      prisma.localSetting.findMany({
+        where: {
+          key: {
+            in: [
+              "turni_cena_primo",
+              "turni_cena_secondo",
+              "turni_fascia_pranzo",
+              "coperti_interni",
+              "orari_settimanali_config",
+            ],
+          },
+        },
+      }),
     ]);
 
-  const shifts: PublicShiftData[] = rawShifts.map((s) => {
+  const settingsMap: Record<string, string> = {};
+  for (const s of localSettings) {
+    settingsMap[s.key] = s.value;
+  }
+
+  let shifts: PublicShiftData[] = rawShifts.map((s) => {
     const slots: string[] = JSON.parse(s.timeSlotsJson || "[]");
     const currentBooked = todayReservations
       .filter((r) => slots.includes(r.timeSlot))
@@ -53,6 +71,55 @@ export default async function PrenotazioneTavoloPage() {
       currentBooked,
     };
   });
+
+  // Fallback se nessun turno è stato creato nel database (es. tenant Meco appena avviato)
+  if (shifts.length === 0) {
+    const maxCoperti = parseInt(settingsMap["coperti_interni"] || "45", 10) || 45;
+    const pranzoSetting = settingsMap["turni_fascia_pranzo"];
+    const cenaPrimo = settingsMap["turni_cena_primo"] || "19:30 - 22:00";
+    const cenaSecondo = settingsMap["turni_cena_secondo"];
+    const hasDoppioTurno = Boolean(cenaSecondo && cenaSecondo.trim());
+
+    const fallback: PublicShiftData[] = [];
+
+    // Pranzo
+    if (pranzoSetting && !/chiuso/i.test(pranzoSetting)) {
+      fallback.push({
+        id: "shift_pranzo",
+        name: "Pranzo",
+        slots: ["12:30", "13:00", "13:30", "14:00"],
+        maxGuests: maxCoperti,
+        isActive: true,
+        currentBooked: 0,
+      });
+    }
+
+    // Cena 1° Turno (o Cena unica)
+    fallback.push({
+      id: "shift_cena_1",
+      name: hasDoppioTurno ? "Cena 1° Turno" : "Cena",
+      slots: hasDoppioTurno
+        ? ["19:30", "20:00", "20:30"]
+        : ["19:30", "20:00", "20:30", "21:00", "21:30"],
+      maxGuests: maxCoperti,
+      isActive: true,
+      currentBooked: 0,
+    });
+
+    // Cena 2° Turno
+    if (hasDoppioTurno) {
+      fallback.push({
+        id: "shift_cena_2",
+        name: "Cena 2° Turno",
+        slots: ["21:30", "22:00", "22:30"],
+        maxGuests: maxCoperti,
+        isActive: true,
+        currentBooked: 0,
+      });
+    }
+
+    shifts = fallback;
+  }
 
   const takeawayDishes: PublicTakeawayDish[] = rawTakeawayDishes.map((d) => ({
     id: d.id,

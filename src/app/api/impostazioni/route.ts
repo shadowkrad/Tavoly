@@ -2,44 +2,55 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { parseShowcaseConfig } from "@/lib/showcase-defaults";
+import {
+  parseOrariSettimanaliConfig,
+  formatOrariSummary,
+  OrariSettimanaliConfig,
+} from "@/lib/orari-settimanali";
 
 export async function GET() {
   try {
-    const settings = await prisma.localSetting.findMany({
-      where: {
-        key: {
-          in: [
-            "restaurant_name",
-            "brand_logo_url",
-            "brand_favicon_url",
-            "color_primary",
-            "color_accent",
-            "contact_email",
-            "contact_phone",
-            "address",
-            "menu_show_dish_images",
-            "kds_enabled",
-            "showcase_config",
-            "telegram_enabled",
-            "telegram_bot_token",
-            "telegram_bot_username",
-            "telegram_staff_chat_id",
-            "fidelity_enabled",
-            "fidelity_rules",
-            "turni_cena_primo",
-            "turni_cena_secondo",
-            "turni_fascia_pranzo",
-            "turni_tolleranza_minuti",
-            "coperti_interni",
-            "coperti_dehors",
-            "coperti_veranda",
-            "hours_weekday",
-            "hours_weekend",
-            "hours_note",
-          ],
+    const [settings, cache] = await Promise.all([
+      prisma.localSetting.findMany({
+        where: {
+          key: {
+            in: [
+              "restaurant_name",
+              "brand_logo_url",
+              "brand_favicon_url",
+              "color_primary",
+              "color_accent",
+              "contact_email",
+              "contact_phone",
+              "address",
+              "menu_show_dish_images",
+              "kds_enabled",
+              "showcase_config",
+              "telegram_enabled",
+              "telegram_bot_token",
+              "telegram_bot_username",
+              "telegram_staff_chat_id",
+              "fidelity_enabled",
+              "fidelity_rules",
+              "turni_cena_primo",
+              "turni_cena_secondo",
+              "turni_fascia_pranzo",
+              "turni_tolleranza_minuti",
+              "coperti_interni",
+              "coperti_dehors",
+              "coperti_veranda",
+              "hours_weekday",
+              "hours_weekend",
+              "hours_note",
+              "orari_settimanali_config",
+            ],
+          },
         },
-      },
-    });
+      }),
+      prisma.tenantLocalCache.findUnique({
+        where: { id: "singleton" },
+      }),
+    ]);
 
     const map: Record<string, string> = {};
     for (const s of settings) {
@@ -59,9 +70,18 @@ export async function GET() {
     if (map["color_primary"]) showcaseConfig.primaryColor = map["color_primary"];
     if (map["color_accent"]) showcaseConfig.accentColor = map["color_accent"];
 
-    const hoursWeekday = map["hours_weekday"] || showcaseConfig.contactInfo?.hoursWeekday || "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00";
-    const hoursWeekend = map["hours_weekend"] || showcaseConfig.contactInfo?.hoursWeekend || "Sabato e Domenica: 16:00 - 23:00";
-    const hoursNote = map["hours_note"] !== undefined ? map["hours_note"] : (showcaseConfig.contactInfo?.hoursNote || "Lunedì Chiuso");
+    const orariConfig: OrariSettimanaliConfig = parseOrariSettimanaliConfig(
+      map["orari_settimanali_config"],
+      map["hours_weekday"],
+      map["hours_weekend"],
+      map["hours_note"],
+      (cache as any)?.rispettaFestivitaNazionali
+    );
+
+    const summaries = formatOrariSummary(orariConfig);
+    const hoursWeekday = map["hours_weekday"] || summaries.hoursWeekday;
+    const hoursWeekend = map["hours_weekend"] || summaries.hoursWeekend;
+    const hoursNote = map["hours_note"] !== undefined ? map["hours_note"] : summaries.hoursNote;
 
     if (!showcaseConfig.contactInfo) {
       showcaseConfig.contactInfo = {};
@@ -91,6 +111,7 @@ export async function GET() {
       hoursWeekday,
       hoursWeekend,
       hoursNote,
+      orariSettimanaliConfig: orariConfig,
       menuShowImages: map["menu_show_dish_images"] !== "false",
       kdsEnabled,
       takeawaySettings,
@@ -129,7 +150,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
+    let {
       nomeRistorante,
       logoUrl,
       faviconUrl,
@@ -141,6 +162,7 @@ export async function PUT(req: NextRequest) {
       hoursWeekday,
       hoursWeekend,
       hoursNote,
+      orariSettimanaliConfig,
       menuShowImages,
       kdsEnabled,
       takeawaySettings,
@@ -155,6 +177,30 @@ export async function PUT(req: NextRequest) {
       copertiDehors,
       copertiVeranda,
     } = body;
+
+    // Se fornito orariSettimanaliConfig, genera automaticamente i testi di riepilogo
+    let orariConfigStr: string | undefined = undefined;
+    if (orariSettimanaliConfig) {
+      orariConfigStr = JSON.stringify(orariSettimanaliConfig);
+      const summaries = formatOrariSummary(orariSettimanaliConfig);
+      if (hoursWeekday === undefined) hoursWeekday = summaries.hoursWeekday;
+      if (hoursWeekend === undefined) hoursWeekend = summaries.hoursWeekend;
+      if (hoursNote === undefined) hoursNote = summaries.hoursNote;
+
+      // Aggiorna anche TenantLocalCache per rispettaFestivitaNazionali
+      if (orariSettimanaliConfig.rispettaFestivitaNazionali !== undefined) {
+        await prisma.tenantLocalCache.upsert({
+          where: { id: "singleton" },
+          create: {
+            id: "singleton",
+            rispettaFestivitaNazionali: Boolean(orariSettimanaliConfig.rispettaFestivitaNazionali),
+          },
+          update: {
+            rispettaFestivitaNazionali: Boolean(orariSettimanaliConfig.rispettaFestivitaNazionali),
+          },
+        });
+      }
+    }
 
     const showcaseConfigStr =
       showcaseConfig !== undefined
@@ -175,6 +221,7 @@ export async function PUT(req: NextRequest) {
       hoursWeekday !== undefined && { key: "hours_weekday", value: String(hoursWeekday) },
       hoursWeekend !== undefined && { key: "hours_weekend", value: String(hoursWeekend) },
       hoursNote !== undefined && { key: "hours_note", value: String(hoursNote) },
+      orariConfigStr !== undefined && { key: "orari_settimanali_config", value: orariConfigStr },
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },

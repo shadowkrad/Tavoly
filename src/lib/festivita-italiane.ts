@@ -2,11 +2,16 @@
  * Engine Festività Nazionali Italiane & Risoluzione Calendario Speciale per Tavoly
  * Gestisce festività fisse, festività mobili (Pasqua e Lunedì dell'Angelo) e risoluzione a 3 livelli:
  * 1. Eccezione esplicita ristorante (EccezioneCalendario)
- * 2. Festività nazionale italiana (se abilitata)
- * 3. Orari e turni standard del ristorante
+ * 2. Festività nazionale italiana (se abilitata dal gestore)
+ * 3. Orari settimanali del ristorante (Lunedì - Domenica, orario intero o spezzato)
  */
 
 import { prisma } from "@/lib/prisma";
+import {
+  getDayIdFromJsIndex,
+  parseOrariSettimanaliConfig,
+  OrariSettimanaliConfig,
+} from "@/lib/orari-settimanali";
 
 export function calcolaPasqua(anno: number): { giorno: number; mese: number } {
   const a = anno % 19;
@@ -103,19 +108,43 @@ export async function risolviStatoGiornoTavoly(
   const [y, m, d] = cleanData.split("-").map(Number);
   const dateObj = new Date(y, m - 1, d);
   const dayOfWeek = dateObj.getDay(); // 0 = Dom, 1 = Lun, etc.
+  const dayId = getDayIdFromJsIndex(dayOfWeek);
 
-  const cache = await prisma.tenantLocalCache.findUnique({
-    where: { id: "singleton" },
-  });
-  const rispettaFestivita = (cache as any)?.rispettaFestivitaNazionali ?? true;
+  // Recupera impostazioni orari e tenant cache
+  const [settings, cache, eccezione] = await Promise.all([
+    prisma.localSetting.findMany({
+      where: {
+        key: {
+          in: ["orari_settimanali_config", "hours_weekday", "hours_weekend", "hours_note"],
+        },
+      },
+    }),
+    prisma.tenantLocalCache.findUnique({
+      where: { id: "singleton" },
+    }),
+    prisma.eccezioneCalendario.findUnique({
+      where: { data: cleanData },
+    }),
+  ]);
 
-  // 1. Controlla EccezioneCalendario specifica per la data
-  const eccezione = await prisma.eccezioneCalendario.findUnique({
-    where: { data: cleanData },
-  });
+  const mapSettings: Record<string, string> = {};
+  for (const s of settings) {
+    mapSettings[s.key] = s.value;
+  }
 
+  const orariConfig: OrariSettimanaliConfig = parseOrariSettimanaliConfig(
+    mapSettings["orari_settimanali_config"],
+    mapSettings["hours_weekday"],
+    mapSettings["hours_weekend"],
+    mapSettings["hours_note"],
+    (cache as any)?.rispettaFestivitaNazionali
+  );
+
+  const rispettaFestivita = orariConfig.rispettaFestivitaNazionali;
+
+  // 1. Controlla EccezioneCalendario specifica per la data (Ferie o Apertura Speciale)
   if (eccezione) {
-    if (eccezione.tipo === "CHIUSURA") {
+    if (eccezione.tipo === "CHIUSURA" || !eccezione.isAperto) {
       return {
         data: cleanData,
         isLavorativo: false,
@@ -141,7 +170,7 @@ export async function risolviStatoGiornoTavoly(
     }
   }
 
-  // 2. Controlla Festività Nazionale Italiana
+  // 2. Controlla Festività Nazionale Italiana (se abilitato dal gestore)
   if (rispettaFestivita) {
     const fest = getFestivitaItaliana(cleanData);
     if (fest.isFestivo) {
@@ -156,17 +185,43 @@ export async function risolviStatoGiornoTavoly(
     }
   }
 
-  // 3. Orario / Turni Ristorante di default
-  // Il ristorante per default è aperto (tranne eventuale lunedì di riposo se configurato)
+  // 3. Orario Settimanale del Ristorante per questo giorno
+  const giornoConfig = orariConfig.giorni[dayId];
+  if (!giornoConfig || !giornoConfig.aperto) {
+    return {
+      data: cleanData,
+      isLavorativo: false,
+      stato: "CHIUSO_STANDARD",
+      titolo: `${giornoConfig?.label || "Giorno"} di Chiusura`,
+      motivo: `Il locale è chiuso per riposo settimanale il ${giornoConfig?.label || "giorno selezionato"}`,
+      fonte: "ORARIO_STANDARD",
+    };
+  }
+
+  // Giorno aperto: estrai orari
+  if (giornoConfig.modalita === "SPEZZATO") {
+    return {
+      data: cleanData,
+      isLavorativo: true,
+      stato: "APERTO_STANDARD",
+      titolo: "Aperto (Pranzo & Cena)",
+      oraInizio: giornoConfig.oraInizio1 || "12:00",
+      oraFine: giornoConfig.oraFine2 || "23:30",
+      pausaInizio: giornoConfig.oraFine1 || "15:00",
+      pausaFine: giornoConfig.oraInizio2 || "19:00",
+      fonte: "ORARIO_STANDARD",
+    };
+  }
+
   return {
     data: cleanData,
     isLavorativo: true,
     stato: "APERTO_STANDARD",
-    titolo: "Aperto",
-    oraInizio: "12:00",
-    oraFine: "23:30",
-    pausaInizio: "15:00",
-    pausaFine: "19:00",
+    titolo: "Aperto (Orario Continuato)",
+    oraInizio: giornoConfig.oraInizio1 || "11:00",
+    oraFine: giornoConfig.oraFine1 || "23:00",
+    pausaInizio: null,
+    pausaFine: null,
     fonte: "ORARIO_STANDARD",
   };
 }
