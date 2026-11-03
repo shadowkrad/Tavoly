@@ -28,6 +28,7 @@ export interface ShowcaseContactInfo {
   hoursWeekend?: string;
   hoursNote?: string;
   responseNote?: string;
+  mapEmbed?: string;
 }
 
 export interface TrustBadgeItem {
@@ -93,6 +94,7 @@ export interface ShowcaseConfig {
     showContact: boolean;
     showTakeawayCta: boolean;
     showMenuLink?: boolean;
+    showLocationMap?: boolean;
   };
 
   // Esperienze & Momenti Personalizzabili
@@ -159,6 +161,7 @@ export const DEFAULT_TAVOLY_CONTACT_INFO: ShowcaseContactInfo = {
   hoursWeekend: "Sabato e Domenica: 08:30 - 00:30",
   hoursNote: "Cucina aperta per pranzo (12:30-14:30) e cena (19:30-22:30)",
   responseNote: "Rispondiamo rapidamente durante gli orari di servizio.",
+  mapEmbed: "",
 };
 
 export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
@@ -234,6 +237,7 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     showContact: true,
     showTakeawayCta: true,
     showMenuLink: true,
+    showLocationMap: false,
   },
 
   experiences: DEFAULT_TAVOLY_EXPERIENCES,
@@ -291,6 +295,7 @@ export function parseShowcaseConfig(raw: string | null | undefined): ShowcaseCon
       sections: {
         ...DEFAULT_TAVOLY_SHOWCASE_CONFIG.sections,
         showMenuLink: parsed.sections?.showMenuLink !== undefined ? !!parsed.sections.showMenuLink : true,
+        showLocationMap: parsed.sections?.showLocationMap !== undefined ? !!parsed.sections.showLocationMap : false,
         ...(parsed.sections || {}),
       },
       experiences: Array.isArray(parsed.experiences) && parsed.experiences.length > 0
