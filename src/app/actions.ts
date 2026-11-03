@@ -52,8 +52,8 @@ export async function createPublicReservationAction(formData: FormData) {
 
   const rawData = {
     customerName: formData.get("customerName"),
-    phoneNumber: formData.get("phoneNumber"),
-    email: formData.get("email") || undefined,
+    phoneNumber: formData.get("phoneNumber") || formData.get("customerPhone"),
+    email: formData.get("email") || formData.get("customerEmail") || undefined,
     guestCount: formData.get("guestCount"),
     date: dateStr,
     timeSlot: formData.get("timeSlot"),
