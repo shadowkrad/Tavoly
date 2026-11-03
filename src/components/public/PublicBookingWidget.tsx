@@ -42,7 +42,8 @@ interface PublicBookingWidgetProps {
 const STEPS = ["Data & Coperti", "Turno & Orario", "Preferenze Tavolo", "I tuoi dati", "Riepilogo"];
 
 export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWidgetProps) {
-  const activeShifts = shifts.filter((s) => s.isActive);
+  const resolvedShifts = shifts && shifts.length > 0 ? shifts : DEFAULT_SHIFTS;
+  const activeShifts = resolvedShifts.filter((s) => s.isActive);
   const [step, setStep] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,7 +69,7 @@ export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWi
   const [customerEmail, setCustomerEmail] = useState<string>("");
   const [privacyAccepted, setPrivacyAccepted] = useState<boolean>(false);
 
-  const currentShift = activeShifts.find((s) => s.id === selectedShiftId) || activeShifts[0];
+  const currentShift = activeShifts.find((s) => s.id === selectedShiftId) || activeShifts[0] || DEFAULT_SHIFTS[0];
   const isShiftFull = currentShift && (currentShift.currentBooked || 0) >= currentShift.maxGuests;
 
   const goNext = () => {
@@ -121,8 +122,12 @@ export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWi
     setErrorMsg(null);
     const formData = new FormData();
     formData.set("customerName", customerName.trim());
+    formData.set("phoneNumber", customerPhone.trim());
     formData.set("customerPhone", customerPhone.trim());
-    if (customerEmail.trim()) formData.set("customerEmail", customerEmail.trim());
+    if (customerEmail.trim()) {
+      formData.set("email", customerEmail.trim());
+      formData.set("customerEmail", customerEmail.trim());
+    }
     formData.set("date", selectedDate);
     formData.set("timeSlot", selectedSlot);
     formData.set("guestCount", String(guestCount));
@@ -310,7 +315,9 @@ export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWi
                       disabled={isFull}
                       onClick={() => {
                         setSelectedShiftId(s.id);
-                        if (s.slots[0]) setSelectedSlot(s.slots[0]);
+                        if (s.slots && s.slots.length > 0) {
+                          setSelectedSlot(s.slots[0]);
+                        }
                       }}
                       className={`p-4 rounded-2xl border text-left transition-all ${
                         isFull
@@ -321,7 +328,12 @@ export function PublicBookingWidget({ shifts = DEFAULT_SHIFTS }: PublicBookingWi
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-slate-900">{s.name}</span>
+                        <div>
+                          <span className="font-bold text-sm text-slate-900 block">{s.name}</span>
+                          <span className="text-[11px] font-mono text-emerald-700 block mt-0.5">
+                            {s.slots.slice(0, 3).join(", ")}{s.slots.length > 3 ? "..." : ""}
+                          </span>
+                        </div>
                         {isFull ? (
                           <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md">
                             Completo

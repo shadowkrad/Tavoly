@@ -56,6 +56,20 @@
 - **Supporto Iframe & Immagine**: Pieno supporto all'incorporamento con tag `<iframe>` (es. Google Maps / OpenStreetMap) o link diretto a immagini della pianta della sala (.png, .jpg, .webp).
 ---
 
+### 5. ⏰ Nuovo Modulo Orari Settimanali Personalizzabile (Settimana, Festività, Ferie)
+- **Configurazione Giorno per Giorno (Lunedì - Domenica)**: Ogni giorno della settimana dispone ora di un toggle dedicato di apertura/chiusura con selezione della modalità orario (*Orario Continuato* o *Orario Spezzato con Pausa Pranzo/Cena*).
+- **Fasce Orarie Dedicate**: Impostazione precisa di inizio e fine servizio per il turno di pranzo e di cena con pulsante di copia rapida per applicare la configurazione a tutti i giorni feriali (Mar-Ven) in un click.
+- **Gestione Festività Nazionali Italiane**: Possibilità per il gestore di attivare o disattivare la chiusura automatica nei giorni festivi di calendario (Capodanno, Pasqua, Pasquetta, 25 Aprile, 1 Maggio, Ferragosto, Natale, ecc.), lasciando il locale aperto per i pranzi e le cene di festa secondo le proprie esigenze commerciali.
+- **Aperture Straordinarie & Chiusure per Ferie**: Calendario integrato per pianificare date speciali (ferie estive o aperture eccezionali nei giorni di riposo) con orari straordinari dedicati.
+- **Sincronizzazione Automatica Totale**: Tutte le modifiche aggiornano all'istante la card informativa della vetrina, il badge in tempo reale ("Aperto Adesso", "In Pausa", "Chiuso per Riposo") e il motore di prenotazione.
+
+### 6. 🍽️ Risoluzione Bug Blocco Prenotazioni & Doppio Turno (Meco)
+- **Risolto Allineamento Dati Form**: Corretto l'inoltro dei parametri del cliente (`phoneNumber` e `customerPhone`, `email` e `customerEmail`) nell'azione di prenotazione pubblica, eliminando il blocco validazione *"Numero di telefono non valido"* che impediva il salvataggio.
+- **Riconoscimento Automatico Turno & Doppio Turno**: Implementata la generazione e il riconoscimento automatico dei turni di servizio (Pranzo, Cena 1° Turno e Cena 2° Turno) anche in assenza di record pregressi nel database, garantendo la selezione fluida degli orari di arrivo sia per il primo sia per il secondo turno.
+- **Verifica Stato Giorno Potenziata**: La verifica del calendario per la data di prenotazione seleziona ora con precisione gli orari del giorno della settimana configurato dal locale, informando tempestivamente il cliente qualora il ristorante sia chiuso per riposo settimanale o ferie.
+
+---
+
 ## Novità della Versione 1.0.8 (Hotfix / Patch)
 
 ### 1. 🍽️ Vetrina Ristorante 100% Personalizzabile & Live Studio Completo

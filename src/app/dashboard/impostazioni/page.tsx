@@ -38,6 +38,8 @@ import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rule
 import ShowcaseVisualStudio from "@/components/dashboard/showcase/ShowcaseVisualStudio";
 import TelegramSettingsPanel, { TelegramSettingsData } from "@/components/dashboard/TelegramSettingsPanel";
 import FidelitySettingsPanel, { FidelitySettingsData } from "@/components/dashboard/FidelitySettingsPanel";
+import OrariSettimanaliPanel from "@/components/dashboard/OrariSettimanaliPanel";
+import { OrariSettimanaliConfig, GIORNI_SETTIMANA_DEFAULT } from "@/lib/orari-settimanali";
 import { Send, Award } from "lucide-react";
 
 type SettingsTab = "ristorante" | "turni" | "email" | "whatsapp" | "telegram" | "fidelity" | "cucina" | "asporto" | "stampante" | "dispositivi" | "aspetto";
@@ -323,6 +325,7 @@ export default function TavolyImpostazioniPage() {
     faviconUrl: "",
     menuShowImages: true,
     kdsEnabled: false,
+    orariSettimanaliConfig: undefined as OrariSettimanaliConfig | undefined,
   });
 
   // Brand Assets State & Refs
@@ -418,6 +421,7 @@ export default function TavolyImpostazioniPage() {
               hoursWeekday: data.hoursWeekday !== undefined ? data.hoursWeekday : f.hoursWeekday,
               hoursWeekend: data.hoursWeekend !== undefined ? data.hoursWeekend : f.hoursWeekend,
               hoursNote: data.hoursNote !== undefined ? data.hoursNote : f.hoursNote,
+              orariSettimanaliConfig: data.orariSettimanaliConfig || f.orariSettimanaliConfig,
               menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
               kdsEnabled: resolvedKds,
               copertiInterni: data.copertiInterni || f.copertiInterni,
@@ -509,6 +513,7 @@ export default function TavolyImpostazioniPage() {
           hoursWeekday: form.hoursWeekday,
           hoursWeekend: form.hoursWeekend,
           hoursNote: form.hoursNote,
+          orariSettimanaliConfig: form.orariSettimanaliConfig,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
           copertiInterni: form.copertiInterni,
@@ -759,56 +764,16 @@ export default function TavolyImpostazioniPage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-200/80 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-emerald-600" />
-                <span>Orario Ufficiale del Locale (Vetrina &amp; Scheda Pubblica)</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Questi orari rappresentano l&apos;orario ufficiale del locale visualizzato dai clienti. Alimentano automaticamente la card informativa in alto a destra e la sezione Turni &amp; Orari della vetrina.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Orario Feriale (es. Martedì - Venerdì)
-                </label>
-                <input
-                  type="text"
-                  value={form.hoursWeekday}
-                  onChange={(e) => setForm({ ...form, hoursWeekday: e.target.value })}
-                  placeholder="Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Orario Weekend (es. Sabato e Domenica)
-                </label>
-                <input
-                  type="text"
-                  value={form.hoursWeekend}
-                  onChange={(e) => setForm({ ...form, hoursWeekend: e.target.value })}
-                  placeholder="Sabato e Domenica: 16:00 - 23:00"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Giorno di Chiusura / Note Orari
-              </label>
-              <input
-                type="text"
-                value={form.hoursNote}
-                onChange={(e) => setForm({ ...form, hoursNote: e.target.value })}
-                placeholder="es. Lunedì Chiuso"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-              />
-            </div>
+          <div className="pt-4 border-t border-slate-200/80">
+            <OrariSettimanaliPanel
+              initialConfig={form.orariSettimanaliConfig}
+              onChange={(newConfig) => {
+                setForm((prev) => ({
+                  ...prev,
+                  orariSettimanaliConfig: newConfig,
+                }));
+              }}
+            />
           </div>
         </div>
       )}
