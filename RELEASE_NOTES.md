@@ -45,6 +45,15 @@
 - **Canale Unificato con la Console Centrale**: Predisposto il canale protetto per permettere al motore centrale di Taaaac di recapitare i promemoria dei tavoli all'orario preferito scelto dal ristorante (es. ogni mattina alle 09:00).
 - **Trasparenza Totale**: Pieno supporto ai promemoria via Email, Telegram e WhatsApp (con account dell'attività).
 
+### 3. ⏰ Unificazione Orari Ufficiali del Locale & Eliminazione Campi Duplicati
+- **Centralizzazione in "Ristorante & Sede"**: Gli orari di apertura ufficiali al pubblico del locale sono ora configurati centralmente nella scheda *Impostazioni > Ristorante & Sede* (Orario Feriale, Orario Weekend, Note di Chiusura).
+- **Sincronizzazione Automatica Vetrina Pubblica**: La card in evidenza in alto a destra ("Hero Card") e la sezione inferiore "Turni di Servizio & Orari" ora leggono esattamente dagli stessi orari ufficiali, garantendo perfetta coerenza su tutta la landing page.
+- **Pulizia Studio Vetrina**: Rimossi i vecchi campi orari sparsi e duplicati nello Studio Vetrina (sia nella card Hero sia nella tab "Orari & Info"), sostituiti da chiare indicazioni di sincronizzazione automatica.
+- **Integrità Turni Interni**: I turni di servizio della sala e le fasce di asporto rimangono indipendenti e dedicati alla gestione operativa della cucina e delle prenotazioni.
+
+### 4. 🗺️ Modulo Flaggabile Pianta & Mappa del Locale
+- **Attivazione On/Off nello Studio Vetrina**: Nuovo modulo flaggabile per mostrare o nascondere la mappa interattiva o la piantina del locale direttamente nella sezione *Posizione & Location*.
+- **Supporto Iframe & Immagine**: Pieno supporto all'incorporamento con tag `<iframe>` (es. Google Maps / OpenStreetMap) o link diretto a immagini della pianta della sala (.png, .jpg, .webp).
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)

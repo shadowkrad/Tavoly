@@ -59,7 +59,7 @@ function renderExperienceIcon(icon: ExperienceIconType) {
 }
 
 export default async function PublicShowcasePage() {
-  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting] = await Promise.all([
+  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting, hoursSettings] = await Promise.all([
     getTenantConfig(),
     prisma.serviceShift.findMany({
       where: { isActive: true },
@@ -77,10 +77,24 @@ export default async function PublicShowcasePage() {
     prisma.localSetting.findUnique({
       where: { key: "showcase_config" },
     }),
+    prisma.localSetting.findMany({
+      where: {
+        key: { in: ["hours_weekday", "hours_weekend", "hours_note"] },
+      },
+    }),
   ]);
 
   const { theme } = tenantConfig;
   const showcase = parseShowcaseConfig(showcaseSetting?.value);
+
+  // Sincronizza orari ufficiali da LocalSetting se presenti
+  for (const h of hoursSettings) {
+    if (!showcase.contactInfo) showcase.contactInfo = {};
+    if (h.key === "hours_weekday" && h.value) showcase.contactInfo.hoursWeekday = h.value;
+    if (h.key === "hours_weekend" && h.value) showcase.contactInfo.hoursWeekend = h.value;
+    if (h.key === "hours_note" && h.value) showcase.contactInfo.hoursNote = h.value;
+  }
+
   const heroCoverUrl = showcase.hero.coverImageUrl || DEFAULT_HERO_COVER_IMAGE;
   const hasHeroCover = Boolean(heroCoverUrl && heroCoverUrl.trim().length > 0);
   const overlayOpacity = showcase.hero.overlayOpacity ?? 75;
@@ -102,9 +116,16 @@ export default async function PublicShowcasePage() {
     };
   });
 
-  // Orari Ufficiali di Apertura dell'Attività / Locale (Svincolati dai turni interni di cucina e asporto)
-  const activityHoursShift1 = showcase.customLabels?.heroShift1Hours || showcase.contactInfo?.hoursWeekday || "12:00 - 23:30";
-  const activityHoursShift2 = showcase.customLabels?.heroShift2Hours || showcase.contactInfo?.hoursWeekend || "12:00 - 00:00";
+  // Orari Ufficiali di Apertura dell'Attività / Locale (Sincronizzati ovunque)
+  const officialWeekday = showcase.contactInfo?.hoursWeekday || "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00";
+  const officialWeekend = showcase.contactInfo?.hoursWeekend || "Sabato e Domenica: 16:00 - 23:00";
+
+  const weekdayLabel = officialWeekday.includes(":") ? officialWeekday.split(":")[0].trim() : "Martedì - Venerdì";
+  const weekdayHours = officialWeekday.includes(":") ? officialWeekday.substring(officialWeekday.indexOf(":") + 1).trim() : officialWeekday;
+
+  const weekendLabel = officialWeekend.includes(":") ? officialWeekend.split(":")[0].trim() : "Sabato e Domenica";
+  const weekendHours = officialWeekend.includes(":") ? officialWeekend.substring(officialWeekend.indexOf(":") + 1).trim() : officialWeekend;
+
   const showActivityHours = showcase.sections?.showHours !== false;
 
   return (
@@ -223,12 +244,12 @@ export default async function PublicShowcasePage() {
                     {showActivityHours && (
                       <div className="grid grid-cols-2 gap-3 text-center">
                         <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift1Label || "Lunedì - Venerdì"}</span>
-                          <strong className="text-base font-black text-slate-900">{activityHoursShift1}</strong>
+                          <span className="text-xs font-semibold text-slate-500 uppercase block truncate">{weekdayLabel}</span>
+                          <strong className="text-base font-black text-slate-900 line-clamp-2">{weekdayHours}</strong>
                         </div>
                         <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-xs font-semibold text-slate-500 uppercase block">{showcase.customLabels?.heroShift2Label || "Sabato e Domenica"}</span>
-                          <strong className="text-base font-black text-slate-900">{activityHoursShift2}</strong>
+                          <span className="text-xs font-semibold text-slate-500 uppercase block truncate">{weekendLabel}</span>
+                          <strong className="text-base font-black text-slate-900 line-clamp-2">{weekendHours}</strong>
                         </div>
                       </div>
                     )}
@@ -462,6 +483,77 @@ export default async function PublicShowcasePage() {
               </div>
             </div>
           </div>
+
+          {showcase.sections?.showLocationMap && showcase.contactInfo?.mapEmbed && (
+            <div className="mt-8 taaaac-card bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-slate-900">
+                    Posizione &amp; Pianta del Locale
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Come raggiungerci e organizzazione degli spazi
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-50">
+                {(() => {
+                  const embed = showcase.contactInfo!.mapEmbed!.trim();
+                  if (embed.startsWith("<iframe")) {
+                    const srcMatch = embed.match(/src=["']([^"']+)["']/i);
+                    const iframeSrc = srcMatch ? srcMatch[1] : null;
+                    if (iframeSrc) {
+                      return (
+                        <iframe
+                          src={iframeSrc}
+                          className="w-full h-80 sm:h-96 border-0"
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      );
+                    }
+                  }
+                  if (
+                    embed.endsWith(".png") ||
+                    embed.endsWith(".jpg") ||
+                    embed.endsWith(".jpeg") ||
+                    embed.endsWith(".webp") ||
+                    embed.endsWith(".svg") ||
+                    embed.startsWith("data:image/")
+                  ) {
+                    return (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={embed}
+                        alt="Pianta del locale"
+                        className="w-full max-h-96 object-contain mx-auto"
+                      />
+                    );
+                  }
+                  if (embed.startsWith("http://") || embed.startsWith("https://")) {
+                    return (
+                      <iframe
+                        src={embed}
+                        className="w-full h-80 sm:h-96 border-0"
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    );
+                  }
+                  return (
+                    <div className="p-6 text-center text-xs text-slate-500 font-mono">
+                      {embed}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
         </section>
       )}
 

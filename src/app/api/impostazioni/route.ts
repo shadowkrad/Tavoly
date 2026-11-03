@@ -33,6 +33,9 @@ export async function GET() {
             "coperti_interni",
             "coperti_dehors",
             "coperti_veranda",
+            "hours_weekday",
+            "hours_weekend",
+            "hours_note",
           ],
         },
       },
@@ -56,6 +59,17 @@ export async function GET() {
     if (map["color_primary"]) showcaseConfig.primaryColor = map["color_primary"];
     if (map["color_accent"]) showcaseConfig.accentColor = map["color_accent"];
 
+    const hoursWeekday = map["hours_weekday"] || showcaseConfig.contactInfo?.hoursWeekday || "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00";
+    const hoursWeekend = map["hours_weekend"] || showcaseConfig.contactInfo?.hoursWeekend || "Sabato e Domenica: 16:00 - 23:00";
+    const hoursNote = map["hours_note"] !== undefined ? map["hours_note"] : (showcaseConfig.contactInfo?.hoursNote || "Lunedì Chiuso");
+
+    if (!showcaseConfig.contactInfo) {
+      showcaseConfig.contactInfo = {};
+    }
+    showcaseConfig.contactInfo.hoursWeekday = hoursWeekday;
+    showcaseConfig.contactInfo.hoursWeekend = hoursWeekend;
+    showcaseConfig.contactInfo.hoursNote = hoursNote;
+
     let fidelityRules = null;
     try {
       if (map["fidelity_rules"]) {
@@ -74,6 +88,9 @@ export async function GET() {
       email: map["contact_email"] || "prenotazioni@osteriatavoli.it",
       telefono: map["contact_phone"] || "+39 0575 654321",
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
+      hoursWeekday,
+      hoursWeekend,
+      hoursNote,
       menuShowImages: map["menu_show_dish_images"] !== "false",
       kdsEnabled,
       takeawaySettings,
@@ -121,6 +138,9 @@ export async function PUT(req: NextRequest) {
       email,
       telefono,
       indirizzo,
+      hoursWeekday,
+      hoursWeekend,
+      hoursNote,
       menuShowImages,
       kdsEnabled,
       takeawaySettings,
@@ -152,6 +172,9 @@ export async function PUT(req: NextRequest) {
       email !== undefined && { key: "contact_email", value: String(email) },
       telefono !== undefined && { key: "contact_phone", value: String(telefono) },
       indirizzo !== undefined && { key: "address", value: String(indirizzo) },
+      hoursWeekday !== undefined && { key: "hours_weekday", value: String(hoursWeekday) },
+      hoursWeekend !== undefined && { key: "hours_weekend", value: String(hoursWeekend) },
+      hoursNote !== undefined && { key: "hours_note", value: String(hoursNote) },
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
@@ -175,6 +198,22 @@ export async function PUT(req: NextRequest) {
         where: { key: item.key },
         create: { key: item.key, value: item.value },
         update: { value: item.value },
+      });
+    }
+
+    if (hoursWeekday !== undefined || hoursWeekend !== undefined || hoursNote !== undefined) {
+      const currentShowcase = await prisma.localSetting.findUnique({
+        where: { key: "showcase_config" },
+      });
+      const parsedSc = parseShowcaseConfig(showcaseConfigStr || currentShowcase?.value);
+      if (!parsedSc.contactInfo) parsedSc.contactInfo = {};
+      if (hoursWeekday !== undefined) parsedSc.contactInfo.hoursWeekday = String(hoursWeekday);
+      if (hoursWeekend !== undefined) parsedSc.contactInfo.hoursWeekend = String(hoursWeekend);
+      if (hoursNote !== undefined) parsedSc.contactInfo.hoursNote = String(hoursNote);
+      await prisma.localSetting.upsert({
+        where: { key: "showcase_config" },
+        create: { key: "showcase_config", value: JSON.stringify(parsedSc) },
+        update: { value: JSON.stringify(parsedSc) },
       });
     }
 
