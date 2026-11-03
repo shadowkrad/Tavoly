@@ -58,8 +58,25 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
     }
   };
 
+  function normalizeTelegramChatId(input: string): string {
+    let clean = input.trim();
+    if (clean.includes("#")) clean = clean.split("#")[1];
+    if (clean.startsWith("@")) return clean;
+    if (/^-\d{9,}$/.test(clean) && !clean.startsWith("-100")) return "-100" + clean.slice(1);
+    if (/^\d{9,}$/.test(clean)) return "-100" + clean;
+    return clean;
+  }
+
   const handleTestStaffMessage = async () => {
-    if (!data.botToken?.trim() || !data.staffChatId?.trim()) {
+    const cleanChatId = normalizeTelegramChatId(data.staffChatId || "");
+    if (cleanChatId !== data.staffChatId) {
+      onChange({
+        ...data,
+        staffChatId: cleanChatId,
+      });
+    }
+
+    if (!data.botToken?.trim() || !cleanChatId) {
       setTestResult({ ok: false, message: "Token bot e ID Chat Staff sono entrambi obbligatori per il test." });
       return;
     }
@@ -72,7 +89,7 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chat_id: data.staffChatId.trim(),
+          chat_id: cleanChatId,
           text: "🚀 <b>Notifica di Prova Taaaac Telegram Staff</b>\n\n✅ Collegamento riuscito! Le notifiche delle nuove comande e prenotazioni arriveranno in questo gruppo in tempo reale.",
           parse_mode: "HTML",
         }),
@@ -85,9 +102,13 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
           message: "Messaggio di prova inviato con successo nel gruppo dello Staff!",
         });
       } else {
+        let msg = tg.description || "Impossibile recapitare il messaggio";
+        if (msg.includes("chat not found")) {
+          msg = `Chat non trovata (${cleanChatId}): assicurati di aver aggiunto il Bot al gruppo Telegram come membro/amministratore!`;
+        }
         setTestResult({
           ok: false,
-          message: `Telegram ha restituito un errore: ${tg.description || "Impossibile recapitare il messaggio"}`,
+          message: `Telegram ha restituito un errore: ${msg}`,
         });
       }
     } catch (err: any) {
@@ -232,6 +253,14 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
               type="text"
               value={data.staffChatId}
               onChange={(e) => onChange({ ...data, staffChatId: e.target.value })}
+              onBlur={() => {
+                if (data.staffChatId) {
+                  const normalized = normalizeTelegramChatId(data.staffChatId);
+                  if (normalized !== data.staffChatId) {
+                    onChange({ ...data, staffChatId: normalized });
+                  }
+                }
+              }}
               placeholder="es. -1001234567890 oppure il tuo ID utente personale"
               className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
