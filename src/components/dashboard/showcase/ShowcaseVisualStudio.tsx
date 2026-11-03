@@ -1499,7 +1499,7 @@ export default function ShowcaseVisualStudio() {
                     <div className="space-y-2 pt-1 border-t border-slate-200">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-600 mb-1">
-                          Codice Iframe Mappa Google / OpenStreetMap o Link Immagine Pianta
+                          Codice Iframe Mappa Google / OpenStreetMap o Link Immagine Pianta (Opzionale)
                         </label>
                         <textarea
                           rows={3}
@@ -1513,11 +1513,11 @@ export default function ShowcaseVisualStudio() {
                               },
                             })
                           }
-                          placeholder='es. <iframe src="https://www.google.com/maps/embed?..." ...></iframe> oppure https://mio-sito.it/pianta.jpg'
+                          placeholder='Lascia vuoto per Google Maps automatico con indirizzo del locale, oppure incolla iframe / link pianta...'
                           className="w-full text-xs font-mono px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
                         />
-                        <p className="text-[9px] text-slate-400 mt-1">
-                          💡 Suggerimento: Su Google Maps clicca <em>Condividi &gt; Incorpora una mappa</em> e incolla qui l&apos;intero tag <code>&lt;iframe&gt;</code>, oppure inserisci direttamente l&apos;URL di un&apos;immagine raffigurante la pianta della sala.
+                        <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">
+                          💡 <strong>Zero configurazione:</strong> Se lasci vuoto questo campo, la vetrina mostrerà automaticamente la mappa interattiva di Google Maps con l&apos;indirizzo del locale ({config.contactInfo?.address || "Piazza Grande, 12 - Arezzo"}). Se invece desideri mostrare la piantina della sala o un codice mappa personalizzato, incolla qui l&apos;intero tag <code>&lt;iframe&gt;</code> o l&apos;URL dell&apos;immagine.
                         </p>
                       </div>
                     </div>
@@ -2024,14 +2024,16 @@ export default function ShowcaseVisualStudio() {
                     <Clock className="w-3 h-3 text-emerald-700" />
                     <span>{config.contactInfo?.hoursWeekday || "Lun - Ven: 07:30 - 23:30"} • {config.contactInfo?.hoursWeekend || "Sab - Dom: 08:30 - 00:30"}</span>
                   </div>
-                  {config.sections.showLocationMap && config.contactInfo?.mapEmbed && (
-                    <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden text-center text-[10px] text-slate-500">
-                      <div className="font-bold flex items-center justify-center gap-1 text-slate-700 mb-1">
-                        <MapPin className="w-3 h-3 text-emerald-600" />
-                        <span>Mappa / Pianta del Locale Attiva</span>
+                  {config.sections.showLocationMap && (
+                    <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl overflow-hidden text-center text-[10px] text-emerald-800 space-y-1">
+                      <div className="font-bold flex items-center justify-center gap-1 text-emerald-950">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Mappa &amp; Posizione Attiva in Vetrina</span>
                       </div>
-                      <div className="bg-slate-200/70 rounded-lg p-2 text-[9px] font-mono text-slate-600 truncate max-w-xs mx-auto">
-                        {config.contactInfo.mapEmbed.substring(0, 50)}...
+                      <div className="text-[9px] text-emerald-700 font-medium truncate max-w-xs mx-auto">
+                        {config.contactInfo?.mapEmbed
+                          ? `Embed personalizzato: ${config.contactInfo.mapEmbed.substring(0, 40)}...`
+                          : `Google Maps automatico: ${config.contactInfo?.address || "Piazza Grande, 12 - Arezzo"}`}
                       </div>
                     </div>
                   )}
