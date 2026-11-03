@@ -27,6 +27,8 @@ import {
   Beer,
   Heart,
   ChefHat,
+  Navigation,
+  ExternalLink,
 } from "lucide-react";
 import { ExperienceIconType, DEFAULT_TAVOLY_EXPERIENCES } from "@/lib/showcase-defaults";
 
@@ -484,26 +486,44 @@ export default async function PublicShowcasePage() {
             </div>
           </div>
 
-          {showcase.sections?.showLocationMap && showcase.contactInfo?.mapEmbed && (
+          {Boolean(showcase.sections?.showLocationMap) && (
             <div className="mt-8 taaaac-card bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <MapPin className="w-5 h-5" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">
+                      Posizione &amp; Pianta del Locale
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Come raggiungerci e organizzazione degli spazi
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-base font-bold text-slate-900">
-                    Posizione &amp; Pianta del Locale
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    Come raggiungerci e organizzazione degli spazi
-                  </p>
-                </div>
+
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    showcase.contactInfo?.address || theme.restaurantName || "Piazza Grande, 12 Arezzo"
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-colors self-start sm:self-auto"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Indicazioni Stradali</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
               </div>
               <div className="rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-50">
                 {(() => {
-                  const embed = showcase.contactInfo!.mapEmbed!.trim();
-                  if (embed.startsWith("<iframe")) {
-                    const srcMatch = embed.match(/src=["']([^"']+)["']/i);
+                  const rawEmbed = (showcase.contactInfo?.mapEmbed || "").trim();
+                  const targetAddress = showcase.contactInfo?.address || "Piazza Grande, 12 - Arezzo (AR)";
+
+                  // 1. Tag iframe completo inserito dall'utente (<iframe ... src="...">)
+                  if (rawEmbed.startsWith("<iframe")) {
+                    const srcMatch = rawEmbed.match(/src=["']([^"']+)["']/i);
                     const iframeSrc = srcMatch ? srcMatch[1] : null;
                     if (iframeSrc) {
                       return (
@@ -517,27 +537,54 @@ export default async function PublicShowcasePage() {
                       );
                     }
                   }
+
+                  // 2. Immagine piantina del locale (.png, .jpg, .jpeg, .webp, .svg, data:image/)
                   if (
-                    embed.endsWith(".png") ||
-                    embed.endsWith(".jpg") ||
-                    embed.endsWith(".jpeg") ||
-                    embed.endsWith(".webp") ||
-                    embed.endsWith(".svg") ||
-                    embed.startsWith("data:image/")
+                    rawEmbed.endsWith(".png") ||
+                    rawEmbed.endsWith(".jpg") ||
+                    rawEmbed.endsWith(".jpeg") ||
+                    rawEmbed.endsWith(".webp") ||
+                    rawEmbed.endsWith(".svg") ||
+                    rawEmbed.startsWith("data:image/")
                   ) {
                     return (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={embed}
-                        alt="Pianta del locale"
-                        className="w-full max-h-96 object-contain mx-auto"
-                      />
+                      <div className="p-4 bg-slate-100/60 flex flex-col items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={rawEmbed}
+                          alt="Pianta del locale"
+                          className="w-full max-h-96 object-contain rounded-xl"
+                        />
+                        <div className="mt-2 text-center text-xs text-slate-500 font-medium">
+                          Piantina delle sale e disposizione tavoli
+                        </div>
+                      </div>
                     );
                   }
-                  if (embed.startsWith("http://") || embed.startsWith("https://")) {
+
+                  // 3. Link HTTP / HTTPS diretto
+                  if (rawEmbed.startsWith("http://") || rawEmbed.startsWith("https://")) {
+                    // Se è un link condivisibile di Google Maps (che ha X-Frame-Options SAMEORIGIN), converti in embed
+                    if (
+                      rawEmbed.includes("google.com/maps") ||
+                      rawEmbed.includes("maps.app.goo.gl") ||
+                      rawEmbed.includes("goo.gl/maps")
+                    ) {
+                      const safeEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(targetAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                      return (
+                        <iframe
+                          src={safeEmbedUrl}
+                          className="w-full h-80 sm:h-96 border-0"
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      );
+                    }
+
                     return (
                       <iframe
-                        src={embed}
+                        src={rawEmbed}
                         className="w-full h-80 sm:h-96 border-0"
                         allowFullScreen
                         loading="lazy"
@@ -545,10 +592,17 @@ export default async function PublicShowcasePage() {
                       />
                     );
                   }
+
+                  // 4. Default automatico: Google Maps basato sull'indirizzo ufficiale del locale!
+                  const safeEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(targetAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
                   return (
-                    <div className="p-6 text-center text-xs text-slate-500 font-mono">
-                      {embed}
-                    </div>
+                    <iframe
+                      src={safeEmbedUrl}
+                      className="w-full h-80 sm:h-96 border-0"
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                   );
                 })()}
               </div>
