@@ -68,6 +68,12 @@
 - **Riconoscimento Automatico Turno & Doppio Turno**: Implementata la generazione e il riconoscimento automatico dei turni di servizio (Pranzo, Cena 1° Turno e Cena 2° Turno) anche in assenza di record pregressi nel database, garantendo la selezione fluida degli orari di arrivo sia per il primo sia per il secondo turno.
 - **Verifica Stato Giorno Potenziata**: La verifica del calendario per la data di prenotazione seleziona ora con precisione gli orari del giorno della settimana configurato dal locale, informando tempestivamente il cliente qualora il ristorante sia chiuso per riposo settimanale o ferie.
 
+### 7. 👨‍🍳 Monitor Cucina (KDS): Risoluzione Avanzamento Ordini Asporto & Opzione Annullamento
+- **Mapping Automatico Stato Asporto**: Risolto il blocco delle comande da asporto in stato `PRONTO` al pass: il sistema mappa ora automaticamente l'avanzamento su `RITIRATO` per gli ordini takeaway (precedentemente rifiutato con *"Stato ordine non valido"* se associato allo stato tavolo).
+- **Pulsante Dedicato al Banco Asporto**: Il pulsante touch di completamento per le comande da asporto mostra ora chiaramente *"Ritirato dal Cliente ✓"* anziché *"Servito al Tavolo ✓"*, garantendo massima chiarezza alla brigata.
+- **Pulsante Annullamento / Rimozione dal Pass**: Aggiunta la possibilità per la cucina di rimuovere o annullare direttamente una comanda dal monitor pass in caso di errore con richiesta di conferma immediata.
+- **Normalizzazione Automatica Canali Telegram**: La configurazione delle notifiche Telegram Staff supporta ora l'inserimento diretto degli ID gruppo copiati da Telegram Web K (con prefisso `-100` automatico per supergruppi e canali).
+
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)

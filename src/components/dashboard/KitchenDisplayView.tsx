@@ -20,11 +20,13 @@ import {
   Flame,
   Sparkles,
   Printer,
+  XCircle,
 } from "lucide-react";
 import {
   updateTableOrderStatusAction,
   updateTakeawayOrderStatusAction,
   deleteTableOrderAction,
+  deleteTakeawayOrderAction,
 } from "@/app/actions";
 import { WaiterOrderModal } from "@/components/dashboard/WaiterOrderModal";
 import { ThermalTicketModal } from "@/components/dashboard/ThermalTicketModal";
@@ -580,13 +582,26 @@ export function KitchenDisplayView({
                     <button
                       type="button"
                       disabled={isPending}
-                      onClick={() => handleUpdateStatus(order, "SERVITO")}
+                      onClick={() => handleUpdateStatus(order, order.type === "TAKEAWAY" ? "RITIRATO" : "SERVITO")}
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer disabled:opacity-50 transition-all active:scale-98"
                     >
                       <Check className="w-4 h-4" />
-                      <span>Servito al Tavolo ✓</span>
+                      <span>{order.type === "TAKEAWAY" ? "Ritirato dal Cliente ✓" : "Servito al Tavolo ✓"}</span>
                     </button>
                   )}
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => {
+                      if (window.confirm(`Vuoi rimuovere e annullare questo ordine (${order.title}) dal monitor cucina?`)) {
+                        handleUpdateStatus(order, "ANNULLATO");
+                      }
+                    }}
+                    title="Annulla o rimuovi ordine dal monitor"
+                    className="p-3 rounded-2xl bg-slate-900 hover:bg-rose-950/70 text-slate-400 hover:text-rose-300 transition cursor-pointer flex items-center justify-center shrink-0 border border-slate-800 hover:border-rose-800 active:scale-95 shadow-sm"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );

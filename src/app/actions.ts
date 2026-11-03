@@ -1103,8 +1103,13 @@ export async function createTakeawayOrderAction(data: {
   }
 }
 
-export async function updateTakeawayOrderStatusAction(id: string, status: string) {
+export async function updateTakeawayOrderStatusAction(id: string, rawStatus: string) {
   try {
+    let status = rawStatus;
+    if (status === "SERVITO") {
+      status = "RITIRATO";
+    }
+
     const validStatuses = ["IN_CODA", "IN_PREPARAZIONE", "PRONTO", "RITIRATO", "ANNULLATO"];
     if (!validStatuses.includes(status)) {
       return { success: false, error: "Stato ordine non valido" };
@@ -1124,6 +1129,9 @@ export async function updateTakeawayOrderStatusAction(id: string, status: string
     }
 
     revalidatePath("/dashboard/asporto");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard");
     return { success: true, order };
   } catch (error) {
     console.error("Errore cambio stato ordine asporto:", error);
@@ -1153,6 +1161,9 @@ export async function deleteTakeawayOrderAction(id: string) {
     });
 
     revalidatePath("/dashboard/asporto");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     console.error("Errore cancellazione ordine asporto:", error);
