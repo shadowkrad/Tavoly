@@ -29,6 +29,7 @@ import {
   ChefHat,
   Navigation,
   ExternalLink,
+  CalendarCheck,
 } from "lucide-react";
 import { ExperienceIconType, DEFAULT_TAVOLY_EXPERIENCES } from "@/lib/showcase-defaults";
 
@@ -61,7 +62,10 @@ function renderExperienceIcon(icon: ExperienceIconType) {
 }
 
 export default async function PublicShowcasePage() {
-  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting, hoursSettings] = await Promise.all([
+  const now = new Date();
+  const todayDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(now);
+
+  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting, hoursSettings, todayExceptions] = await Promise.all([
     getTenantConfig(),
     prisma.serviceShift.findMany({
       where: { isActive: true },
@@ -82,6 +86,11 @@ export default async function PublicShowcasePage() {
     prisma.localSetting.findMany({
       where: {
         key: { in: ["hours_weekday", "hours_weekend", "hours_note"] },
+      },
+    }),
+    prisma.eccezioneCalendario.findMany({
+      where: {
+        data: todayDateStr,
       },
     }),
   ]);
@@ -121,12 +130,107 @@ export default async function PublicShowcasePage() {
   // Orari Ufficiali di Apertura dell'Attività / Locale (Sincronizzati ovunque)
   const officialWeekday = showcase.contactInfo?.hoursWeekday || "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00";
   const officialWeekend = showcase.contactInfo?.hoursWeekend || "Sabato e Domenica: 16:00 - 23:00";
+  const hoursNote = showcase.contactInfo?.hoursNote || "";
 
   const weekdayLabel = officialWeekday.includes(":") ? officialWeekday.split(":")[0].trim() : "Martedì - Venerdì";
   const weekdayHours = officialWeekday.includes(":") ? officialWeekday.substring(officialWeekday.indexOf(":") + 1).trim() : officialWeekday;
 
   const weekendLabel = officialWeekend.includes(":") ? officialWeekend.split(":")[0].trim() : "Sabato e Domenica";
   const weekendHours = officialWeekend.includes(":") ? officialWeekend.substring(officialWeekend.indexOf(":") + 1).trim() : officialWeekend;
+
+  // Calcolo Orario Odierno e Stato Apertura Dinamico
+  const dayOfWeekName = new Intl.DateTimeFormat("it-IT", { weekday: "long", timeZone: "Europe/Rome" }).format(now);
+  const todayDayNameCapitalized = dayOfWeekName.charAt(0).toUpperCase() + dayOfWeekName.slice(1);
+  const isWeekend = dayOfWeekName === "sabato" || dayOfWeekName === "domenica";
+
+  const timeParts = new Intl.DateTimeFormat("it-IT", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+    timeZone: "Europe/Rome",
+  }).formatToParts(now);
+  const currentHour = parseInt(timeParts.find((p) => p.type === "hour")?.value || "0", 10);
+  const currentMin = parseInt(timeParts.find((p) => p.type === "minute")?.value || "0", 10);
+  const currentMinutes = currentHour * 60 + currentMin;
+
+  let todayScheduleText = isWeekend ? weekendHours : weekdayHours;
+  let isDayClosed = false;
+  let closedReason = "";
+
+  // 1. Controllo Eccezioni Calendario Straordinarie
+  const todayException = todayExceptions?.[0];
+  if (todayException) {
+    if (!todayException.isAperto || todayException.tipo === "CHIUSURA") {
+      isDayClosed = true;
+      closedReason = todayException.note || todayException.titolo || "Chiusura Straordinaria";
+      todayScheduleText = closedReason;
+    } else if (todayException.orarioApertura && todayException.orarioChiusura) {
+      todayScheduleText = `${todayException.orarioApertura} - ${todayException.orarioChiusura}`;
+    }
+  } else {
+    // 2. Controllo Riposo Settimanale Ordinario
+    const ferialiLower = weekdayLabel.toLowerCase();
+    const noteLower = hoursNote.toLowerCase();
+    if (
+      dayOfWeekName === "lunedì" &&
+      !ferialiLower.includes("lunedì") &&
+      (ferialiLower.includes("martedì") || noteLower.includes("lunedì"))
+    ) {
+      isDayClosed = true;
+      closedReason = hoursNote || "Chiuso per Riposo Settimanale";
+      todayScheduleText = closedReason;
+    }
+  }
+
+  // 3. Calcolo fasce orarie e badge in tempo reale
+  let badgeText = "Aperto Oggi";
+  let badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
+  let dotColor = "bg-emerald-500";
+
+  if (isDayClosed) {
+    badgeText = "Chiuso Oggi";
+    badgeStyle = "bg-rose-50 text-rose-700 border-rose-200";
+    dotColor = "bg-rose-500";
+  } else {
+    const timeRangeRegex = /(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/g;
+    const ranges: { startMin: number; endMin: number; startStr: string; endStr: string }[] = [];
+    let match;
+    while ((match = timeRangeRegex.exec(todayScheduleText)) !== null) {
+      const [, start, end] = match;
+      const [sH, sM] = start.split(":").map(Number);
+      const [eH, eM] = end.split(":").map(Number);
+      ranges.push({
+        startMin: sH * 60 + sM,
+        endMin: eH * 60 + eM,
+        startStr: start,
+        endStr: end,
+      });
+    }
+
+    if (ranges.length > 0) {
+      const isCurrentlyOpen = ranges.some((r) => currentMinutes >= r.startMin && currentMinutes <= r.endMin);
+      if (isCurrentlyOpen) {
+        badgeText = "Aperto Adesso";
+        badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold";
+        dotColor = "bg-emerald-500";
+      } else {
+        const upcoming = ranges.find((r) => currentMinutes < r.startMin);
+        if (upcoming) {
+          badgeText = `Apre alle ${upcoming.startStr}`;
+          badgeStyle = "bg-amber-50 text-amber-800 border-amber-300 font-bold";
+          dotColor = "bg-amber-500";
+        } else {
+          badgeText = "Chiuso Adesso";
+          badgeStyle = "bg-slate-100 text-slate-700 border-slate-200 font-medium";
+          dotColor = "bg-slate-400";
+        }
+      }
+    }
+  }
+
+  const heroNoteTitle = (showcase.customLabels?.heroCardNoteTitle || "").trim();
+  const heroNoteDesc = (showcase.customLabels?.heroCardNoteDesc || "").trim();
+  const hasHeroNote = Boolean(heroNoteTitle || heroNoteDesc);
 
   const showActivityHours = showcase.sections?.showHours !== false;
 
@@ -165,7 +269,23 @@ export default async function PublicShowcasePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               {/* Left Column: Text & Claim */}
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                {/* Badge rimosso per vetrina minimale */}
+                {/* Badge Link Menù Digitale nella Vetrina se attivo */}
+                {showcase.sections?.showMenuLink !== false && (
+                  <div className="flex justify-center lg:justify-start">
+                    <Link
+                      href="/menu"
+                      className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold border transition-all shadow-xs hover:scale-105 ${
+                        hasHeroCover
+                          ? "bg-white/15 text-white hover:bg-white/25 border-white/30 backdrop-blur-md"
+                          : "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border-emerald-200"
+                      }`}
+                    >
+                      <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Menù Digitale &amp; Specialità</span>
+                      <span className="text-[10px] font-normal opacity-80">Sfoglia &rarr;</span>
+                    </Link>
+                  </div>
+                )}
 
                 <h1
                   className={`text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight ${
@@ -183,14 +303,37 @@ export default async function PublicShowcasePage() {
                   {showcase.hero.subtitle}
                 </p>
 
-                <div className="pt-2 flex items-center justify-center lg:justify-start gap-4">
-                  <a
-                    href="#servizi"
-                    className="px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition shadow-xs inline-flex items-center gap-2 bg-white/90 hover:bg-white text-slate-800 border-slate-200/80 backdrop-blur-xs"
+                {/* Pulsanti Azione Principali: Prenota Tavolo / Ordina Asporto */}
+                <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                  <Link
+                    href="/prenotazione"
+                    style={{ backgroundColor: showcase.primaryColor || "#064e3b" }}
+                    className="px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-md inline-flex items-center gap-2 rounded-xl hover:opacity-95 transition"
                   >
-                    <span>I Nostri Servizi &amp; Specialità</span>
-                    <ArrowRight className="w-4 h-4 text-emerald-600" />
-                  </a>
+                    <CalendarCheck className="w-4 h-4" />
+                    <span>{showcase.hero.ctaPrimaryText || "Prenota un Tavolo"}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                  {takeawaySettings.enabled && showcase.sections.showTakeawayCta && (
+                    <Link
+                      href="/asporto"
+                      className="px-6 py-3.5 text-sm sm:text-base font-bold inline-flex items-center gap-2 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 rounded-xl shadow-xs transition"
+                    >
+                      <ShoppingBag className="w-4 h-4 text-amber-600" />
+                      <span>{showcase.hero.ctaSecondaryText || "Ordina da Asporto"}</span>
+                    </Link>
+                  )}
+
+                  {(!takeawaySettings.enabled || !showcase.sections.showTakeawayCta) && (
+                    <a
+                      href="#servizi"
+                      className="px-6 py-3.5 text-sm sm:text-base font-bold rounded-xl border transition shadow-xs inline-flex items-center gap-2 bg-white/90 hover:bg-white text-slate-800 border-slate-200/80 backdrop-blur-xs"
+                    >
+                      <span>I Nostri Servizi &amp; Specialità</span>
+                      <ArrowRight className="w-4 h-4 text-emerald-600" />
+                    </a>
+                  )}
                 </div>
 
                 {/* Badges di affidabilità */}
@@ -221,7 +364,7 @@ export default async function PublicShowcasePage() {
                 )}
               </div>
 
-              {/* Right Column: Visual Showcase Preview / Card Turni Live */}
+              {/* Right Column: Visual Showcase Preview / Card Turni Live Dinamica */}
               <div className="lg:col-span-5">
                 <div className="relative mx-auto max-w-md">
                   <div className="taaaac-card p-6 bg-white/95 backdrop-blur-md shadow-2xl border border-white/30 relative z-10 space-y-4 rounded-3xl">
@@ -238,33 +381,49 @@ export default async function PublicShowcasePage() {
                           <p className="text-[11px] text-slate-500">{showcase.customLabels?.heroCardSubtitle || "Tavoli in tempo reale"}</p>
                         </div>
                       </div>
-                      <span className="taaaac-badge bg-emerald-50 text-emerald-700 border-emerald-200">
-                        {showcase.customLabels?.heroCardBadge || "Aperto Oggi"}
+                      <span className={`taaaac-badge font-bold text-xs px-2.5 py-1 rounded-full border inline-flex items-center gap-1.5 ${badgeStyle}`}>
+                        <span className={`w-2 h-2 rounded-full ${dotColor} ${badgeStyle.includes("font-bold") ? "animate-pulse" : ""}`} />
+                        <span>{badgeText}</span>
                       </span>
                     </div>
 
                     {showActivityHours && (
-                      <div className="grid grid-cols-2 gap-3 text-center">
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-xs font-semibold text-slate-500 uppercase block truncate">{weekdayLabel}</span>
-                          <strong className="text-base font-black text-slate-900 line-clamp-2">{weekdayHours}</strong>
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-center">
+                        <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Orario di Oggi ({todayDayNameCapitalized})</span>
                         </div>
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-xs font-semibold text-slate-500 uppercase block truncate">{weekendLabel}</span>
-                          <strong className="text-base font-black text-slate-900 line-clamp-2">{weekendHours}</strong>
+                        <div className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                          {todayScheduleText}
+                        </div>
+                        <div className="pt-2 border-t border-slate-200/70 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
+                          <div className="text-left truncate">
+                            <span className="font-semibold block text-slate-700 truncate">{weekdayLabel}</span>
+                            <span className="truncate block">{weekdayHours}</span>
+                          </div>
+                          <div className="text-right truncate">
+                            <span className="font-semibold block text-slate-700 truncate">{weekendLabel}</span>
+                            <span className="truncate block">{weekendHours}</span>
+                          </div>
                         </div>
                       </div>
                     )}
 
-                    <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-950 space-y-1">
-                      <p className="font-bold flex items-center gap-1.5 text-emerald-900">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                        {showcase.customLabels?.heroCardNoteTitle || "Pranzo di lavoro o Cena Romantica?"}
-                      </p>
-                      <p className="text-emerald-800 leading-relaxed text-[11px]">
-                        {showcase.customLabels?.heroCardNoteDesc || "Puoi specificare intolleranze alimentari e preferenze di sala (interno, dehors o veranda) direttamente nel modulo di prenotazione."}
-                      </p>
-                    </div>
+                    {hasHeroNote && (
+                      <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-950 space-y-1">
+                        {heroNoteTitle && (
+                          <p className="font-bold flex items-center gap-1.5 text-emerald-900">
+                            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                            {heroNoteTitle}
+                          </p>
+                        )}
+                        {heroNoteDesc && (
+                          <p className="text-emerald-800 leading-relaxed text-[11px]">
+                            {heroNoteDesc}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl opacity-10 blur-xl"></div>
