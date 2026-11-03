@@ -237,7 +237,7 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     showContact: true,
     showTakeawayCta: true,
     showMenuLink: true,
-    showLocationMap: false,
+    showLocationMap: true,
   },
 
   experiences: DEFAULT_TAVOLY_EXPERIENCES,
