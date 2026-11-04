@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { formattaNumeroWhatsApp, generaLinkWhatsApp } from "@/lib/whatsapp-client";
 
 interface FloatingWhatsAppWidgetProps {
@@ -17,6 +18,17 @@ export default function FloatingWhatsAppWidget({
   className = "",
 }: FloatingWhatsAppWidgetProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const pathname = usePathname();
+
+  // Mostra il pallino WhatsApp solo sulle pagine pubbliche (vetrina, menù, prenotazione, asporto)
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/cucina") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/maintenance-login")
+  ) {
+    return null;
+  }
 
   if (!phone || phone.trim() === "") {
     return null;
