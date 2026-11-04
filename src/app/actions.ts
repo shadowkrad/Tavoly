@@ -132,6 +132,27 @@ export async function createPublicReservationAction(formData: FormData) {
       });
     }
 
+    // Notifica Telegram Staff
+    try {
+      const { notifyStaffNewReservation } = await import("@/lib/telegram-staff");
+      let assignedTableName: string | null = null;
+      if (tableId) {
+        const t = await prisma.table.findUnique({ where: { id: tableId } });
+        if (t) assignedTableName = t.number;
+      }
+      notifyStaffNewReservation({
+        customerName,
+        phoneNumber,
+        date: isNaN(reservationDate.getTime()) ? new Date() : reservationDate,
+        timeSlot,
+        guestCount,
+        notes,
+        tableName: assignedTableName,
+      }).catch((tgErr) => console.warn("[Telegram Staff] Errore notifica prenotazione:", tgErr));
+    } catch (tgEx) {
+      // safe ignore
+    }
+
     // Aggiornamento o creazione Scheda Cliente (Issue #9)
     try {
       await prisma.customerProfile.upsert({
@@ -1094,6 +1115,23 @@ export async function createTakeawayOrderAction(data: {
       // safe ignore
     }
 
+    // Notifica Telegram Staff
+    try {
+      const { notifyStaffNewTakeawayOrder } = await import("@/lib/telegram-staff");
+      notifyStaffNewTakeawayOrder({
+        customerName: data.customerName,
+        phoneNumber: data.phoneNumber,
+        pickupDate: (data as any).pickupDate || new Date().toISOString().split("T")[0],
+        pickupTime: data.pickupTime,
+        itemsSummary: data.itemsSummary,
+        notes: data.notes || null,
+        totalAmount: Number(data.totalAmount) || 0,
+        paymentStatus: data.paymentStatus === "PAGATO" ? "PAGATO" : "DA_PAGARE",
+      }).catch((tgErr) => console.warn("[Telegram Staff] Errore notifica asporto:", tgErr));
+    } catch (tgEx) {
+      // safe ignore
+    }
+
     revalidatePath("/dashboard/asporto");
     revalidatePath("/dashboard/clienti");
     return { success: true, order };
@@ -1241,6 +1279,21 @@ export async function createTableOrderAction(data: {
         });
       }
     } catch (pEx) {
+      // safe ignore
+    }
+
+    // Notifica Telegram Staff
+    try {
+      const { notifyStaffNewTableOrder } = await import("@/lib/telegram-staff");
+      notifyStaffNewTableOrder({
+        tableNumber: data.tableNumber,
+        coverCount: Number(data.coverCount) || 1,
+        waiterName: (data as any).waiterName || undefined,
+        items: data.items || [],
+        notes: data.notes || null,
+        totalAmount,
+      }).catch((tgErr) => console.warn("[Telegram Staff] Errore notifica comanda:", tgErr));
+    } catch (tgEx) {
       // safe ignore
     }
 
@@ -1509,6 +1562,23 @@ export async function createPublicTakeawayOrderAction(data: {
       });
     } catch (crmErr) {
       console.warn("[CRM Sync] Errore sync cliente:", crmErr);
+    }
+
+    // Notifica Telegram Staff
+    try {
+      const { notifyStaffNewTakeawayOrder } = await import("@/lib/telegram-staff");
+      notifyStaffNewTakeawayOrder({
+        customerName: data.customerName,
+        phoneNumber: cleanPhone,
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        itemsSummary,
+        notes: data.notes || null,
+        totalAmount,
+        paymentStatus: "DA_PAGARE",
+      }).catch((tgErr) => console.warn("[Telegram Staff] Errore notifica asporto pubblico:", tgErr));
+    } catch (tgEx) {
+      // safe ignore
     }
 
     revalidatePath("/dashboard/asporto");
@@ -1851,5 +1921,36 @@ export async function printTakeawayOrderEscPosAction(takeawayOrderId: string) {
     };
   } catch (error: any) {
     return { success: false, error: error.message || "Errore stampa comanda asporto" };
+  }
+}
+
+// --- TELEGRAM SETTINGS ACTION ---
+export async function saveTelegramSettingsAction(settings: {
+  enabled: boolean;
+  botToken: string;
+  botUsername?: string;
+  staffChatId: string;
+}) {
+  try {
+    const upserts = [
+      { key: "telegram_enabled", value: String(Boolean(settings.enabled)) },
+      { key: "telegram_bot_token", value: String(settings.botToken || "").trim() },
+      { key: "telegram_bot_username", value: String(settings.botUsername || "").trim() },
+      { key: "telegram_staff_chat_id", value: String(settings.staffChatId || "").trim() },
+    ];
+
+    for (const item of upserts) {
+      await prisma.localSetting.upsert({
+        where: { key: item.key },
+        create: { key: item.key, value: item.value },
+        update: { value: item.value },
+      });
+    }
+
+    revalidatePath("/dashboard/impostazioni");
+    return { success: true };
+  } catch (error) {
+    console.error("Errore salvataggio impostazioni Telegram:", error);
+    return { success: false, error: "Impossibile salvare la configurazione Telegram" };
   }
 }
