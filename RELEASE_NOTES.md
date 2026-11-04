@@ -1,5 +1,31 @@
 # 🚀 Tavoly — Release Notes
 
+## Novità della Versione 1.0.10 (Hotfix / Patch)
+
+### 1. 💬 Pallino WhatsApp Unificato (Attivazione da Taaaac Core)
+- **`FloatingWhatsAppWidget` allineato su tutta la flotta**: il pulsante galleggiante compare sulle pagine pubbliche solo se il modulo WhatsApp è attivo nella configurazione del tenant (`/api/public/tenant-config` di Taaaac Core).
+- **Nascosto nelle aree gestionali**: non appare in `/dashboard`, `/admin` e `/login`.
+- **Risposta del Core normalizzata**: lettura uniforme dei campi del tenant-config.
+
+### 2. ⚙️ Pannelli Telegram/Fidelity Visibili & Salvataggio Istantaneo dei Toggle
+- **Auto-save**: in `/dashboard/impostazioni` ogni interruttore salva subito nel database e aggiorna la vista, senza un secondo pulsante "Salva".
+- **Pannelli dedicati**: i pannelli Telegram Hub e Fidelity sono ora sempre raggiungibili dalle impostazioni.
+
+### 3. 🍽️ Ristrutturazione Flusso Comande (Cassa, CRM & Cucina)
+- **Conto unificato per tavolo** con aggiunte successive, pagamento in cassa e storico completo del cliente.
+- ⚠️ **Nota di governance**: è una modifica funzionale ampia (~1.900 righe) finita nel ramo hotfix; è documentata qui per trasparenza e può essere riclassificata come minor su indicazione di Alessio.
+
+### 4. ✈️ Notifiche Telegram allo Staff
+- **Invio automatico** di notifiche per comande, asporto e prenotazioni al gruppo staff, con pulsante di salvataggio dedicato.
+
+### 5. 🧭 Navbar Vetrina
+- **Tasto Prenota sintetico**, rimozione dei link ridondanti Menu e Asporto, spaziatura aumentata tra Orari & Contatti e Prenota.
+
+### 6. ☁️ Compatibilità Vercel Serverless con SQLite
+- **Aggiornamento di `prisma/template.db`**, `outputFileTracingIncludes` e auto-migrazione `ensureDatabase` per l'esecuzione su Vercel.
+
+---
+
 ## Novità della Versione 1.1.0 (In Sviluppo)
 
 ### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
@@ -74,23 +100,6 @@
 - **Pulsante Dedicato al Banco Asporto**: Il pulsante touch di completamento per le comande da asporto mostra ora chiaramente *"Ritirato dal Cliente ✓"* anziché *"Servito al Tavolo ✓"*, garantendo massima chiarezza alla brigata.
 - **Pulsante Annullamento / Rimozione dal Pass**: Aggiunta la possibilità per la cucina di rimuovere o annullare direttamente una comanda dal monitor pass in caso di errore con richiesta di conferma immediata.
 - **Normalizzazione Automatica Canali Telegram**: La configurazione delle notifiche Telegram Staff supporta ora l'inserimento diretto degli ID gruppo copiati da Telegram Web K (con prefisso `-100` automatico per supergruppi e canali).
-
-### 8. ⚡ Notifiche Telegram Staff Immediate per Comande, Asporto e Prenotazioni
-- **Invio Istantaneo al Gruppo dello Staff**: Ogni nuova comanda tavolo inviata dalla sala o dai palmari genera all'istante un messaggio formattato in HTML nel gruppo Telegram del personale con numero tavolo, coperti, cameriere, elenco dettagliato dei piatti con note/varianti e totale stimato.
-- **Notifica Ordini Asporto & Takeaway**: All'arrivo di un ordine da asporto (dalla vetrina online o inserito dal banco) il gruppo staff riceve la notifica con nome cliente, telefono, data/ora di ritiro, riepilogo piatti e stato pagamento.
-- **Notifica Nuove Prenotazioni Tavolo**: Recapito istantaneo delle prenotazioni ricevute online con nome cliente, recapito telefonico, data, turno/orario e numero coperti.
-- **Pulsante di Salvataggio Dedicato nella Scheda Telegram**: Aggiunto il tasto rapido *"Salva Impostazioni Telegram"* con feedback immediato direttamente all'interno della card del pannello impostazioni, consentendo all'esercente di memorizzare le credenziali senza dover risalire in cima alla pagina.
-
-### 9. 🎨 Ottimizzazione Navbar Vetrina: Tasto "Prenota" Diretto & Rimozione Link Ridondanti
-- **Pulsante CTA Sintetico "Prenota"**: Il pulsante di azione rapida nella barra in alto mostra ora sinteticamente *"Prenota"* sia su desktop che su smartphone, rendendo la testata del locale ancora più pulita e leggibile.
-- **Eliminazione Link Ridondanti (Menù e Asporto)**: Rimossi i link testuali centrali duplicati *"Menù"* e *"Asporto"* dalla barra di navigazione orizzontale in alto, focalizzando l'attenzione dell'utente sulle due sole sezioni chiave di orientamento (*"I Nostri Servizi"* e *"Orari & Contatti"*).
-- **Allineamento Live Studio Vetrina**: Aggiornato il simulatore interattivo dello Studio Vetrina per specchiare fedelmente la nuova barra di navigazione minimale.
-
-### 10. 🧾 Ristrutturazione Flusso Comande, Conto Unificato Tavolo in Cassa & Storico Completo Cliente
-- **Separazione Stato Cucina e Stato Pagamento Cassa (`DA_PAGARE` / `PAGATO`)**: Le comande al tavolo contrassegnate in cucina come *"Servito al Tavolo"* non spariscono più prima della riscossione in cassa, ma restano agganciate al conto aperto del tavolo fino al saldo effettivo (`POS / Carta` o `Contanti`).
-- **Conto Unificato Tavolo (1ª Comanda + Aggiunte Successive)**: Tutte le comande e le aggiunte inviate nel corso del servizio per lo stesso tavolo vengono raggruppate e sommate automaticamente nel pannello **Conto Tavolo & Comande (Cassa)** dentro il dettaglio del tavolo (e mostrate con badge `€ Totale` direttamente sulle card della Mappa Sala, Vista Pocket e Vista Griglia), con possibilità di inviare una nuova **Aggiunta**, stampare il **Preconto Unificato ESC/POS** e incassare l'intero conto con 1 click liberando il tavolo.
-- **Tab "Serviti / In Cassa 💳" nel Monitor Cucina KDS**: Aggiunta nel KDS la vista dedicata alle comande già servite al tavolo ma ancora da riscuotere in cassa, con indicazione progressiva (`1ª Comanda`, `➕ Aggiunta #2`), nome del cliente prenotato e pulsanti rapidi di incasso POS/Contanti.
-- **Storico Completo del Cliente nel CRM (`Clienti & Ospiti`)**: Ogni scheda ospite raccoglie ora automaticamente lo storico completo delle **Prenotazioni Tavolo**, delle **Comande & Aggiunte consumate** (con stato pagamento e metodo) e degli **Ordini Asporto**, calcolando in tempo reale la **Spesa Storica Totale (€)** del cliente.
 
 ---
 
