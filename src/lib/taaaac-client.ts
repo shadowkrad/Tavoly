@@ -27,6 +27,10 @@ export interface TenantConfig {
   dataScadenza: string | null;
   moduliAttivi: string[];
   tokenDisponibili: number;
+  telegramEnabled?: boolean;
+  telegramBotUsername?: string | null;
+  telegramAutoConfirm?: boolean;
+  telegramAutoReminder24h?: boolean;
   theme?: TenantTheme;
   activeMaintenance?: ActiveMaintenanceConfig | null;
 }

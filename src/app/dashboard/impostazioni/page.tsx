@@ -36,7 +36,7 @@ import ThermalPrinterSettingsCard from "@/components/dashboard/ThermalPrinterSet
 import { toggleKdsSettingAction } from "@/app/actions";
 import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rules";
 import ShowcaseVisualStudio from "@/components/dashboard/showcase/ShowcaseVisualStudio";
-import TelegramSettingsPanel, { TelegramSettingsData } from "@/components/dashboard/TelegramSettingsPanel";
+import TelegramHubCard, { TelegramHubData } from "@/components/dashboard/TelegramHubCard";
 import FidelitySettingsPanel, { FidelitySettingsData } from "@/components/dashboard/FidelitySettingsPanel";
 import OrariSettimanaliPanel from "@/components/dashboard/OrariSettimanaliPanel";
 import { OrariSettimanaliConfig, GIORNI_SETTIMANA_DEFAULT } from "@/lib/orari-settimanali";
@@ -237,12 +237,7 @@ export default function TavolyImpostazioniPage() {
   const [takeawaySaving, setTakeawaySaving] = useState(false);
   const [takeawaySavedNotice, setTakeawaySavedNotice] = useState(false);
   // Telegram & Fidelity State
-  const [telegramSettings, setTelegramSettings] = useState<TelegramSettingsData>({
-    enabled: false,
-    botToken: "",
-    botUsername: "",
-    staffChatId: "",
-  });
+  const [telegramHub, setTelegramHub] = useState<TelegramHubData | null>(null);
 
   const [fidelitySettings, setFidelitySettings] = useState<FidelitySettingsData>({
     enabled: false,
@@ -401,7 +396,7 @@ export default function TavolyImpostazioniPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) {
-          if (data.telegramSettings) setTelegramSettings(data.telegramSettings);
+          if (data.telegramHub) setTelegramHub(data.telegramHub);
           if (data.fidelitySettings) setFidelitySettings(data.fidelitySettings);
           if (data.takeawaySettings) {
             setTakeaway(data.takeawaySettings);
@@ -526,7 +521,6 @@ export default function TavolyImpostazioniPage() {
           fasciaPranzo: form.fasciaPranzo,
           tolleranzaRitardoMinuti: form.tolleranzaRitardoMinuti,
           takeawaySettings: takeaway,
-          telegramSettings,
           fidelitySettings,
         }),
       });
@@ -1042,30 +1036,7 @@ export default function TavolyImpostazioniPage() {
       {/* TAB TELEGRAM: TELEGRAM HUB & STAFF */}
       {activeTab === "telegram" && (
         <div className="space-y-5">
-          <TelegramSettingsPanel
-            data={telegramSettings}
-            onChange={(updated) => {
-              const toggled = updated.enabled !== telegramSettings.enabled;
-              setTelegramSettings(updated);
-              if (toggled) {
-                fetch("/api/impostazioni", {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ telegramSettings: updated }),
-                })
-                  .then(() => {
-                    setFeedback({
-                      type: "success",
-                      text: updated.enabled
-                        ? "Canale Telegram attivato e salvato!"
-                        : "Canale Telegram disattivato e salvato.",
-                    });
-                    setTimeout(() => setFeedback(null), 3000);
-                  })
-                  .catch(() => {});
-              }
-            }}
-          />
+          <TelegramHubCard hub={telegramHub} />
         </div>
       )}
 

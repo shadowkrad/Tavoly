@@ -2085,33 +2085,3 @@ export async function printTakeawayOrderEscPosAction(takeawayOrderId: string) {
   }
 }
 
-// --- TELEGRAM SETTINGS ACTION ---
-export async function saveTelegramSettingsAction(settings: {
-  enabled: boolean;
-  botToken: string;
-  botUsername?: string;
-  staffChatId: string;
-}) {
-  try {
-    const upserts = [
-      { key: "telegram_enabled", value: String(Boolean(settings.enabled)) },
-      { key: "telegram_bot_token", value: String(settings.botToken || "").trim() },
-      { key: "telegram_bot_username", value: String(settings.botUsername || "").trim() },
-      { key: "telegram_staff_chat_id", value: String(settings.staffChatId || "").trim() },
-    ];
-
-    for (const item of upserts) {
-      await prisma.localSetting.upsert({
-        where: { key: item.key },
-        create: { key: item.key, value: item.value },
-        update: { value: item.value },
-      });
-    }
-
-    revalidatePath("/dashboard/impostazioni");
-    return { success: true };
-  } catch (error) {
-    console.error("Errore salvataggio impostazioni Telegram:", error);
-    return { success: false, error: "Impossibile salvare la configurazione Telegram" };
-  }
-}
