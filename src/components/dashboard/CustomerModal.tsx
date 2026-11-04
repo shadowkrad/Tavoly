@@ -15,6 +15,12 @@ import {
   Loader2,
   Plus,
   Minus,
+  Calendar,
+  Receipt,
+  ShoppingBag,
+  CreditCard,
+  Banknote,
+  Clock,
 } from "lucide-react";
 import { createOrUpdateCustomerAction, CustomerProfileInput } from "@/app/actions";
 
@@ -22,6 +28,53 @@ interface TableSuggestion {
   id: string;
   number: string;
   areaName?: string;
+}
+
+export interface CustomerReservationHistoryItem {
+  id: string;
+  customerName: string;
+  phoneNumber: string;
+  guestCount: number;
+  date: string;
+  timeSlot: string;
+  status: string;
+  notes: string | null;
+  tableNumber: string | null;
+}
+
+export interface CustomerTableOrderHistoryItem {
+  id: string;
+  tableId: string;
+  tableNumber: string;
+  coverCount: number;
+  customerName: string | null;
+  customerPhone: string | null;
+  reservationId: string | null;
+  itemsJson: string;
+  totalAmount: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string | null;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface CustomerTakeawayHistoryItem {
+  id: string;
+  customerName: string;
+  phoneNumber: string;
+  pickupTime: string;
+  itemsSummary: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface CustomerHistoryBundle {
+  reservations: CustomerReservationHistoryItem[];
+  tableOrders: CustomerTableOrderHistoryItem[];
+  takeawayOrders: CustomerTakeawayHistoryItem[];
+  totalSpent: number;
 }
 
 interface CustomerModalProps {
@@ -39,6 +92,8 @@ interface CustomerModalProps {
     loyaltyPoints?: number;
   } | null;
   tables?: TableSuggestion[];
+  initialTab?: "PROFILE" | "HISTORY";
+  history?: CustomerHistoryBundle | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -59,9 +114,12 @@ export function CustomerModal({
   isOpen,
   customer,
   tables = [],
+  initialTab = "PROFILE",
+  history = null,
   onClose,
   onSuccess,
 }: CustomerModalProps) {
+  const [activeTab, setActiveTab] = useState<"PROFILE" | "HISTORY">(initialTab);
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -97,8 +155,9 @@ export function CustomerModal({
       setVisitCount(1);
       setLoyaltyPoints(10);
     }
+    setActiveTab(customer?.id ? initialTab : "PROFILE");
     setError(null);
-  }, [customer, isOpen]);
+  }, [customer, isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -194,6 +253,41 @@ export function CustomerModal({
           </button>
         </div>
 
+        {customer?.id && (
+          <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => setActiveTab("PROFILE")}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeTab === "PROFILE"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <User className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Anagrafica & Preferenze</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("HISTORY")}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeTab === "HISTORY"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Receipt className="w-3.5 h-3.5 text-amber-600" />
+              <span>
+                Storico Prenotazioni & Comande (
+                {(history?.reservations.length || 0) +
+                  (history?.tableOrders.length || 0) +
+                  (history?.takeawayOrders.length || 0)}
+                )
+              </span>
+            </button>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -201,6 +295,202 @@ export function CustomerModal({
           </div>
         )}
 
+        {activeTab === "HISTORY" && customer?.id ? (
+          <div className="space-y-5 max-h-[65vh] overflow-y-auto pr-1">
+            {/* Riepilogo Storico Cliente */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-center">
+                <span className="text-[10px] font-bold uppercase text-blue-700 block">
+                  Prenotazioni
+                </span>
+                <strong className="text-xl font-black text-blue-950">
+                  {history?.reservations.length || 0}
+                </strong>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                <span className="text-[10px] font-bold uppercase text-amber-800 block">
+                  Comande & Asporto
+                </span>
+                <strong className="text-xl font-black text-amber-950">
+                  {(history?.tableOrders.length || 0) + (history?.takeawayOrders.length || 0)}
+                </strong>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+                <span className="text-[10px] font-bold uppercase text-emerald-700 block">
+                  Spesa Storica
+                </span>
+                <strong className="text-xl font-black text-emerald-950">
+                  € {(history?.totalSpent || 0).toFixed(2)}
+                </strong>
+              </div>
+            </div>
+
+            {/* Sezione 1: Storico Prenotazioni Tavolo */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-blue-600" />
+                <span>Storico Prenotazioni Tavolo ({history?.reservations.length || 0})</span>
+              </h4>
+              {!history || history.reservations.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
+                  Nessuna prenotazione tavolo registrata per questo ospite.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {history.reservations.map((r) => (
+                    <div
+                      key={r.id}
+                      className="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="font-bold text-slate-900 flex items-center gap-2">
+                          <span>
+                            📅 {new Date(r.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })} · ore {r.timeSlot}
+                          </span>
+                          {r.tableNumber && (
+                            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 text-[10px] font-black">
+                              Tavolo {r.tableNumber}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          👥 {r.guestCount} coperti {r.notes ? `· 📝 ${r.notes}` : ""}
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                          r.status === "COMPLETATA"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            : r.status === "ANNULLATA"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-blue-50 text-blue-800 border-blue-200"
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sezione 2: Storico Comande al Tavolo & Aggiunte + Pagamenti */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <Receipt className="w-4 h-4 text-amber-600" />
+                <span>Comande al Tavolo & Pagamenti Cassa ({history?.tableOrders.length || 0})</span>
+              </h4>
+              {!history || history.tableOrders.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
+                  Nessuna comanda al tavolo associata a questo cliente.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {history.tableOrders.map((o) => {
+                    let parsedItems: Array<{ name: string; quantity: number; price?: number }> = [];
+                    try {
+                      parsedItems = JSON.parse(o.itemsJson);
+                    } catch {
+                      parsedItems = [];
+                    }
+                    const isPaid = o.paymentStatus === "PAGATO";
+
+                    return (
+                      <div
+                        key={o.id}
+                        className="p-3 rounded-2xl bg-white border border-slate-200 space-y-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-black">
+                              Tavolo {o.tableNumber}
+                            </span>
+                            <span className="text-slate-500 font-mono text-[11px]">
+                              {new Date(o.createdAt).toLocaleString("it-IT", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${
+                                isPaid
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                  : "bg-amber-50 text-amber-900 border-amber-300"
+                              }`}
+                            >
+                              {isPaid
+                                ? `✅ PAGATO (${o.paymentMethod || "CASSA"})`
+                                : "💳 DA PAGARE"}
+                            </span>
+                            <span className="font-black text-sm text-slate-900">
+                              € {Number(o.totalAmount || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {parsedItems.length > 0 && (
+                          <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            {parsedItems.map((it, idx) => (
+                              <span key={idx} className="inline-block mr-2">
+                                <strong>{it.quantity}×</strong> {it.name}
+                                {idx < parsedItems.length - 1 ? " · " : ""}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Sezione 3: Storico Ordini Asporto */}
+            {history && history.takeawayOrders.length > 0 && (
+              <div className="space-y-2.5">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                  <span>Ordini Asporto ({history.takeawayOrders.length})</span>
+                </h4>
+                <div className="space-y-2">
+                  {history.takeawayOrders.map((t) => (
+                    <div
+                      key={t.id}
+                      className="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="font-bold text-slate-900">
+                          🛍️ Ritiro ore {t.pickupTime} ·{" "}
+                          <span className="text-slate-500 font-normal">
+                            {new Date(t.createdAt).toLocaleDateString("it-IT")}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-600 mt-0.5">{t.itemsSummary}</div>
+                      </div>
+                      <span className="font-black text-sm text-emerald-800 shrink-0">
+                        € {Number(t.totalAmount || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+              >
+                Chiudi Storico
+              </button>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* VIP Switch Bar */}
           <div
@@ -478,6 +768,7 @@ export function CustomerModal({
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

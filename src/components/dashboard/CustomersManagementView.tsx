@@ -23,8 +23,15 @@ import {
   Filter,
   Loader2,
   ExternalLink,
+  Receipt,
 } from "lucide-react";
-import { CustomerModal } from "./CustomerModal";
+import {
+  CustomerModal,
+  CustomerReservationHistoryItem,
+  CustomerTableOrderHistoryItem,
+  CustomerTakeawayHistoryItem,
+  CustomerHistoryBundle,
+} from "./CustomerModal";
 import { incrementCustomerVisitsAction, deleteCustomerAction } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
@@ -55,12 +62,18 @@ export interface TableItem {
 interface CustomersManagementViewProps {
   initialCustomers: CustomerProfileData[];
   tables: TableItem[];
+  reservations?: CustomerReservationHistoryItem[];
+  tableOrders?: CustomerTableOrderHistoryItem[];
+  takeawayOrders?: CustomerTakeawayHistoryItem[];
   restaurantName?: string;
 }
 
 export function CustomersManagementView({
   initialCustomers,
   tables,
+  reservations = [],
+  tableOrders = [],
+  takeawayOrders = [],
   restaurantName = "Tavoly Restaurant",
 }: CustomersManagementViewProps) {
   const router = useRouter();
@@ -70,6 +83,60 @@ export function CustomersManagementView({
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfileData | null>(null);
+  const [modalInitialTab, setModalInitialTab] = useState<"PROFILE" | "HISTORY">("PROFILE");
+
+  // Costruzione mappa storico completo (prenotazioni, comande tavolo, asporto e spesa totale) per ogni cliente
+  const historyByCustomerId = useMemo(() => {
+    const normalizePhone = (p: string | null | undefined) =>
+      (p || "").replace(/[^0-9]/g, "").slice(-9);
+    const normalizeName = (n: string | null | undefined) =>
+      (n || "").trim().toLowerCase();
+
+    const map: Record<string, CustomerHistoryBundle> = {};
+
+    for (const c of initialCustomers) {
+      const cPhone = normalizePhone(c.phoneNumber);
+      const cName = normalizeName(c.name);
+
+      const custRes = reservations.filter((r) => {
+        const rPhone = normalizePhone(r.phoneNumber);
+        const rName = normalizeName(r.customerName);
+        return (cPhone.length >= 6 && rPhone === cPhone) || (cName.length >= 3 && rName === cName);
+      });
+
+      const custResIds = new Set(custRes.map((r) => r.id));
+
+      const custTableOrders = tableOrders.filter((o) => {
+        if (o.reservationId && custResIds.has(o.reservationId)) return true;
+        const oPhone = normalizePhone(o.customerPhone);
+        const oName = normalizeName(o.customerName);
+        return (cPhone.length >= 6 && oPhone === cPhone) || (cName.length >= 3 && oName === cName);
+      });
+
+      const custTakeaway = takeawayOrders.filter((t) => {
+        const tPhone = normalizePhone(t.phoneNumber);
+        const tName = normalizeName(t.customerName);
+        return (cPhone.length >= 6 && tPhone === cPhone) || (cName.length >= 3 && tName === cName);
+      });
+
+      const totalSpent =
+        custTableOrders
+          .filter((o) => o.status !== "ANNULLATO")
+          .reduce((acc, o) => acc + Number(o.totalAmount || 0), 0) +
+        custTakeaway
+          .filter((t) => t.status !== "ANNULLATO")
+          .reduce((acc, t) => acc + Number(t.totalAmount || 0), 0);
+
+      map[c.id] = {
+        reservations: custRes,
+        tableOrders: custTableOrders,
+        takeawayOrders: custTakeaway,
+        totalSpent,
+      };
+    }
+
+    return map;
+  }, [initialCustomers, reservations, tableOrders, takeawayOrders]);
 
   // Quick feedback states
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
@@ -438,7 +505,7 @@ export function CustomersManagementView({
                       </div>
                     </div>
 
-                    {/* Visite & Punti Pills */}
+                    {/* Visite, Punti & Spesa Storica Pills */}
                     <div className="text-right space-y-1 shrink-0">
                       <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                         {c.visitCount} Cene
@@ -448,6 +515,13 @@ export function CustomersManagementView({
                           {c.loyaltyPoints} Punti
                         </span>
                       </div>
+                      {(historyByCustomerId[c.id]?.totalSpent || 0) > 0 && (
+                        <div>
+                          <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 inline-block">
+                            € {historyByCustomerId[c.id].totalSpent.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -527,12 +601,34 @@ export function CustomersManagementView({
                   </div>
 
                   <div className="flex items-center gap-1">
+                    {/* Storico Prenotazioni & Comande */}
+                    <button
+                      type="button"
+                      title="Apri Storico Prenotazioni, Comande & Pagamenti"
+                      onClick={() => {
+                        setSelectedCustomer(c);
+                        setModalInitialTab("HISTORY");
+                        setIsModalOpen(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Receipt className="w-3.5 h-3.5 text-amber-600" />
+                      <span>
+                        Storico (
+                        {(historyByCustomerId[c.id]?.reservations.length || 0) +
+                          (historyByCustomerId[c.id]?.tableOrders.length || 0) +
+                          (historyByCustomerId[c.id]?.takeawayOrders.length || 0)}
+                        )
+                      </span>
+                    </button>
+
                     {/* Modifica */}
                     <button
                       type="button"
                       title="Modifica scheda"
                       onClick={() => {
                         setSelectedCustomer(c);
+                        setModalInitialTab("PROFILE");
                         setIsModalOpen(true);
                       }}
                       className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -567,9 +663,12 @@ export function CustomersManagementView({
         isOpen={isModalOpen}
         customer={selectedCustomer}
         tables={tableSuggestions}
+        initialTab={modalInitialTab}
+        history={selectedCustomer ? historyByCustomerId[selectedCustomer.id] || null : null}
         onClose={() => {
           setIsModalOpen(false);
           setSelectedCustomer(null);
+          setModalInitialTab("PROFILE");
         }}
         onSuccess={() => {
           router.refresh();

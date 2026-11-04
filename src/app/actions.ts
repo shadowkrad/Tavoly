@@ -245,7 +245,7 @@ export async function updateTablePositionAction(tableId: string, posX: number, p
 
 export async function updateTableSeatedCountAction(tableId: string, delta: number) {
   try {
-    const table = await prisma.table.findUnique({ where: { id: tableId } });
+    const table = await prisma.table.findFirst({ where: { OR: [{ id: tableId }, { number: tableId }] } });
     if (!table) return { success: false, error: "Tavolo non trovato" };
 
     const newCount = Math.max(0, Math.min(table.capacity + 4, table.seatedCount + delta));
@@ -1240,24 +1240,34 @@ export async function createTableOrderAction(data: {
       0
     );
 
-    const order = await prisma.tableOrder.create({
-      data: {
-        tableNumber: data.tableNumber.trim(),
-        coverCount: Math.max(1, Number(data.coverCount) || 2),
-        waiterName: data.waiterName?.trim() || "Cameriere Sala",
-        status: "IN_CODA",
-        itemsJson: JSON.stringify(data.items),
-        notes: data.notes?.trim() || null,
-        totalAmount,
-      },
-    });
+    let linkedReservationId: string | null = null;
+    let linkedCustomerName: string | null = null;
+    let linkedCustomerPhone: string | null = null;
 
-    // Se esiste un tavolo fisico con questo numero, aggiorniamolo a OCCUPATO
+    // Se esiste un tavolo fisico con questo numero, aggiorniamolo a OCCUPATO e colleghiamo eventuale prenotazione attiva
     try {
       const existingTable = await prisma.table.findFirst({
         where: { number: data.tableNumber.trim() },
       });
       if (existingTable) {
+        const activeRes = await prisma.reservation.findFirst({
+          where: {
+            tableId: existingTable.id,
+            status: { in: ["CONFERMATA", "SEDUTI", "IN_ATTESA"] },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+        if (activeRes) {
+          linkedReservationId = activeRes.id;
+          linkedCustomerName = activeRes.customerName;
+          linkedCustomerPhone = activeRes.phoneNumber;
+          if (activeRes.status !== "SEDUTI") {
+            await prisma.reservation.update({
+              where: { id: activeRes.id },
+              data: { status: "SEDUTI" },
+            });
+          }
+        }
         await prisma.table.update({
           where: { id: existingTable.id },
           data: {
@@ -1269,6 +1279,22 @@ export async function createTableOrderAction(data: {
     } catch (tableErr) {
       console.warn("[Table Order] Errore aggiornamento stato tavolo fisico:", tableErr);
     }
+
+    const order = await prisma.tableOrder.create({
+      data: {
+        tableNumber: data.tableNumber.trim(),
+        coverCount: Math.max(1, Number(data.coverCount) || 2),
+        waiterName: data.waiterName?.trim() || "Cameriere Sala",
+        status: "IN_CODA",
+        paymentStatus: "DA_PAGARE",
+        reservationId: linkedReservationId,
+        customerName: linkedCustomerName,
+        customerPhone: linkedCustomerPhone,
+        itemsJson: JSON.stringify(data.items),
+        notes: data.notes?.trim() || null,
+        totalAmount,
+      },
+    });
 
     // Auto-print ESC/POS se abilitato
     try {
@@ -1335,12 +1361,147 @@ export async function deleteTableOrderAction(id: string) {
       where: { id },
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/dashboard/cucina");
     revalidatePath("/cucina");
     return { success: true };
   } catch (error) {
     console.error("Errore eliminazione comanda tavolo:", error);
     return { success: false, error: "Impossibile eliminare la comanda" };
+  }
+}
+
+export async function settleTableBillAction(
+  tableId: string,
+  paymentMethod: "CONTANTI" | "CARTA" | "ALTRO" = "CARTA",
+  nextTableStatus: "LIBERO" | "DA_PULIRE" = "LIBERO"
+) {
+  try {
+    const table = await prisma.table.findUnique({ where: { id: tableId } });
+    if (!table) {
+      return { success: false, error: "Tavolo non trovato" };
+    }
+
+    const activeReservations = await prisma.reservation.findMany({
+      where: {
+        tableId: table.id,
+        status: { in: ["CONFERMATA", "SEDUTI", "IN_ATTESA"] },
+      },
+    });
+
+    const primaryRes = activeReservations[0] || null;
+
+    const openOrders = await prisma.tableOrder.findMany({
+      where: {
+        tableNumber: table.number,
+        paymentStatus: "DA_PAGARE",
+        status: { not: "ANNULLATO" },
+      },
+    });
+
+    const totalBill = openOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+
+    if (openOrders.length > 0) {
+      await prisma.tableOrder.updateMany({
+        where: {
+          id: { in: openOrders.map((o) => o.id) },
+        },
+        data: {
+          paymentStatus: "PAGATO",
+          paymentMethod,
+          paidAt: new Date(),
+          status: "SERVITO",
+          ...(primaryRes
+            ? {
+                reservationId: primaryRes.id,
+                customerName: primaryRes.customerName,
+                customerPhone: primaryRes.phoneNumber,
+              }
+            : {}),
+        },
+      });
+    }
+
+    for (const res of activeReservations) {
+      await prisma.reservation.update({
+        where: { id: res.id },
+        data: { status: "COMPLETATA" },
+      });
+
+      if (res.phoneNumber && res.phoneNumber.trim().length >= 5) {
+        const cleanPhone = res.phoneNumber.trim();
+        const pointsEarned = Math.max(10, Math.round(totalBill));
+        try {
+          await prisma.customerProfile.upsert({
+            where: { phoneNumber: cleanPhone },
+            create: {
+              phoneNumber: cleanPhone,
+              name: res.customerName,
+              email: res.email || null,
+              visitCount: 1,
+              loyaltyPoints: pointsEarned,
+              lastVisitAt: new Date(),
+            },
+            update: {
+              visitCount: { increment: 1 },
+              loyaltyPoints: { increment: pointsEarned },
+              lastVisitAt: new Date(),
+            },
+          });
+        } catch (crmErr) {
+          console.warn("[Cassa CRM] Errore aggiornamento cliente:", crmErr);
+        }
+      }
+    }
+
+    await prisma.table.update({
+      where: { id: table.id },
+      data: {
+        status: nextTableStatus,
+        seatedCount: 0,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard/clienti");
+    revalidatePath("/dashboard/prenotazioni");
+
+    return {
+      success: true,
+      settledCount: openOrders.length,
+      totalPaid: totalBill,
+    };
+  } catch (error) {
+    console.error("Errore chiusura conto tavolo:", error);
+    return { success: false, error: "Impossibile chiudere il conto del tavolo" };
+  }
+}
+
+export async function settleSingleTableOrderAction(
+  orderId: string,
+  paymentMethod: "CONTANTI" | "CARTA" | "ALTRO" = "CARTA"
+) {
+  try {
+    const order = await prisma.tableOrder.update({
+      where: { id: orderId },
+      data: {
+        paymentStatus: "PAGATO",
+        paymentMethod,
+        paidAt: new Date(),
+        status: "SERVITO",
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/cucina");
+    revalidatePath("/cucina");
+    revalidatePath("/dashboard/clienti");
+    return { success: true, order };
+  } catch (error) {
+    console.error("Errore pagamento singola comanda:", error);
+    return { success: false, error: "Impossibile registrare il pagamento" };
   }
 }
 

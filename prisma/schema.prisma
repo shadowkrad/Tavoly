@@ -153,20 +153,27 @@ model MenuItem {
   @@index([category])
 }
 
-// Comande del Tavolo (Presa comande cameriere & Monitor Cucina KDS)
+// Comande del Tavolo (Presa comande cameriere, Monitor Cucina KDS & Cassa)
 model TableOrder {
-  id           String   @id @default(cuid())
-  tableNumber  String   // es. "1", "4", "Dehors 2"
-  coverCount   Int      @default(2)
-  waiterName   String?  // es. "Marco", "Cameriere Sala"
-  status       String   @default("IN_CODA") // IN_CODA, IN_PREPARAZIONE, PRONTO, SERVITO, ANNULLATO
-  itemsJson    String   // JSON string di piatti ordinati con varianti: [{dishId, name, category, quantity, price, variants: string[]}]
-  notes        String?  // Note generali per la cucina
-  totalAmount  Float    @default(0.0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String    @id @default(cuid())
+  tableNumber   String    // es. "1", "4", "Dehors 2"
+  coverCount    Int       @default(2)
+  waiterName    String?   // es. "Marco", "Cameriere Sala"
+  status        String    @default("IN_CODA") // IN_CODA, IN_PREPARAZIONE, PRONTO, SERVITO, ANNULLATO
+  paymentStatus String    @default("DA_PAGARE") // DA_PAGARE, PAGATO
+  paymentMethod String?   // CONTANTI, CARTA, ALTRO
+  paidAt        DateTime?
+  customerName  String?
+  customerPhone String?
+  reservationId String?
+  itemsJson     String    // JSON string di piatti ordinati con varianti: [{dishId, name, category, quantity, price, variants: string[]}]
+  notes         String?   // Note generali per la cucina
+  totalAmount   Float     @default(0.0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([status])
+  @@index([paymentStatus])
 }
 
 // 🛡️ Sicurezza v1.0.6: Tenant Security & Cache
