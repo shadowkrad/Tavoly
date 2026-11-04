@@ -1737,7 +1737,6 @@ export default function ShowcaseVisualStudio() {
                 {deviceMode === "desktop" && (
                   <div className="hidden lg:flex items-center gap-4 text-xs font-semibold text-slate-600">
                     <span className="hover:text-emerald-700 cursor-pointer">I Nostri Servizi</span>
-                    <span className="hover:text-emerald-700 cursor-pointer">Prenota un Tavolo</span>
                     <span className="hover:text-emerald-700 cursor-pointer">Orari &amp; Contatti</span>
                   </div>
                 )}
@@ -1748,7 +1747,7 @@ export default function ShowcaseVisualStudio() {
                     className="text-[10px] sm:text-xs font-bold text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-xs inline-flex items-center gap-1 cursor-default whitespace-nowrap"
                   >
                     <CalendarCheck className="w-3 h-3" />
-                    <span>Prenota un Tavolo</span>
+                    <span>Prenota</span>
                   </span>
                   <span className="p-1 text-slate-400 rounded-lg">
                     <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
