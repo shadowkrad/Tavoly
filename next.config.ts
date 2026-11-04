@@ -40,6 +40,9 @@ const isDocker = process.env.DOCKER_BUILD === "true";
 
 const nextConfig: NextConfig = {
   ...(isDocker ? { output: "standalone" } : {}),
+  outputFileTracingIncludes: {
+    "/*": ["./prisma/template.db", "./prisma/dev.db"],
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

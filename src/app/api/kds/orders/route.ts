@@ -8,15 +8,18 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const includeCompleted = searchParams.get("all") === "true";
 
-    // Recupera comande tavolo
+    // Recupera comande tavolo (in cucina + quelle già servite ma ancora DA_PAGARE in cassa)
     const tableOrders = await prisma.tableOrder.findMany({
       where: includeCompleted
         ? {}
         : {
-            status: { in: ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"] },
+            OR: [
+              { status: { in: ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"] } },
+              { status: "SERVITO", paymentStatus: "DA_PAGARE" },
+            ],
           },
       orderBy: { createdAt: "asc" },
-      take: 50,
+      take: 80,
     });
 
     // Recupera ordini asporto attivi
@@ -27,12 +30,18 @@ export async function GET(req: NextRequest) {
             status: { in: ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"] },
           },
       orderBy: { createdAt: "asc" },
-      take: 30,
+      take: 40,
     });
 
     const now = Date.now();
 
+    // Calcola il progressivo (1ª Comanda, Aggiunta #2, ecc.) per ogni tavolo con conto aperto
+    const seqCounterByTable: Record<string, number> = {};
+
     const unifiedTableOrders = tableOrders.map((to) => {
+      seqCounterByTable[to.tableNumber] = (seqCounterByTable[to.tableNumber] || 0) + 1;
+      const orderSequence = seqCounterByTable[to.tableNumber];
+
       let parsedItems: Array<{
         dishId?: string;
         name: string;
@@ -54,11 +63,17 @@ export async function GET(req: NextRequest) {
       return {
         id: to.id,
         type: "TABLE" as const,
+        tableId: to.tableNumber,
         title: `Tavolo ${to.tableNumber}`,
         tableNumber: to.tableNumber,
         coverCount: to.coverCount,
         waiterName: to.waiterName || "Sala",
+        customerName: to.customerName || null,
+        customerPhone: to.customerPhone || null,
         status: to.status,
+        paymentStatus: to.paymentStatus || "DA_PAGARE",
+        paymentMethod: to.paymentMethod || null,
+        orderSequence,
         notes: to.notes,
         totalAmount: to.totalAmount,
         createdAt: to.createdAt.toISOString(),
@@ -71,7 +86,6 @@ export async function GET(req: NextRequest) {
       const elapsedMs = now - new Date(tko.createdAt).getTime();
       const minutesWaiting = Math.max(0, Math.floor(elapsedMs / 60000));
 
-      // Creiamo item semplificato da itemsSummary
       const items = (tko.itemsSummary || "Ordine Asporto")
         .split(",")
         .map((s) => s.trim())
@@ -86,11 +100,17 @@ export async function GET(req: NextRequest) {
       return {
         id: tko.id,
         type: "TAKEAWAY" as const,
+        tableId: null,
         title: `Asporto: ${tko.customerName}`,
         tableNumber: `Asporto (${tko.pickupTime})`,
         coverCount: 1,
         waiterName: tko.phoneNumber || "Asporto",
+        customerName: tko.customerName,
+        customerPhone: tko.phoneNumber,
         status: tko.status,
+        paymentStatus: "DA_PAGARE",
+        paymentMethod: null,
+        orderSequence: 1,
         notes: tko.notes,
         totalAmount: tko.totalAmount,
         createdAt: tko.createdAt.toISOString(),
@@ -104,14 +124,21 @@ export async function GET(req: NextRequest) {
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
+    const activeKitchenOrders = allOrders.filter((o) =>
+      ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"].includes(o.status)
+    );
+
     return NextResponse.json({
       success: true,
       orders: allOrders,
       counts: {
-        total: allOrders.length,
+        total: activeKitchenOrders.length,
         inCoda: allOrders.filter((o) => o.status === "IN_CODA").length,
         inPreparazione: allOrders.filter((o) => o.status === "IN_PREPARAZIONE").length,
         pronto: allOrders.filter((o) => o.status === "PRONTO").length,
+        servitoDaPagare: allOrders.filter(
+          (o) => o.status === "SERVITO" && o.paymentStatus === "DA_PAGARE"
+        ).length,
       },
     });
   } catch (error) {

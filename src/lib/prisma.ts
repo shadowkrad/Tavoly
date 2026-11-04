@@ -2,17 +2,24 @@ import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+  dbInitPromise: Promise<void> | undefined;
+};
+
 function getDatabaseUrl(): string {
   if (process.env.VERCEL) {
     const tmpDbPath = path.join("/tmp", "tavoly.db");
     const templatePath = path.join(process.cwd(), "prisma", "template.db");
+    const devDbPath = path.join(process.cwd(), "prisma", "dev.db");
+    const sourcePath = fs.existsSync(templatePath) ? templatePath : devDbPath;
 
     let shouldCopy = !fs.existsSync(tmpDbPath);
-    if (!shouldCopy && fs.existsSync(templatePath)) {
+    if (!shouldCopy && fs.existsSync(sourcePath)) {
       try {
-        const templateStat = fs.statSync(templatePath);
+        const srcStat = fs.statSync(sourcePath);
         const tmpStat = fs.statSync(tmpDbPath);
-        if (templateStat.mtimeMs > tmpStat.mtimeMs || templateStat.size !== tmpStat.size) {
+        if (srcStat.mtimeMs > tmpStat.mtimeMs || srcStat.size !== tmpStat.size) {
           shouldCopy = true;
         }
       } catch {
@@ -20,15 +27,13 @@ function getDatabaseUrl(): string {
       }
     }
 
-    if (shouldCopy && fs.existsSync(templatePath)) {
+    if (shouldCopy && fs.existsSync(sourcePath)) {
       try {
-        fs.copyFileSync(templatePath, tmpDbPath);
+        fs.copyFileSync(sourcePath, tmpDbPath);
         console.log("[Vercel SQLite] Inizializzato/aggiornato database SQLite in /tmp/tavoly.db");
       } catch (err) {
         console.error("[Vercel SQLite] Errore copia template.db in /tmp:", err);
       }
-    } else if (!fs.existsSync(templatePath)) {
-      console.warn("[Vercel SQLite] template.db non trovato in", templatePath);
     }
 
     const resolvedUrl = `file:${tmpDbPath}`;
@@ -40,10 +45,6 @@ function getDatabaseUrl(): string {
 }
 
 const dbUrl = getDatabaseUrl();
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
 
 export const prisma =
   globalForPrisma.prisma ??
@@ -57,3 +58,74 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+export async function ensureDatabase(): Promise<void> {
+  if (globalForPrisma.dbInitPromise) {
+    return globalForPrisma.dbInitPromise;
+  }
+
+  globalForPrisma.dbInitPromise = (async () => {
+    const addColumnIfNotExists = async (table: string, column: string, definition: string) => {
+      try {
+        const info = (await prisma.$queryRawUnsafe(`PRAGMA table_info("${table}");`)) as Array<{ name: string }>;
+        const exists = Array.isArray(info) && info.some((col) => col.name.toLowerCase() === column.toLowerCase());
+        if (!exists) {
+          await prisma.$executeRawUnsafe(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${definition};`);
+        }
+      } catch {
+        // Ignora se la tabella o colonna è già allineata
+      }
+    };
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "EccezioneCalendario" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "data" TEXT NOT NULL UNIQUE,
+          "titolo" TEXT NOT NULL,
+          "tipo" TEXT NOT NULL DEFAULT 'CHIUSURA',
+          "isAperto" BOOLEAN NOT NULL DEFAULT 0,
+          "orarioApertura" TEXT,
+          "orarioChiusura" TEXT,
+          "pausaInizio" TEXT,
+          "pausaFine" TEXT,
+          "note" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "StaffMember" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "name" TEXT NOT NULL,
+          "role" TEXT NOT NULL DEFAULT 'CAMERIERE',
+          "phone" TEXT,
+          "email" TEXT,
+          "color" TEXT NOT NULL DEFAULT '#10b981',
+          "pin" TEXT,
+          "assignedAreas" TEXT,
+          "serviceShifts" TEXT,
+          "isActive" BOOLEAN NOT NULL DEFAULT 1,
+          "notes" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      await addColumnIfNotExists("TableOrder", "paymentStatus", "TEXT NOT NULL DEFAULT 'DA_PAGARE'");
+      await addColumnIfNotExists("TableOrder", "paymentMethod", "TEXT");
+      await addColumnIfNotExists("TableOrder", "paidAt", "DATETIME");
+      await addColumnIfNotExists("TableOrder", "customerName", "TEXT");
+      await addColumnIfNotExists("TableOrder", "customerPhone", "TEXT");
+      await addColumnIfNotExists("TableOrder", "reservationId", "TEXT");
+      await addColumnIfNotExists("TenantLocalCache", "rispettaFestivitaNazionali", "BOOLEAN NOT NULL DEFAULT 1");
+    } catch {
+      // Ignora errori minori di auto-migrazione
+    }
+  })();
+
+  return globalForPrisma.dbInitPromise;
+}
+
+ensureDatabase().catch(() => {});

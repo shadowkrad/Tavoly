@@ -1,14 +1,14 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
+import { prisma, ensureDatabase } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { TableItem } from "@/components/dashboard/TableCanvasBoard";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
 import { FloorPlanView } from "@/components/dashboard/FloorPlanView";
-import { getProssimeFestivitaTavoly } from "@/lib/festivita-italiane";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  await ensureDatabase();
   const [
     tenantConfig,
     areas,
@@ -17,6 +17,7 @@ export default async function DashboardPage() {
     serviceShifts,
     customerProfilesList,
     takeawayOrders,
+    rawTableOrders,
     paletteSetting,
   ] = await Promise.all([
     getTenantConfig(),
@@ -46,6 +47,15 @@ export default async function DashboardPage() {
     prisma.takeawayOrder.findMany({
       orderBy: { createdAt: "desc" },
     }),
+    prisma.tableOrder
+      .findMany({
+        where: {
+          paymentStatus: "DA_PAGARE",
+          status: { not: "ANNULLATO" },
+        },
+        orderBy: { createdAt: "asc" },
+      })
+      .catch(() => []),
     prisma.localSetting.findUnique({
       where: { key: "active_palette_id" },
     }),
@@ -80,6 +90,19 @@ export default async function DashboardPage() {
     },
   }));
 
+  const tableOrders = rawTableOrders.map((to) => ({
+    id: to.id,
+    tableNumber: to.tableNumber,
+    coverCount: to.coverCount,
+    waiterName: to.waiterName,
+    status: to.status,
+    paymentStatus: to.paymentStatus || "DA_PAGARE",
+    itemsJson: to.itemsJson,
+    notes: to.notes,
+    totalAmount: to.totalAmount,
+    createdAt: to.createdAt.toISOString(),
+  }));
+
   const hasWhatsAppModule = tenantConfig.enabledModules.includes("WHATSAPP_REMINDERS");
   const hasVendolyModule = tenantConfig.enabledModules.includes("VENDOLY_CHANNEL_MANAGER");
 
@@ -91,6 +114,7 @@ export default async function DashboardPage() {
       customerProfiles={customerProfiles}
       serviceShifts={serviceShifts}
       takeawayOrders={takeawayOrders}
+      tableOrders={tableOrders}
       paletteId={paletteSetting?.value || "ROYAL_BLUE"}
       hasVendolyModule={hasVendolyModule}
       hasWhatsAppModule={hasWhatsAppModule}
