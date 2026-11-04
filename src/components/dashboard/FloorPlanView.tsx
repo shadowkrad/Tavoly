@@ -13,6 +13,7 @@ import {
   ChefHat,
 } from "lucide-react";
 import { TableCanvasBoard, TableItem } from "./TableCanvasBoard";
+import { TableOrderSummaryItem } from "./TableDetailModal";
 import { ReservationsDrawer } from "./ReservationsDrawer";
 import { NewReservationModal } from "@/components/NewReservationModal";
 import { ShiftsManagementModal, ServiceShiftItem } from "./ShiftsManagementModal";
@@ -58,6 +59,7 @@ interface FloorPlanViewProps {
   customerProfiles: Record<string, CustomerProfileMapItem>;
   serviceShifts: ServiceShiftItem[];
   takeawayOrders: TakeawayItem[];
+  tableOrders?: TableOrderSummaryItem[];
   paletteId: string;
   hasVendolyModule: boolean;
   hasWhatsAppModule: boolean;
@@ -71,6 +73,7 @@ export function FloorPlanView({
   customerProfiles,
   serviceShifts,
   takeawayOrders,
+  tableOrders = [],
   paletteId,
   hasVendolyModule,
   hasWhatsAppModule,
@@ -96,6 +99,9 @@ export function FloorPlanView({
     (r) => r.status !== "ANNULLATA" && r.status !== "COMPLETATA"
   ).length;
   const pendingTakeawayCount = takeawayOrders.filter((o) => o.status !== "RITIRATO").length;
+  const openBillsTotal = tableOrders
+    .filter((o) => o.paymentStatus === "DA_PAGARE" && o.status !== "ANNULLATO")
+    .reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
   const tablesCountByArea = tables.reduce((acc, t) => {
     acc[t.areaId] = (acc[t.areaId] || 0) + 1;
@@ -149,6 +155,12 @@ export function FloorPlanView({
               <Users className="w-3.5 h-3.5 text-slate-500" />
               <span>{totalGuestsToday} Coperti</span>
             </div>
+
+            {openBillsTotal > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-xl font-black">
+                <span>🧾 Da Riscuotere: € {openBillsTotal.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -255,6 +267,8 @@ export function FloorPlanView({
           tables={tables}
           areas={areas}
           reservations={reservations}
+          tableOrders={tableOrders}
+          restaurantName={restaurantName}
           onOpenAreasModal={() => setIsAreasOpen(true)}
         />
       </div>

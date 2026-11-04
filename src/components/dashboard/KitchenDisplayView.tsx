@@ -21,12 +21,17 @@ import {
   Sparkles,
   Printer,
   XCircle,
+  Receipt,
+  CreditCard,
+  Banknote,
 } from "lucide-react";
 import {
   updateTableOrderStatusAction,
   updateTakeawayOrderStatusAction,
   deleteTableOrderAction,
   deleteTakeawayOrderAction,
+  settleSingleTableOrderAction,
+  settleTableBillAction,
 } from "@/app/actions";
 import { WaiterOrderModal } from "@/components/dashboard/WaiterOrderModal";
 import { ThermalTicketModal } from "@/components/dashboard/ThermalTicketModal";
@@ -44,11 +49,17 @@ export interface KdsOrderItem {
 export interface KdsOrder {
   id: string;
   type: "TABLE" | "TAKEAWAY";
+  tableId?: string | null;
   title: string;
   tableNumber: string;
   coverCount: number;
   waiterName: string;
+  customerName?: string | null;
+  customerPhone?: string | null;
   status: string;
+  paymentStatus?: string;
+  paymentMethod?: string | null;
+  orderSequence?: number;
   notes: string | null;
   totalAmount: number;
   createdAt: string;
@@ -217,19 +228,47 @@ export function KitchenDisplayView({
     });
   };
 
-  // Filtro ordini visualizzati
+  // Incasso rapido comanda o intero conto tavolo dalla vista KDS/Cassa
+  const handleSettleOrder = (order: KdsOrder, method: "CARTA" | "CONTANTI") => {
+    setOrders((prev) => prev.filter((o) => o.id !== order.id));
+    startTransition(async () => {
+      await settleSingleTableOrderAction(order.id, method);
+      fetchOrders();
+    });
+  };
+
+  const handleSettleFullTable = (tableId: string, tableNumber: string, method: "CARTA" | "CONTANTI") => {
+    if (!window.confirm(`Confermi l'incasso di TUTTE le comande e aggiunte del Tavolo ${tableNumber} (${method}) e la liberazione del tavolo?`)) {
+      return;
+    }
+    setOrders((prev) => prev.filter((o) => o.tableId !== tableId));
+    startTransition(async () => {
+      await settleTableBillAction(tableId, method, "LIBERO");
+      fetchOrders();
+    });
+  };
+
+  // Filtro ordini visualizzati:
+  // "ALL" mostra gli ordini attivi in cucina (IN_CODA, IN_PREPARAZIONE, PRONTO)
+  // "SERVITO" mostra le comande già consegnate al tavolo ma ancora DA PAGARE in cassa
   const filteredOrders = useMemo(() => {
-    if (filterStatus === "ALL") return orders;
+    if (filterStatus === "ALL") {
+      return orders.filter((o) => ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"].includes(o.status));
+    }
+    if (filterStatus === "SERVITO") {
+      return orders.filter((o) => o.status === "SERVITO" && o.paymentStatus !== "PAGATO");
+    }
     return orders.filter((o) => o.status === filterStatus);
   }, [orders, filterStatus]);
 
   // Conteggi per le card in testa
   const counts = useMemo(() => {
     return {
-      all: orders.length,
+      all: orders.filter((o) => ["IN_CODA", "IN_PREPARAZIONE", "PRONTO"].includes(o.status)).length,
       inCoda: orders.filter((o) => o.status === "IN_CODA").length,
       inPrep: orders.filter((o) => o.status === "IN_PREPARAZIONE").length,
       pronti: orders.filter((o) => o.status === "PRONTO").length,
+      servitoDaPagare: orders.filter((o) => o.status === "SERVITO" && o.paymentStatus !== "PAGATO").length,
     };
   }, [orders]);
 
@@ -385,6 +424,21 @@ export function KitchenDisplayView({
               {counts.pronti}
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterStatus("SERVITO")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              filterStatus === "SERVITO"
+                ? "bg-purple-600 text-white shadow-xs ring-2 ring-purple-400/40"
+                : "bg-slate-900/60 text-purple-300 hover:text-white hover:bg-purple-950/60 border border-purple-800/60"
+            }`}
+          >
+            <span>Serviti / In Cassa 💳</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-950 text-purple-200 font-black">
+              {counts.servitoDaPagare}
+            </span>
+          </button>
         </div>
 
         <div className="text-[11px] text-slate-400 font-mono">
@@ -452,10 +506,19 @@ export function KitchenDisplayView({
                       <span className="text-[10px] font-mono font-bold text-slate-400">
                         #{index + 1}
                       </span>
-                      <h2 className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+                      <h2 className="text-lg font-black tracking-tight text-white flex items-center gap-1.5 flex-wrap">
                         {order.type === "TABLE" ? (
                           <>
                             <span>TAVOLO {order.tableNumber}</span>
+                            {order.orderSequence && order.orderSequence > 1 ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black uppercase tracking-wider">
+                                ➕ Aggiunta #{order.orderSequence}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-200 font-bold">
+                                1ª Comanda
+                              </span>
+                            )}
                           </>
                         ) : (
                           <>
@@ -465,13 +528,17 @@ export function KitchenDisplayView({
                         )}
                       </h2>
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-300">
+                    <div className="text-[11px] font-semibold text-slate-300 flex flex-wrap items-center gap-1.5 mt-0.5">
                       {order.type === "TABLE" ? (
-                        <span>
-                          👥 {order.coverCount}p · Cameriere: {order.waiterName}
-                        </span>
+                        <>
+                          <span>👥 {order.coverCount}p · {order.waiterName}</span>
+                          {order.customerName && (
+                            <span className="text-blue-300 font-bold">· 👤 {order.customerName}</span>
+                          )}
+                          <span className="text-amber-300 font-black">· € {Number(order.totalAmount || 0).toFixed(2)}</span>
+                        </>
                       ) : (
-                        <span>Cliente: {order.title.replace("Asporto: ", "")}</span>
+                        <span>Cliente: {order.title.replace("Asporto: ", "")} · € {Number(order.totalAmount || 0).toFixed(2)}</span>
                       )}
                     </div>
                   </div>
@@ -586,8 +653,46 @@ export function KitchenDisplayView({
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer disabled:opacity-50 transition-all active:scale-98"
                     >
                       <Check className="w-4 h-4" />
-                      <span>{order.type === "TAKEAWAY" ? "Ritirato dal Cliente ✓" : "Servito al Tavolo ✓"}</span>
+                      <span>{order.type === "TAKEAWAY" ? "Ritirato dal Cliente ✓" : "Servito (Passa in Cassa) ✓"}</span>
                     </button>
+                  )}
+
+                  {order.status === "SERVITO" && (
+                    <div className="w-full flex flex-col gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => handleSettleOrder(order, "CARTA")}
+                          className="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-[11px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-md cursor-pointer disabled:opacity-50 transition-all"
+                          title="Incassa questa comanda con POS / Carta"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>POS €{Number(order.totalAmount || 0).toFixed(2)}</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => handleSettleOrder(order, "CONTANTI")}
+                          className="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-[11px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-md cursor-pointer disabled:opacity-50 transition-all"
+                          title="Incassa questa comanda in Contanti"
+                        >
+                          <Banknote className="w-3.5 h-3.5" />
+                          <span>Contanti</span>
+                        </button>
+                      </div>
+                      {order.tableId && (
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => handleSettleFullTable(order.tableId!, order.tableNumber, "CARTA")}
+                          className="w-full py-1.5 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-[10px] flex items-center justify-center gap-1 cursor-pointer transition-all"
+                        >
+                          <Receipt className="w-3 h-3" />
+                          <span>Salda Conto Totale Tav. {order.tableNumber} & Libera</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                   <button
                     type="button"

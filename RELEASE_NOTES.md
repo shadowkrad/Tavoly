@@ -86,6 +86,12 @@
 - **Eliminazione Link Ridondanti (Menù e Asporto)**: Rimossi i link testuali centrali duplicati *"Menù"* e *"Asporto"* dalla barra di navigazione orizzontale in alto, focalizzando l'attenzione dell'utente sulle due sole sezioni chiave di orientamento (*"I Nostri Servizi"* e *"Orari & Contatti"*).
 - **Allineamento Live Studio Vetrina**: Aggiornato il simulatore interattivo dello Studio Vetrina per specchiare fedelmente la nuova barra di navigazione minimale.
 
+### 10. 🧾 Ristrutturazione Flusso Comande, Conto Unificato Tavolo in Cassa & Storico Completo Cliente
+- **Separazione Stato Cucina e Stato Pagamento Cassa (`DA_PAGARE` / `PAGATO`)**: Le comande al tavolo contrassegnate in cucina come *"Servito al Tavolo"* non spariscono più prima della riscossione in cassa, ma restano agganciate al conto aperto del tavolo fino al saldo effettivo (`POS / Carta` o `Contanti`).
+- **Conto Unificato Tavolo (1ª Comanda + Aggiunte Successive)**: Tutte le comande e le aggiunte inviate nel corso del servizio per lo stesso tavolo vengono raggruppate e sommate automaticamente nel pannello **Conto Tavolo & Comande (Cassa)** dentro il dettaglio del tavolo (e mostrate con badge `€ Totale` direttamente sulle card della Mappa Sala, Vista Pocket e Vista Griglia), con possibilità di inviare una nuova **Aggiunta**, stampare il **Preconto Unificato ESC/POS** e incassare l'intero conto con 1 click liberando il tavolo.
+- **Tab "Serviti / In Cassa 💳" nel Monitor Cucina KDS**: Aggiunta nel KDS la vista dedicata alle comande già servite al tavolo ma ancora da riscuotere in cassa, con indicazione progressiva (`1ª Comanda`, `➕ Aggiunta #2`), nome del cliente prenotato e pulsanti rapidi di incasso POS/Contanti.
+- **Storico Completo del Cliente nel CRM (`Clienti & Ospiti`)**: Ogni scheda ospite raccoglie ora automaticamente lo storico completo delle **Prenotazioni Tavolo**, delle **Comande & Aggiunte consumate** (con stato pagamento e metodo) e degli **Ordini Asporto**, calcolando in tempo reale la **Spesa Storica Totale (€)** del cliente.
+
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)

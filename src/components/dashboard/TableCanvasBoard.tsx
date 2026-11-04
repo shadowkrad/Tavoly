@@ -30,7 +30,7 @@ import {
   updateTableSeatedCountAction,
 } from "@/app/actions";
 import { AddTableModal } from "./AddTableModal";
-import { TableDetailModal } from "./TableDetailModal";
+import { TableDetailModal, TableOrderSummaryItem } from "./TableDetailModal";
 import { AreasManagementModal } from "./AreasManagementModal";
 
 interface Area {
@@ -69,6 +69,8 @@ interface TableCanvasBoardProps {
   tables: TableItem[];
   areas: Area[];
   reservations?: ReservationItem[];
+  tableOrders?: TableOrderSummaryItem[];
+  restaurantName?: string;
   onOpenAreasModal?: () => void;
 }
 
@@ -122,6 +124,8 @@ export function TableCanvasBoard({
   tables,
   areas,
   reservations = [],
+  tableOrders = [],
+  restaurantName = "Tavoly Ristorante",
   onOpenAreasModal,
 }: TableCanvasBoardProps) {
   const [selectedAreaId, setSelectedAreaId] = useState<string>(areas[0]?.id || "ALL");
@@ -164,6 +168,17 @@ export function TableCanvasBoard({
     }
     return acc;
   }, {} as Record<string, ReservationItem>);
+
+  // Mappa comande aperte e conto da pagare per numero tavolo
+  const openOrdersByTable = tableOrders.reduce((acc, o) => {
+    if (o.status !== "ANNULLATO" && o.paymentStatus !== "PAGATO") {
+      const key = (o.tableNumber || "").trim().toLowerCase();
+      if (!acc[key]) acc[key] = { count: 0, total: 0 };
+      acc[key].count += 1;
+      acc[key].total += Number(o.totalAmount || 0);
+    }
+    return acc;
+  }, {} as Record<string, { count: number; total: number }>);
 
   // Drag & Drop con Mouse (HTML5 standard)
   const handleDragStart = (e: React.DragEvent, tableId: string) => {
@@ -527,7 +542,7 @@ export function TableCanvasBoard({
                         </div>
                       )}
 
-                      {/* Footer Tavolo: Conteggio Coperti */}
+                      {/* Footer Tavolo: Conteggio Coperti & Conto Aperto */}
                       <div className="flex items-center justify-between w-full pt-1 border-t border-slate-100/80 text-[10px] font-bold text-slate-600">
                         <div className="flex items-center gap-1">
                           <Users className="w-3 h-3 text-slate-400" />
@@ -535,9 +550,15 @@ export function TableCanvasBoard({
                             {t.seatedCount}/{t.capacity}
                           </span>
                         </div>
-                        <span className="text-[9px] text-slate-400 uppercase font-semibold">
-                          {t.area.name}
-                        </span>
+                        {openOrdersByTable[t.number.trim().toLowerCase()] ? (
+                          <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black shadow-2xs">
+                            € {openOrdersByTable[t.number.trim().toLowerCase()].total.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-400 uppercase font-semibold">
+                            {t.area.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -698,6 +719,24 @@ export function TableCanvasBoard({
                       {theme.label}
                     </button>
                   </div>
+
+                  {/* Conto Aperto Cassa se presente */}
+                  {openOrdersByTable[t.number.trim().toLowerCase()] && (
+                    <div
+                      onClick={() => setSelectedTableForDetail(t)}
+                      className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between gap-2 cursor-pointer hover:bg-amber-100 transition"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Receipt className="w-4 h-4 text-amber-700 shrink-0" />
+                        <span className="text-xs font-extrabold text-amber-950">
+                          Conto Aperto ({openOrdersByTable[t.number.trim().toLowerCase()].count} {openOrdersByTable[t.number.trim().toLowerCase()].count === 1 ? "comanda" : "comande"})
+                        </span>
+                      </div>
+                      <span className="text-sm font-black text-amber-900 bg-white px-2 py-0.5 rounded-lg border border-amber-200">
+                        € {openOrdersByTable[t.number.trim().toLowerCase()].total.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Info Prenotazione se presente */}
                   {activeRes && (
@@ -865,6 +904,13 @@ export function TableCanvasBoard({
                     </span>
                   </div>
                 )}
+
+                {openOrdersByTable[t.number.trim().toLowerCase()] && (
+                  <div className="flex items-center justify-between py-1 px-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-black text-amber-900">
+                    <span>🧾 {openOrdersByTable[t.number.trim().toLowerCase()].count} com.</span>
+                    <span>€ {openOrdersByTable[t.number.trim().toLowerCase()].total.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -875,6 +921,8 @@ export function TableCanvasBoard({
       <TableDetailModal
         table={selectedTableForDetail}
         reservations={reservations}
+        tableOrders={tableOrders}
+        restaurantName={restaurantName}
         isOpen={Boolean(selectedTableForDetail)}
         onClose={() => setSelectedTableForDetail(null)}
       />
