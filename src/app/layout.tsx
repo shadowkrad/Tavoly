@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { getTenantConfig } from "@/lib/taaaac-core";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getTenantConfig();
   const brand = config.theme.restaurantName || "Ristorante";
@@ -40,7 +42,12 @@ export default async function RootLayout({
   const tenantConfig = await getTenantConfig();
   const { theme } = tenantConfig;
 
-  // Semantic CSS dynamic variable injections based on Taaaac Core theme response
+  const hasWhatsAppModule =
+    Array.isArray(tenantConfig.enabledModules) &&
+    tenantConfig.enabledModules.some((m) => String(m).toUpperCase().includes("WHATSAPP"));
+
+  const waPhone = tenantConfig.contact?.phone || tenantConfig.phone || "+39 0575 654321";
+
   const brandStyle = {
     "--brand-primary": theme.primaryColor || "#2563eb",
     "--brand-primary-hover": theme.primaryHover || "#1d4ed8",
@@ -56,7 +63,12 @@ export default async function RootLayout({
       </head>
       <body style={brandStyle} className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
         {children}
-      <FloatingWhatsAppWidget />
+        {hasWhatsAppModule && (
+          <FloatingWhatsAppWidget
+            phone={waPhone}
+            brandName={theme.restaurantName}
+          />
+        )}
       </body>
     </html>
   );

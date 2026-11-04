@@ -55,6 +55,11 @@ const DEFAULT_MOCK_CONFIG: TenantConfigResponse = {
     accentColor: "#059669",
     logoUrl: "",
   },
+  phone: "+39 0575 654321",
+  contact: {
+    phone: "+39 0575 654321",
+    email: "info@osteriatavoli.it",
+  },
 };
 
 export async function getTenantConfig(): Promise<TenantConfigResponse> {
@@ -69,6 +74,8 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
   let localRestaurantName: string | undefined;
   let localColorPrimary: string | undefined;
   let localColorAccent: string | undefined;
+  let localPhone: string | undefined;
+  let localEmail: string | undefined;
 
   try {
     const settings = await prisma.localSetting.findMany({
@@ -81,6 +88,9 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
             "restaurant_name",
             "color_primary",
             "color_accent",
+            "contact_phone",
+            "contact_email",
+            "showcase_config",
           ],
         },
       },
@@ -105,12 +115,28 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     if (map["color_accent"] && map["color_accent"].trim().length > 0) {
       localColorAccent = map["color_accent"].trim();
     }
+    if (map["contact_phone"] && map["contact_phone"].trim().length > 0) {
+      localPhone = map["contact_phone"].trim();
+    }
+    if (map["contact_email"] && map["contact_email"].trim().length > 0) {
+      localEmail = map["contact_email"].trim();
+    }
+    if (map["showcase_config"]) {
+      try {
+        const sc = JSON.parse(map["showcase_config"]);
+        if (sc?.contactInfo?.phone && sc.contactInfo.phone.trim().length > 0) {
+          localPhone = sc.contactInfo.phone.trim();
+        }
+        if (sc?.contactInfo?.email && sc.contactInfo.email.trim().length > 0) {
+          localEmail = sc.contactInfo.email.trim();
+        }
+      } catch {}
+    }
   } catch {
     // silenzioso se db in inizializzazione
   }
 
   const applyBrandOverrides = (cfg: TenantConfigResponse): TenantConfigResponse => {
-    // A. Applica solo i token cromatici dalla palette se attiva (senza mai toccare il nome del locale)
     if (localThemeOverride) {
       cfg.theme = {
         ...cfg.theme,
@@ -120,7 +146,6 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       };
     }
 
-    // B. Colori custom espliciti da impostazioni / visual studio (massima priorità)
     if (localColorPrimary) {
       cfg.theme.primaryColor = localColorPrimary;
       cfg.theme.primaryHover = localColorPrimary;
@@ -129,7 +154,6 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       cfg.theme.accentColor = localColorAccent;
     }
 
-    // C. Logo e Favicon
     if (brandLogoUrl !== undefined && brandLogoUrl.trim().length > 0) {
       cfg.theme.logoUrl = brandLogoUrl;
     }
@@ -137,10 +161,18 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       cfg.theme.faviconUrl = brandFaviconUrl;
     }
 
-    // D. Nome del ristorante: il nome configurato in LocalSetting ha priorità assoluta
     if (localRestaurantName) {
       cfg.theme.restaurantName = localRestaurantName;
     }
+
+    const resolvedPhone = localPhone || cfg.contact?.phone || cfg.phone || "+39 0575 654321";
+    const resolvedEmail = localEmail || cfg.contact?.email || "info@osteriatavoli.it";
+    cfg.phone = resolvedPhone;
+    cfg.contact = {
+      ...cfg.contact,
+      phone: resolvedPhone,
+      email: resolvedEmail,
+    };
 
     return cfg;
   };
@@ -151,7 +183,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     )}&token=${encodeURIComponent(token)}`;
 
     const res = await fetch(url, {
-      next: { revalidate: 300 }, // 5 minuti
+      cache: "no-store",
       headers: {
         Accept: "application/json",
       },
@@ -161,16 +193,13 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       const data = await res.json();
       if (data && data.success) {
         const config = applyBrandOverrides(data as TenantConfigResponse);
-        // Salva in cache SQLite
         try {
           await prisma.localSetting.upsert({
             where: { key: "tenant_config_cache" },
             create: { key: "tenant_config_cache", value: JSON.stringify(config) },
             update: { value: JSON.stringify(config) },
           });
-        } catch {
-          // opzionale
-        }
+        } catch {}
         return config;
       }
     }
@@ -190,9 +219,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       const parsed = JSON.parse(cached.value) as TenantConfigResponse;
       return applyBrandOverrides(parsed);
     }
-  } catch {
-    // fallback successivo
-  }
+  } catch {}
 
   // 3. Fallback predefinito
   const fallback = { ...DEFAULT_MOCK_CONFIG };
