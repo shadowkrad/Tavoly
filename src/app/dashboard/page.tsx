@@ -1,5 +1,5 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
+import { prisma, ensureDatabase } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { TableItem } from "@/components/dashboard/TableCanvasBoard";
 import { CustomerProfileMapItem } from "@/components/ReservationsList";
@@ -8,6 +8,7 @@ import { FloorPlanView } from "@/components/dashboard/FloorPlanView";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  await ensureDatabase();
   const [
     tenantConfig,
     areas,

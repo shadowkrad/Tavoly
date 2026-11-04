@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma, ensureDatabase } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
 import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
@@ -62,6 +62,7 @@ function renderExperienceIcon(icon: ExperienceIconType) {
 }
 
 export default async function PublicShowcasePage() {
+  await ensureDatabase();
   const now = new Date();
   const todayDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(now);
 
@@ -70,7 +71,7 @@ export default async function PublicShowcasePage() {
     prisma.serviceShift.findMany({
       where: { isActive: true },
       orderBy: { orderIndex: "asc" },
-    }),
+    }).catch(() => []),
     prisma.reservation.findMany({
       where: {
         date: {
@@ -78,21 +79,21 @@ export default async function PublicShowcasePage() {
         },
         status: { not: "ANNULLATA" },
       },
-    }),
+    }).catch(() => []),
     getTakeawaySettings(),
     prisma.localSetting.findUnique({
       where: { key: "showcase_config" },
-    }),
+    }).catch(() => null),
     prisma.localSetting.findMany({
       where: {
         key: { in: ["hours_weekday", "hours_weekend", "hours_note"] },
       },
-    }),
+    }).catch(() => []),
     prisma.eccezioneCalendario.findMany({
       where: {
         data: todayDateStr,
       },
-    }),
+    }).catch(() => []),
   ]);
 
   const { theme } = tenantConfig;
