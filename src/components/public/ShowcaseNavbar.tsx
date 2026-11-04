@@ -15,7 +15,7 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
         {/* Brand & Name */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 group">
           {theme.logoUrl ? (
@@ -43,8 +43,8 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
           </div>
         </Link>
 
-        {/* Navigation links puliti (senza link ridondanti Menù e Asporto) */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+        {/* Navigation links puliti & ben distanziati dal pulsante Prenota */}
+        <nav className="hidden md:flex items-center gap-7 lg:gap-8 text-sm font-semibold text-slate-600 mr-4 sm:mr-8">
           <a href="/#servizi" className="hover:text-emerald-700 transition-colors">
             I Nostri Servizi
           </a>
@@ -54,7 +54,7 @@ export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
         </nav>
 
         {/* CTA Minimale "Prenota" & Discreet Login Link */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             href="/prenotazione"
             style={{ backgroundColor: theme.primaryColor || "#064e3b" }}
