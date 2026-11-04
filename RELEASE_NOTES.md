@@ -74,6 +74,12 @@
 - **Pulsante Annullamento / Rimozione dal Pass**: Aggiunta la possibilità per la cucina di rimuovere o annullare direttamente una comanda dal monitor pass in caso di errore con richiesta di conferma immediata.
 - **Normalizzazione Automatica Canali Telegram**: La configurazione delle notifiche Telegram Staff supporta ora l'inserimento diretto degli ID gruppo copiati da Telegram Web K (con prefisso `-100` automatico per supergruppi e canali).
 
+### 8. ⚡ Notifiche Telegram Staff Immediate per Comande, Asporto e Prenotazioni
+- **Invio Istantaneo al Gruppo dello Staff**: Ogni nuova comanda tavolo inviata dalla sala o dai palmari genera all'istante un messaggio formattato in HTML nel gruppo Telegram del personale con numero tavolo, coperti, cameriere, elenco dettagliato dei piatti con note/varianti e totale stimato.
+- **Notifica Ordini Asporto & Takeaway**: All'arrivo di un ordine da asporto (dalla vetrina online o inserito dal banco) il gruppo staff riceve la notifica con nome cliente, telefono, data/ora di ritiro, riepilogo piatti e stato pagamento.
+- **Notifica Nuove Prenotazioni Tavolo**: Recapito istantaneo delle prenotazioni ricevute online con nome cliente, recapito telefonico, data, turno/orario e numero coperti.
+- **Pulsante di Salvataggio Dedicato nella Scheda Telegram**: Aggiunto il tasto rapido *"Salva Impostazioni Telegram"* con feedback immediato direttamente all'interno della card del pannello impostazioni, consentendo all'esercente di memorizzare le credenziali senza dover risalire in cima alla pagina.
+
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)

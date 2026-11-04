@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Send, CheckCircle2, AlertCircle, Bot, Users, ExternalLink, RefreshCw, KeyRound, ShieldCheck } from "lucide-react";
+import { Send, CheckCircle2, AlertCircle, Bot, Users, ExternalLink, RefreshCw, KeyRound, ShieldCheck, Save } from "lucide-react";
 
 export interface TelegramSettingsData {
   enabled: boolean;
@@ -18,7 +18,9 @@ interface TelegramSettingsPanelProps {
 export default function TelegramSettingsPanel({ data, onChange }: TelegramSettingsPanelProps) {
   const [verifying, setVerifying] = useState(false);
   const [testingStaff, setTestingStaff] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [saveResult, setSaveResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   const handleVerifyToken = async () => {
     if (!data.botToken?.trim()) {
@@ -119,10 +121,29 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
     }
   };
 
+  const handleSaveTelegram = async () => {
+    setSaving(true);
+    setSaveResult(null);
+    try {
+      const { saveTelegramSettingsAction } = await import("@/app/actions");
+      const res = await saveTelegramSettingsAction(data);
+      if (res.success) {
+        setSaveResult({ ok: true, message: "Impostazioni Telegram salvate con successo nel database!" });
+        setTimeout(() => setSaveResult(null), 4000);
+      } else {
+        setSaveResult({ ok: false, message: res.error || "Errore durante il salvataggio." });
+      }
+    } catch (err: any) {
+      setSaveResult({ ok: false, message: err.message || "Errore imprevisto durante il salvataggio." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Intestazione Sezione */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Send className="w-5 h-5 text-sky-500" />
@@ -133,21 +154,52 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
           </p>
         </div>
 
-        {/* Toggle Abilitazione Generale */}
-        <label className="flex items-center gap-3 cursor-pointer select-none">
-          <span className="text-xs font-bold text-slate-700">
-            {data.enabled ? "Canale Attivo" : "Canale Disattivato"}
-          </span>
-          <input
-            type="checkbox"
-            checked={data.enabled}
-            onChange={(e) => onChange({ ...data, enabled: e.target.checked })}
-            className="w-5 h-5 accent-sky-500 rounded cursor-pointer"
-          />
-        </label>
+        <div className="flex items-center gap-4">
+          {/* Toggle Abilitazione Generale */}
+          <label className="flex items-center gap-2.5 cursor-pointer select-none bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+            <span className="text-xs font-bold text-slate-700">
+              {data.enabled ? "Canale Attivo" : "Canale Disattivato"}
+            </span>
+            <input
+              type="checkbox"
+              checked={data.enabled}
+              onChange={(e) => onChange({ ...data, enabled: e.target.checked })}
+              className="w-4 h-4 accent-sky-500 rounded cursor-pointer"
+            />
+          </label>
+
+          {/* Pulsante Salva Veloce in Testata */}
+          <button
+            type="button"
+            onClick={handleSaveTelegram}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+          >
+            {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span>{saving ? "Salvataggio..." : "Salva Configurazione"}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Feedback Alert */}
+      {/* Feedback Alert Salvataggio */}
+      {saveResult && (
+        <div
+          className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-semibold ${
+            saveResult.ok
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
+          }`}
+        >
+          {saveResult.ok ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
+          <span>{saveResult.message}</span>
+        </div>
+      )}
+
+      {/* Feedback Alert Test */}
       {testResult && (
         <div
           className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-semibold ${
@@ -280,6 +332,28 @@ export default function TelegramSettingsPanel({ data, onChange }: TelegramSettin
             💡 <b>Come trovare l&apos;ID del gruppo?</b> Aggiungi il bot <code>@myidbot</code> o inoltra un messaggio del gruppo al bot <code>@userinfobot</code> su Telegram. Gli ID dei gruppi iniziano solitamente con il segno meno (es. <code>-100...</code>).
           </div>
         </div>
+      </div>
+
+      {/* Banner Finale Salva e Applica */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-slate-900 text-white rounded-2xl shadow-sm">
+        <div>
+          <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Salva e Applica Configurazione Staff</span>
+          </h4>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Memorizza il Token e l&apos;ID Chat per ricevere comande e prenotazioni in tempo reale.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSaveTelegram}
+          disabled={saving}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 shrink-0"
+        >
+          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>{saving ? "Salvataggio..." : "Salva Impostazioni Telegram"}</span>
+        </button>
       </div>
     </div>
   );
