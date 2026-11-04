@@ -1735,7 +1735,7 @@ export default function ShowcaseVisualStudio() {
                 </div>
 
                 {deviceMode === "desktop" && (
-                  <div className="hidden lg:flex items-center gap-4 text-xs font-semibold text-slate-600">
+                  <div className="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-600 mr-5">
                     <span className="hover:text-emerald-700 cursor-pointer">I Nostri Servizi</span>
                     <span className="hover:text-emerald-700 cursor-pointer">Orari &amp; Contatti</span>
                   </div>
