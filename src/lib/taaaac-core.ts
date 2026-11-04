@@ -136,7 +136,44 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     // silenzioso se db in inizializzazione
   }
 
-  const applyBrandOverrides = (cfg: TenantConfigResponse): TenantConfigResponse => {
+  const applyBrandOverrides = (rawCfg: any): TenantConfigResponse => {
+    const tenantNode = rawCfg?.tenant || {};
+    const rawModules: string[] = Array.isArray(rawCfg?.enabledModules)
+      ? rawCfg.enabledModules
+      : Array.isArray(tenantNode?.moduliAttivi)
+      ? tenantNode.moduliAttivi
+      : DEFAULT_MOCK_CONFIG.enabledModules;
+
+    const mergedModules = Array.from(
+      new Set([
+        ...rawModules,
+        ...(tenantNode?.whatsappEnabled ? ["WHATSAPP", "WHATSAPP_REMINDERS"] : []),
+      ])
+    );
+
+    const cfg: TenantConfigResponse = {
+      ...DEFAULT_MOCK_CONFIG,
+      ...rawCfg,
+      tenantId: rawCfg?.tenantId || tenantNode?.id || DEFAULT_MOCK_CONFIG.tenantId,
+      domain:
+        rawCfg?.domain ||
+        (tenantNode?.sottodominio ? `${tenantNode.sottodominio}.taaaac.eu` : domain),
+      licenseStatus: rawCfg?.licenseStatus || tenantNode?.stato || "ATTIVO",
+      licenseExpiresAt:
+        rawCfg?.licenseExpiresAt ||
+        tenantNode?.dataScadenza ||
+        DEFAULT_MOCK_CONFIG.licenseExpiresAt,
+      enabledModules: mergedModules,
+      theme: {
+        ...DEFAULT_MOCK_CONFIG.theme,
+        ...(rawCfg?.theme || {}),
+        restaurantName:
+          rawCfg?.theme?.restaurantName ||
+          tenantNode?.nomeAttivita ||
+          DEFAULT_MOCK_CONFIG.theme.restaurantName,
+      },
+    };
+
     if (localThemeOverride) {
       cfg.theme = {
         ...cfg.theme,
@@ -165,11 +202,16 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       cfg.theme.restaurantName = localRestaurantName;
     }
 
-    const resolvedPhone = localPhone || cfg.contact?.phone || cfg.phone || "+39 0575 654321";
-    const resolvedEmail = localEmail || cfg.contact?.email || "info@osteriatavoli.it";
+    const resolvedPhone =
+      localPhone ||
+      rawCfg?.contact?.phone ||
+      rawCfg?.phone ||
+      tenantNode?.whatsappDisplayNumber ||
+      "+39 0575 654321";
+    const resolvedEmail = localEmail || rawCfg?.contact?.email || "info@osteriatavoli.it";
     cfg.phone = resolvedPhone;
     cfg.contact = {
-      ...cfg.contact,
+      ...(rawCfg?.contact || {}),
       phone: resolvedPhone,
       email: resolvedEmail,
     };
@@ -192,7 +234,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     if (res.ok) {
       const data = await res.json();
       if (data && data.success) {
-        const config = applyBrandOverrides(data as TenantConfigResponse);
+        const config = applyBrandOverrides(data);
         try {
           await prisma.localSetting.upsert({
             where: { key: "tenant_config_cache" },
@@ -216,7 +258,7 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
       where: { key: "tenant_config_cache" },
     });
     if (cached?.value) {
-      const parsed = JSON.parse(cached.value) as TenantConfigResponse;
+      const parsed = JSON.parse(cached.value);
       return applyBrandOverrides(parsed);
     }
   } catch {}
