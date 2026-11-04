@@ -9,7 +9,7 @@ interface ShowcaseNavbarProps {
   showMenuLink?: boolean;
 }
 
-export function ShowcaseNavbar({ tenantConfig, takeawayEnabled, showMenuLink = true }: ShowcaseNavbarProps) {
+export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
   const { theme } = tenantConfig;
   const brandName = theme.restaurantName || "Tavoly";
 
@@ -43,37 +43,25 @@ export function ShowcaseNavbar({ tenantConfig, takeawayEnabled, showMenuLink = t
           </div>
         </Link>
 
-        {/* Navigation links */}
+        {/* Navigation links puliti (senza link ridondanti Menù e Asporto) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
           <a href="/#servizi" className="hover:text-emerald-700 transition-colors">
             I Nostri Servizi
           </a>
-          {showMenuLink && (
-            <Link href="/menu" className="hover:text-emerald-700 transition-colors inline-flex items-center gap-1.5">
-              <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Menù</span>
-            </Link>
-          )}
-          {takeawayEnabled && (
-            <Link href="/asporto" className="hover:text-emerald-700 transition-colors">
-              Asporto
-            </Link>
-          )}
           <a href="/#contatti" className="hover:text-emerald-700 transition-colors">
             Orari &amp; Contatti
           </a>
         </nav>
 
-        {/* CTA Minimale & Discreet Login Link */}
+        {/* CTA Minimale "Prenota" & Discreet Login Link */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <Link
             href="/prenotazione"
             style={{ backgroundColor: theme.primaryColor || "#064e3b" }}
-            className="text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 whitespace-nowrap flex items-center gap-1.5 shrink-0 text-white font-bold rounded-xl shadow-xs hover:opacity-95 transition"
+            className="text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 whitespace-nowrap flex items-center gap-1.5 shrink-0 text-white font-bold rounded-xl shadow-xs hover:opacity-95 transition"
           >
             <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
             <span>Prenota</span>
-            <span className="hidden sm:inline">&nbsp;un Tavolo</span>
           </Link>
 
           {/* Discreet Staff Login */}

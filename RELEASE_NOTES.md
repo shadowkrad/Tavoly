@@ -80,6 +80,11 @@
 - **Notifica Nuove Prenotazioni Tavolo**: Recapito istantaneo delle prenotazioni ricevute online con nome cliente, recapito telefonico, data, turno/orario e numero coperti.
 - **Pulsante di Salvataggio Dedicato nella Scheda Telegram**: Aggiunto il tasto rapido *"Salva Impostazioni Telegram"* con feedback immediato direttamente all'interno della card del pannello impostazioni, consentendo all'esercente di memorizzare le credenziali senza dover risalire in cima alla pagina.
 
+### 9. 🎨 Ottimizzazione Navbar Vetrina: Tasto "Prenota" Diretto & Rimozione Link Ridondanti
+- **Pulsante CTA Sintetico "Prenota"**: Il pulsante di azione rapida nella barra in alto mostra ora sinteticamente *"Prenota"* sia su desktop che su smartphone, rendendo la testata del locale ancora più pulita e leggibile.
+- **Eliminazione Link Ridondanti (Menù e Asporto)**: Rimossi i link testuali centrali duplicati *"Menù"* e *"Asporto"* dalla barra di navigazione orizzontale in alto, focalizzando l'attenzione dell'utente sulle due sole sezioni chiave di orientamento (*"I Nostri Servizi"* e *"Orari & Contatti"*).
+- **Allineamento Live Studio Vetrina**: Aggiornato il simulatore interattivo dello Studio Vetrina per specchiare fedelmente la nuova barra di navigazione minimale.
+
 ---
 
 ## Novità della Versione 1.0.8 (Hotfix / Patch)
