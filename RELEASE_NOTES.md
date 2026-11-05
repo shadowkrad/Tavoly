@@ -1,5 +1,13 @@
 # 🚀 Tavoly — Release Notes
 
+## Novità della Versione 1.1.2 (Patch)
+
+### 1. 🖼️ Foto dei Piatti Coerenti nel Menù e nell'Asporto
+- **Un solo interruttore per le foto**: disattivando "Mostra fotografie dei piatti", le foto spariscono sia dal menù digitale sia dalla pagina Asporto, che prima le mostrava comunque.
+- **Più facile da trovare**: l'etichetta in Impostazioni ora dice "nel menù digitale e nell'asporto" e nella sezione Asporto del gestionale c'è una nota che indica dove si attiva o disattiva.
+
+---
+
 ## Novità della Versione 1.1.1 (Patch)
 
 ### 1. ✈️ Telegram Gestito da Taaaac Core (Hub Centralizzato)

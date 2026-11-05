@@ -48,6 +48,8 @@ interface PublicTakeawayWidgetProps {
   dishes: PublicTakeawayDish[];
   existingOrders: Array<{ pickupTime: string; pickupDate?: string | null }>;
   restaurantName: string;
+  /** Se false (impostazione "Mostra fotografie dei piatti"), le foto non compaiono. Default: attive. */
+  showImages?: boolean;
 }
 
 export function PublicTakeawayWidget({
@@ -55,6 +57,7 @@ export function PublicTakeawayWidget({
   dishes,
   existingOrders,
   restaurantName,
+  showImages = true,
 }: PublicTakeawayWidgetProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -515,7 +518,7 @@ export function PublicTakeawayWidget({
                   }`}
                 >
                   {/* Foto se presente */}
-                  {dish.imageUrl && (
+                  {showImages && dish.imageUrl && (
                     <img
                       src={dish.imageUrl}
                       alt={dish.name}

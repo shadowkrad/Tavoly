@@ -1471,10 +1471,10 @@ export default function TavolyImpostazioniPage() {
                   htmlFor="menuShowImagesCheckbox" 
                   className="text-xs font-bold text-slate-900 block cursor-pointer"
                 >
-                  Mostra fotografie dei piatti nel menù digitale
+                  Mostra fotografie dei piatti nel menù digitale e nell&apos;asporto
                 </label>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Se attivo, i piatti mostrano la fotografia in evidenza sia sul gestionale che per i clienti. Se disattivato, il menù pubblico si reimposta automaticamente su un layout tipografico elegante stile bistrot/carta d&apos;alta ristorazione senza spazi vuoti.
+                  Se attivo, i piatti mostrano la fotografia in evidenza sia sul gestionale che per i clienti, nel menù digitale e nella pagina Asporto. Se disattivato, il menù pubblico e la pagina Asporto si reimpostano automaticamente su un layout tipografico elegante stile bistrot/carta d&apos;alta ristorazione senza spazi vuoti.
                 </p>
               </div>
               <input
