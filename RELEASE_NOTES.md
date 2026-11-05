@@ -45,6 +45,32 @@
 
 ---
 
+## Novità della Versione 1.0.10 (Hotfix / Patch)
+
+### 1. 💬 Pallino WhatsApp Unificato (Attivazione da Taaaac Core)
+- **`FloatingWhatsAppWidget` allineato su tutta la flotta**: il pulsante galleggiante compare sulle pagine pubbliche solo se il modulo WhatsApp è attivo nella configurazione del tenant (`/api/public/tenant-config` di Taaaac Core).
+- **Nascosto nelle aree gestionali**: non appare in `/dashboard`, `/admin` e `/login`.
+- **Risposta del Core normalizzata**: lettura uniforme dei campi del tenant-config.
+
+### 2. ⚙️ Pannelli Telegram/Fidelity Visibili & Salvataggio Istantaneo dei Toggle
+- **Auto-save**: in `/dashboard/impostazioni` ogni interruttore salva subito nel database e aggiorna la vista, senza un secondo pulsante "Salva".
+- **Pannelli dedicati**: i pannelli Telegram Hub e Fidelity sono ora sempre raggiungibili dalle impostazioni.
+
+### 3. 🍽️ Ristrutturazione Flusso Comande (Cassa, CRM & Cucina)
+- **Conto unificato per tavolo** con aggiunte successive, pagamento in cassa e storico completo del cliente.
+- ⚠️ **Nota di governance**: è una modifica funzionale ampia (~1.900 righe) finita nel ramo hotfix; è documentata qui per trasparenza e può essere riclassificata come minor su indicazione di Alessio.
+
+### 4. ✈️ Notifiche Telegram allo Staff
+- **Invio automatico** di notifiche per comande, asporto e prenotazioni al gruppo staff, con pulsante di salvataggio dedicato.
+
+### 5. 🧭 Navbar Vetrina
+- **Tasto Prenota sintetico**, rimozione dei link ridondanti Menu e Asporto, spaziatura aumentata tra Orari & Contatti e Prenota.
+
+### 6. ☁️ Compatibilità Vercel Serverless con SQLite
+- **Aggiornamento di `prisma/template.db`**, `outputFileTracingIncludes` e auto-migrazione `ensureDatabase` per l'esecuzione su Vercel.
+
+---
+
 ## Novità della Versione 1.0.9 (Hotfix / Patch)
 
 ### 1. ✈️ Promemoria Tavoli Gratuiti su Telegram
