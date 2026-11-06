@@ -129,14 +129,12 @@ export function CustomerProfileModal({
               <span className="text-xs text-amber-700 font-semibold">punti</span>
             </div>
             <div className="flex items-center justify-center gap-1 mt-1">
-              <button
-                type="button"
-                onClick={() => handleAddPoints(10)}
-                disabled={isPending}
+              <a
+                href="/dashboard/fedelta"
                 className="text-[10px] font-bold bg-amber-200/80 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded-md cursor-pointer"
               >
-                +10 Punti
-              </button>
+                Gestisci punti →
+              </a>
             </div>
           </div>
         </div>

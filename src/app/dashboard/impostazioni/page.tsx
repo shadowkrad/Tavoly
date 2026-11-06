@@ -1048,6 +1048,7 @@ export default function TavolyImpostazioniPage() {
             onChange={(updated) => {
               const toggled =
                 updated.enabled !== fidelitySettings.enabled ||
+                Boolean(updated.compleanno?.enabled) !== Boolean(fidelitySettings.compleanno?.enabled) ||
                 (updated.rewards?.length || 0) !== (fidelitySettings.rewards?.length || 0);
               setFidelitySettings(updated);
               if (toggled) {

@@ -90,6 +90,8 @@ interface CustomerModalProps {
     notes?: string | null;
     visitCount?: number;
     loyaltyPoints?: number;
+    birthDate?: string | Date | null;
+    marketingConsent?: boolean;
   } | null;
   tables?: TableSuggestion[];
   initialTab?: "PROFILE" | "HISTORY";
@@ -128,7 +130,9 @@ export function CustomerModal({
   const [isVip, setIsVip] = useState(false);
   const [notes, setNotes] = useState("");
   const [visitCount, setVisitCount] = useState(1);
-  const [loyaltyPoints, setLoyaltyPoints] = useState(10);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [birthDate, setBirthDate] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -143,7 +147,9 @@ export function CustomerModal({
       setIsVip(Boolean(customer.isVip));
       setNotes(customer.notes || "");
       setVisitCount(customer.visitCount || 1);
-      setLoyaltyPoints(customer.loyaltyPoints || 10);
+      setLoyaltyPoints(customer.loyaltyPoints || 0);
+      setBirthDate(customer.birthDate ? new Date(customer.birthDate).toISOString().slice(0, 10) : "");
+      setMarketingConsent(Boolean(customer.marketingConsent));
     } else {
       setName("");
       setPhoneNumber("+39 ");
@@ -153,7 +159,9 @@ export function CustomerModal({
       setIsVip(false);
       setNotes("");
       setVisitCount(1);
-      setLoyaltyPoints(10);
+      setLoyaltyPoints(0);
+      setBirthDate("");
+      setMarketingConsent(false);
     }
     setActiveTab(customer?.id ? initialTab : "PROFILE");
     setError(null);
@@ -207,7 +215,8 @@ export function CustomerModal({
         isVip,
         notes: notes.trim() || null,
         visitCount,
-        loyaltyPoints,
+        birthDate: birthDate || null,
+        marketingConsent,
       };
 
       const res = await createOrUpdateCustomerAction(payload);
@@ -713,30 +722,33 @@ export function CustomerModal({
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Punti Fedeltà Taaaac
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setLoyaltyPoints((p) => Math.max(0, p - 10))}
-                  className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  value={loyaltyPoints}
-                  onChange={(e) => setLoyaltyPoints(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-16 text-center py-1 bg-white border border-slate-200 rounded-lg text-sm font-black text-slate-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => setLoyaltyPoints((p) => p + 10)}
-                  className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-black text-slate-900">{loyaltyPoints}</span>
+                <a href="/dashboard/fedelta" className="text-[11px] font-bold text-emerald-700 underline">
+                  Gestisci dalla cassa fedeltà
+                </a>
               </div>
             </div>
+          </div>
+
+          {/* Data di nascita e consenso promozionale (buono compleanno) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                Data di nascita (facoltativa, per il buono compleanno)
+              </label>
+              <input
+                type="date"
+                max={new Date().toISOString().slice(0, 10)}
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-900"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-xs text-slate-700 sm:mt-5">
+              <input type="checkbox" checked={marketingConsent} onChange={(e) => setMarketingConsent(e.target.checked)} />
+              Consenso a comunicazioni promozionali (es. buono compleanno per email)
+            </label>
           </div>
 
           {/* Footer Bottoni */}

@@ -146,6 +146,8 @@ export async function GET() {
         pointsPerEuro: fidelityRules?.pointsPerEuro || 1,
         welcomeBonusPoints: fidelityRules?.welcomeBonusPoints || 10,
         minPointsToRedeem: fidelityRules?.minPointsToRedeem || 50,
+        rewardVoucherMonths: fidelityRules?.rewardVoucherMonths ?? 6,
+        compleanno: fidelityRules?.compleanno,
         rewards: fidelityRules?.rewards || [
           { id: "rew_1", name: "Dolce della Casa in Omaggio", pointsRequired: 50, rewardType: "FREE_ITEM", freeItemName: "Dolce artigianale a scelta" },
           { id: "rew_2", name: "Sconto 10€ sul Conto", pointsRequired: 100, rewardType: "DISCOUNT", discountAmount: 10 },

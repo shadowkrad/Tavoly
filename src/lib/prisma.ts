@@ -12,7 +12,9 @@ function getDatabaseUrl(): string {
     const tmpDbPath = path.join("/tmp", "tavoly.db");
     const templatePath = path.join(process.cwd(), "prisma", "template.db");
     const devDbPath = path.join(process.cwd(), "prisma", "dev.db");
-    const sourcePath = fs.existsSync(templatePath) ? templatePath : devDbPath;
+    // Sulla demo (ramo cliente-demo) c'e' prisma/demo.db con clienti, punti e buoni di prova: ha la precedenza
+    const demoPath = path.join(process.cwd(), "prisma", "demo.db");
+    const sourcePath = fs.existsSync(demoPath) ? demoPath : fs.existsSync(templatePath) ? templatePath : devDbPath;
 
     let shouldCopy = !fs.existsSync(tmpDbPath);
     if (!shouldCopy && fs.existsSync(sourcePath)) {
@@ -113,6 +115,79 @@ export async function ensureDatabase(): Promise<void> {
         );
       `);
 
+      // Fidelity e buoni (1.1.2): colonne e tabelle nel database dell'attivita'
+      await addColumnIfNotExists("CustomerProfile", "marketingConsent", "BOOLEAN NOT NULL DEFAULT 0");
+      await addColumnIfNotExists("CustomerProfile", "birthDate", "DATETIME");
+      await addColumnIfNotExists("CustomerProfile", "loyaltyToken", "TEXT");
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "MovimentoPunti" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "clienteId" TEXT NOT NULL,
+          "punti" INTEGER NOT NULL,
+          "tipo" TEXT NOT NULL DEFAULT 'ACCREDITO',
+          "origine" TEXT,
+          "descrizione" TEXT,
+          "importo" REAL,
+          "appuntamentoId" TEXT,
+          "premioId" TEXT,
+          "saldoDopo" INTEGER,
+          "operatore" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "MovimentoPunti_clienteId_fkey" FOREIGN KEY ("clienteId") REFERENCES "CustomerProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "GiftCard" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "codice" TEXT NOT NULL,
+          "importoIniziale" REAL NOT NULL,
+          "saldoResiduo" REAL NOT NULL,
+          "acquirenteNome" TEXT NOT NULL,
+          "acquirenteEmail" TEXT,
+          "acquirenteTelefono" TEXT,
+          "beneficiarioNome" TEXT NOT NULL,
+          "beneficiarioMessaggio" TEXT,
+          "dataScadenza" DATETIME,
+          "stato" TEXT NOT NULL DEFAULT 'ATTIVA',
+          "motivo" TEXT NOT NULL DEFAULT 'REGALO',
+          "tipoValore" TEXT NOT NULL DEFAULT 'IMPORTO',
+          "percentuale" REAL,
+          "descrizioneServizio" TEXT,
+          "clienteId" TEXT,
+          "spesaMinima" REAL,
+          "usoParziale" BOOLEAN NOT NULL DEFAULT 1,
+          "note" TEXT,
+          "tokenPubblico" TEXT,
+          "creatoDa" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "MovimentoGiftCard" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "giftCardId" TEXT NOT NULL,
+          "importo" REAL NOT NULL,
+          "tipo" TEXT,
+          "saldoDopo" REAL,
+          "operatore" TEXT,
+          "note" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "MovimentoGiftCard_giftCardId_fkey" FOREIGN KEY ("giftCardId") REFERENCES "GiftCard" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+        );
+      `);
+      for (const sql of [
+        `CREATE UNIQUE INDEX IF NOT EXISTS "CustomerProfile_loyaltyToken_key" ON "CustomerProfile"("loyaltyToken")`,
+        `CREATE INDEX IF NOT EXISTS "MovimentoPunti_clienteId_idx" ON "MovimentoPunti"("clienteId")`,
+        `CREATE INDEX IF NOT EXISTS "MovimentoPunti_appuntamentoId_idx" ON "MovimentoPunti"("appuntamentoId")`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "GiftCard_codice_key" ON "GiftCard"("codice")`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "GiftCard_tokenPubblico_key" ON "GiftCard"("tokenPubblico")`,
+        `CREATE INDEX IF NOT EXISTS "GiftCard_stato_idx" ON "GiftCard"("stato")`,
+        `CREATE INDEX IF NOT EXISTS "GiftCard_clienteId_idx" ON "GiftCard"("clienteId")`,
+        `CREATE INDEX IF NOT EXISTS "MovimentoGiftCard_giftCardId_idx" ON "MovimentoGiftCard"("giftCardId")`,
+      ]) {
+        await prisma.$executeRawUnsafe(sql).catch(() => {});
+      }
       await addColumnIfNotExists("TableOrder", "paymentStatus", "TEXT NOT NULL DEFAULT 'DA_PAGARE'");
       await addColumnIfNotExists("TableOrder", "paymentMethod", "TEXT");
       await addColumnIfNotExists("TableOrder", "paidAt", "DATETIME");
