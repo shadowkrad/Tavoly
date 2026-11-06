@@ -1,6 +1,42 @@
 # 🚀 Tavoly — Release Notes
 
-## Novità della Versione 1.1.0 (In Sviluppo)
+## Novità della Versione 1.1.2 (Patch)
+
+### 1. 🖼️ Foto dei Piatti Coerenti nel Menù e nell'Asporto
+- **Un solo interruttore per le foto**: disattivando "Mostra fotografie dei piatti", le foto spariscono sia dal menù digitale sia dalla pagina Asporto, che prima le mostrava comunque.
+- **Più facile da trovare**: l'etichetta in Impostazioni ora dice "nel menù digitale e nell'asporto" e nella sezione Asporto del gestionale c'è una nota che indica dove si attiva o disattiva.
+
+### 2. 👤 Scheda Cliente Rinnovata
+- **Un numero, un cliente**: lo stesso telefono (anche scritto con spazi, trattini o +39) è sempre la stessa scheda: prenotazioni, asporto e nuove schede non creano più doppioni, e se il numero esiste già il gestionale lo segnala.
+- **Cellulare o fisso**: i numeri fissi restano ammessi ma non ricevono WhatsApp né messaggi automatici; per loro conta l'email o l'avviso a voce.
+- **Data di nascita** facoltativa e **consenso promozionale**, base per il buono compleanno.
+- **Punti non più a mano**: tolti i "+10 punti" fissi a ogni prenotazione o asporto e la rettifica libera del saldo. I punti arrivano dalla spesa e ogni variazione resta registrata.
+
+### 3. 🎟️ Fedeltà a Punti Vera
+- **Punti sulla spesa**: quando il conto di un tavolo viene pagato o un asporto viene ritirato, il cliente (se ha la scheda) guadagna i punti secondo la regola del titolare, una sola volta per ordine e con storno se l'asporto viene riaperto.
+- **Cassa fedeltà**, premi scelti dal titolare e **tessera digitale** con logo e colori del locale (link privato con QR), aggiungibile alla schermata Home del telefono con il logo come icona. Le pagine Fedeltà e Buoni non sono più schermate di esempio: lavorano sui dati veri del locale.
+
+### 4. 🎁 Buoni Completi, Invio e Stampa
+- **Un buono per ogni motivo**: regalo, sconto, compensazione, gesto commerciale, premio punti, compleanno, promozione; valore in euro, percentuale o piatto/servizio in omaggio; scadenza facoltativa, spesa minima, uso in più volte o unico.
+- **Cassa con anteprima**, annullo con motivo e movimenti registrati. **Email** (di default, dal servizio Taaaac), **WhatsApp a scelta dell'esercente** (mai in automatico, mai verso i fissi), pagina del buono con QR, **stampa A4 o ricevuta da 80 mm** e ristampa con lo stesso codice.
+
+### 5. 🎂 Compleanno e Premi che Diventano Buoni
+- **Buono compleanno automatico**, una volta per cliente e per anno, con email solo a chi ha dato il consenso. Parte quando si apre la pagina Buoni o da `/api/cron/compleanni`.
+- **Premio punti → buono**: riscattando un premio si scalano i punti e nasce un buono intestato al cliente, nella stessa operazione.
+
+---
+
+## Novità della Versione 1.1.1 (Patch)
+
+### 1. ✈️ Telegram Gestito da Taaaac Core (Hub Centralizzato)
+- **Un solo posto per configurare Telegram**: il pannello Telegram locale è sostituito da una scheda di sola lettura (stato, bot, avvisi attivi) con il link al portale Taaaac, da cui si attiva o disattiva il canale.
+- **Nessun token nel modulo**: token del bot e chat ID non vengono più inseriti né salvati nelle impostazioni del modulo, e il test non passa più dal browser.
+- **Stato letto dal Core**: la scheda legge `telegram*` da `/api/public/tenant-config` (mai token né chat ID).
+- **Avvisi staff tramite il Core**: comande, asporto e prenotazioni vengono inviate a `POST /api/internal/telegram/send` di Taaaac Core; il modulo non conosce più token o chat ID.
+
+---
+
+## Novità della Versione 1.1.0
 
 ### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
 - **Floating WhatsApp Widget sulla Vetrina Ristorante**: Pulsante galleggiante WhatsApp ufficiale in basso a destra su tutte le pagine pubbliche (`FloatingWhatsAppWidget`), per consentire ai clienti di richiedere informazioni o concordare menu speciali direttamente dalla landing page.
@@ -32,6 +68,32 @@
 - **Hero Vetrina Minimale Senza Affollamento**: Eliminato il micro-badge slogan sopra l'insegna e rimossi i tre grossi pulsanti CTA duplicati dalla copertina di benvenuto. L'insegna e il claim del locale risaltano con la massima eleganza, guidando l'ospite verso la sezione servizi.
 - **Pulsanti di Azione a Fondo Pagina**: Confermato il posizionamento dei pulsanti di prenotazione tavolo e asporto a chiusura della pagina, dove il visitatore conclude naturalmente la navigazione.
 - **Allineamento Live Studio Vetrina**: Rimosso il campo badge promozionale dall'editor e sincronizzato il simulatore in tempo reale per rispecchiare fedelmente la nuova veste grafica pulita sia su desktop che su smartphone.
+
+---
+
+## Novità della Versione 1.0.10 (Hotfix / Patch)
+
+### 1. 💬 Pallino WhatsApp Unificato (Attivazione da Taaaac Core)
+- **`FloatingWhatsAppWidget` allineato su tutta la flotta**: il pulsante galleggiante compare sulle pagine pubbliche solo se il modulo WhatsApp è attivo nella configurazione del tenant (`/api/public/tenant-config` di Taaaac Core).
+- **Nascosto nelle aree gestionali**: non appare in `/dashboard`, `/admin` e `/login`.
+- **Risposta del Core normalizzata**: lettura uniforme dei campi del tenant-config.
+
+### 2. ⚙️ Pannelli Telegram/Fidelity Visibili & Salvataggio Istantaneo dei Toggle
+- **Auto-save**: in `/dashboard/impostazioni` ogni interruttore salva subito nel database e aggiorna la vista, senza un secondo pulsante "Salva".
+- **Pannelli dedicati**: i pannelli Telegram Hub e Fidelity sono ora sempre raggiungibili dalle impostazioni.
+
+### 3. 🍽️ Ristrutturazione Flusso Comande (Cassa, CRM & Cucina)
+- **Conto unificato per tavolo** con aggiunte successive, pagamento in cassa e storico completo del cliente.
+- ⚠️ **Nota di governance**: è una modifica funzionale ampia (~1.900 righe) finita nel ramo hotfix; è documentata qui per trasparenza e può essere riclassificata come minor su indicazione di Alessio.
+
+### 4. ✈️ Notifiche Telegram allo Staff
+- **Invio automatico** di notifiche per comande, asporto e prenotazioni al gruppo staff, con pulsante di salvataggio dedicato.
+
+### 5. 🧭 Navbar Vetrina
+- **Tasto Prenota sintetico**, rimozione dei link ridondanti Menu e Asporto, spaziatura aumentata tra Orari & Contatti e Prenota.
+
+### 6. ☁️ Compatibilità Vercel Serverless con SQLite
+- **Aggiornamento di `prisma/template.db`**, `outputFileTracingIncludes` e auto-migrazione `ensureDatabase` per l'esecuzione su Vercel.
 
 ---
 
@@ -251,35 +313,6 @@
    - **Su iPhone (iOS / Safari)**: tocca l'icona di condivisione in basso al centro (il quadrato con la freccia verso l'alto ⬆️), scorri il menu verso il basso e tocca **"Aggiungi alla schermata Home"**, quindi conferma con **"Aggiungi"** in alto a destra.
    - **Su Android (Chrome)**: tocca il menu con i tre puntini in alto a destra (⋮), seleziona **"Aggiungi a schermata Home"** (o **"Installa applicazione"**), e conferma con **"Aggiungi"**.
 4. **Fatto!** L'icona sulla schermata Home del tuo smartphone sarà ora perfettamente nitida, con la grafica dedicata o con il logo del tuo brand.
-
----
-
-## Novità della Versione 1.1.0 (In Sviluppo)
-
-### 1. 💬 Integrazione WhatsApp a 360° (Smart Link Gratuito & Connessione Taaaac Hub)
-- **Floating WhatsApp Widget sulla Vetrina Ristorante**: Pulsante galleggiante WhatsApp ufficiale in basso a destra su tutte le pagine pubbliche (`FloatingWhatsAppWidget`), per consentire ai clienti di richiedere informazioni o concordare menu speciali direttamente dalla landing page.
-- **Perfezionamento Grafico Bollino WhatsApp Ufficiale**: integrato il tracciato vettoriale ufficiale Meta WhatsApp (fumetto solido bianco puro `#FFFFFF` ad alta definizione con cornetta verde `#25D366` in risalto), eliminando il vecchio bordo vuoto wireframe e garantendo la massima nitidezza visiva su tutti i dispositivi.
-- **Pulsanti 1-Click WhatsApp Svincolati da Moduli a Pagamento**: Nelle schermate Prenotazioni e Asporto, il pulsante WhatsApp è ora sempre attivo e utilizzabile a costo 0 € per inviare conferme, promemoria tavolo e avvisi *"Ordine pronto al banco!"* direttamente via WhatsApp Web o app mobile.
-- **Client Standardizzato (`@/lib/whatsapp-client` & `@/lib/whatsapp-server`)**: Connessione al micro-servizio centralizzato di Taaaac Core per le notifiche cloud automatiche.
-
-### 2. 🌐 Hub Sincronizzazione Omnicanale (Google Maps, Meta Facebook & IG, WhatsApp Business)
-- **Aggiornamento Turni & Orari All'Unisono con 1 Click**: Dalla scheda *Dashboard > Impostazioni > Turni & Coperti*, il pulsante `🚀 Salva e Sincronizza Turni su Google & Canali` aggiorna simultaneamente gli orari di apertura pranzo/cena sulla scheda Google Business Profile (Maps & Ricerca), sulle Pagine Meta (Facebook & Instagram) e sul profilo WhatsApp Business del ristorante.
-- **Badge di Stato Canali in Tempo Reale**: Nuova scheda visiva nella gestione turni con indicatori live dello stato di connessione e sincronizzazione per Google Maps, Meta, WhatsApp Business e Google Review Booster.
-- **Architettura Centralizzata Taaaac Core**: Gestione centralizzata e sicura di tutti i token di accesso e delle API dei canali esterni tramite Taaaac Core.
-
-### 3. ⭐ Google Review Booster Automatico via Email (5 Stelle Intelligenti)
-- **Email Post-Tavolo & Asporto Automatica a Costo Zero**: Quando una prenotazione del tavolo viene contrassegnata come `COMPLETATA` o un ordine asporto viene segnato come `RITIRATO`, il sistema invia in automatico un'email con 5 stelle interattive da `noreply@taaaac.eu` senza consumare la quota messaggi WhatsApp.
-- **Routing Intelligente Reputazione**:
-  - **4 e 5 Stelle (Pasto Eccellente)**: Reindirizzano il commensale direttamente alla scheda Google Maps per pubblicare la recensione a 5 stelle verificata.
-  - **1, 2 e 3 Stelle (Customer Care)**: Reindirizzano al modulo di feedback privato interno (`/feedback`) permettendo al ristoratore di ascoltare il cliente e risolvere ogni disservizio privatamente.
-
-### 4. 🎨 Showcase Visual Studio WYSIWYG Fedele al 100% & Priorità Assoluta Nome Attività
-- **Simulatore Live Mirroring al 100%**: Ridisegnato il pannello di anteprima del Live Studio Vetrina (`ShowcaseVisualStudio`) affinché specchi fedelmente la pagina pubblica reale sia su smartphone che su desktop:
-  - Header completo con icona/logo, nome attività e pulsanti di navigazione fedeli.
-  - Hero a 2 colonne in modalità desktop con la card turni interattiva in tempo reale (*"Ospitalità & Sala — Tavoli in tempo reale — Aperto Oggi"*).
-  - Tutte le sezioni reali renderizzate (Galleria sala & piatti, Esperienze & Momenti della giornata a 4 card, Filosofia dark e callout prenotazione rapida).
-- **Nuovo Campo Insegna & Nome Locale nell'Editor**: Aggiunto il campo di configurazione dedicato all'insegna del ristorante nella scheda *Insegna & Copy*, con aggiornamento istantaneo del titolo e dell'header.
-- **Risoluzione Sovrascrittura Palette Colori**: Risolto il bug che schiacciava il nome dell'attività con i placeholder fittizi della palette (es. `"Bistrot Botanico Da Taaaac"`): i token colore (`primaryColor`, `accentColor`) sono ora strettamente isolati, garantendo che il vero nome dell'attività configurato dal ristoratore abbia la massima priorità in tutta l'applicazione, nel `<title>` del browser, nella navbar e nei promemoria WhatsApp.
 
 ---
 

@@ -1,72 +1,49 @@
-import { prisma } from "./prisma";
-
-export interface StaffTelegramConfig {
-  enabled: boolean;
-  botToken: string | null;
-  staffChatId: string | null;
-}
-
 /**
- * Recupera la configurazione Telegram per lo staff del locale da LocalSetting
+ * Notifiche Telegram allo staff: l'invio passa SEMPRE da Taaaac Core (hub centralizzato).
+ * Il modulo non conosce token né chat ID: la configurazione si gestisce dal portale Taaaac.
  */
-export async function getStaffTelegramConfig(): Promise<StaffTelegramConfig> {
-  try {
-    const settings = await prisma.localSetting.findMany({
-      where: {
-        key: {
-          in: ["telegram_enabled", "telegram_bot_token", "telegram_staff_chat_id"],
-        },
-      },
-    });
-
-    const map: Record<string, string> = {};
-    for (const s of settings) {
-      map[s.key] = s.value;
-    }
-
-    return {
-      enabled: map["telegram_enabled"] === "true",
-      botToken: map["telegram_bot_token"]?.trim() || null,
-      staffChatId: map["telegram_staff_chat_id"]?.trim() || null,
-    };
-  } catch (err) {
-    console.error("[Telegram Staff] Errore lettura LocalSetting:", err);
-    return { enabled: false, botToken: null, staffChatId: null };
-  }
-}
 
 /**
- * Invia un messaggio formattato in HTML al canale/gruppo Telegram dello staff
+ * Chiede al Core di inviare un messaggio (HTML) al gruppo Telegram dello staff del locale
  */
 export async function sendStaffTelegramMessage(htmlText: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const config = await getStaffTelegramConfig();
-    if (!config.enabled || !config.botToken || !config.staffChatId) {
-      return { ok: false, error: "Telegram staff non configurato o disabilitato" };
+  const coreUrls = [
+    process.env.TAAAAC_INTERNAL_URL || "http://taaaac-core:3000",
+    process.env.TAAAAC_CORE_URL || "https://taaaac.eu",
+  ];
+
+  const targetDomain =
+    process.env.TAAAAC_TENANT_DOMAIN ||
+    (typeof process.env.NEXT_PUBLIC_APP_URL === "string" && process.env.NEXT_PUBLIC_APP_URL.includes("taaaac.eu")
+      ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname
+      : "tavoly.taaaac.eu");
+
+  let lastError = "Impossibile contattare Taaaac Communication Hub";
+
+  for (const baseUrl of coreUrls) {
+    try {
+      const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/internal/telegram/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-taaaac-key": process.env.TAAAAC_INTERNAL_KEY || "taaaac-secret-mesh-key",
+        },
+        body: JSON.stringify({ tenantDomain: targetDomain, kind: "STAFF", text: htmlText }),
+        signal: AbortSignal.timeout(6000),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) return { ok: true };
+      lastError = data.error || `HTTP ${res.status}`;
+      // Errore applicativo del Core (es. canale non attivo): inutile riprovare sull'altro indirizzo
+      if (res.status !== 502 && res.status !== 503 && res.status !== 504) break;
+    } catch (err: any) {
+      lastError = err.message || "Errore connessione Core";
     }
-
-    const res = await fetch(`https://api.telegram.org/bot${config.botToken}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: config.staffChatId,
-        text: htmlText,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) {
-      console.warn("[Telegram Staff] Errore API Telegram:", data);
-      return { ok: false, error: data.description || "Errore API Telegram" };
-    }
-
-    return { ok: true };
-  } catch (err: any) {
-    console.error("[Telegram Staff] Errore invio messaggio staff:", err.message || err);
-    return { ok: false, error: err.message };
   }
+
+  console.warn("[Telegram Staff] Invio tramite Core non riuscito:", lastError);
+  return { ok: false, error: lastError };
 }
 
 /**

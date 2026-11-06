@@ -158,7 +158,7 @@ export function MenuManagementView({
                 ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
                 : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
             }`}
-            title="Attiva o disattiva la visualizzazione delle fotografie nel menù digitale"
+            title="Attiva o disattiva le fotografie dei piatti nel menù digitale e nella pagina Asporto"
           >
             <ImageIcon className={`w-4 h-4 ${showImages ? "text-emerald-600" : "text-slate-400"}`} />
             <span>Foto Piatti:</span>

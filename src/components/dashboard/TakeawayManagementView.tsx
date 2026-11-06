@@ -257,6 +257,9 @@ export function TakeawayManagementView({
             <p className="text-xs text-slate-500 mt-1">
               Gestione comande da asporto: presa ordini rapida, avanzamento cucina e ritiro clienti al banco.
             </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Le fotografie dei piatti nella pagina Asporto seguono l&apos;interruttore <b>Foto Piatti</b> del Menù Digitale (anche in Impostazioni &gt; Layout &amp; Fotografie).
+            </p>
           </div>
         </div>
 

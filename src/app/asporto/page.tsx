@@ -19,7 +19,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AsportoPage() {
-  const [tenantConfig, takeawaySettings, rawTakeawayDishes, existingTakeawayOrders] =
+  const [tenantConfig, takeawaySettings, rawTakeawayDishes, existingTakeawayOrders, showImagesSetting] =
     await Promise.all([
       getTenantConfig(),
       getTakeawaySettings(),
@@ -31,7 +31,11 @@ export default async function AsportoPage() {
         where: { status: { not: "ANNULLATO" } },
         select: { pickupTime: true, pickupDate: true },
       }),
+      prisma.localSetting.findUnique({ where: { key: "menu_show_dish_images" } }).catch(() => null),
     ]);
+
+  // Stesso interruttore del menù digitale (Impostazioni > Fotografie dei piatti)
+  const showImages = showImagesSetting ? showImagesSetting.value === "true" : true;
 
   const takeawayDishes: PublicTakeawayDish[] = rawTakeawayDishes.map((d) => ({
     id: d.id,
@@ -88,6 +92,7 @@ export default async function AsportoPage() {
         <div className="taaaac-card p-6 sm:p-8 bg-white shadow-md border-slate-200/90 rounded-3xl">
           {takeawaySettings.enabled ? (
             <PublicTakeawayWidget
+              showImages={showImages}
               settings={takeawaySettings}
               dishes={takeawayDishes}
               existingOrders={existingTakeawayOrders}

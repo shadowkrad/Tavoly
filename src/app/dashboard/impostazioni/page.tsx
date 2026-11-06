@@ -36,7 +36,7 @@ import ThermalPrinterSettingsCard from "@/components/dashboard/ThermalPrinterSet
 import { toggleKdsSettingAction } from "@/app/actions";
 import { TakeawaySettings, DEFAULT_TAKEAWAY_SETTINGS } from "@/lib/takeaway-rules";
 import ShowcaseVisualStudio from "@/components/dashboard/showcase/ShowcaseVisualStudio";
-import TelegramSettingsPanel, { TelegramSettingsData } from "@/components/dashboard/TelegramSettingsPanel";
+import TelegramHubCard, { TelegramHubData } from "@/components/dashboard/TelegramHubCard";
 import FidelitySettingsPanel, { FidelitySettingsData } from "@/components/dashboard/FidelitySettingsPanel";
 import OrariSettimanaliPanel from "@/components/dashboard/OrariSettimanaliPanel";
 import { OrariSettimanaliConfig, GIORNI_SETTIMANA_DEFAULT } from "@/lib/orari-settimanali";
@@ -237,12 +237,7 @@ export default function TavolyImpostazioniPage() {
   const [takeawaySaving, setTakeawaySaving] = useState(false);
   const [takeawaySavedNotice, setTakeawaySavedNotice] = useState(false);
   // Telegram & Fidelity State
-  const [telegramSettings, setTelegramSettings] = useState<TelegramSettingsData>({
-    enabled: false,
-    botToken: "",
-    botUsername: "",
-    staffChatId: "",
-  });
+  const [telegramHub, setTelegramHub] = useState<TelegramHubData | null>(null);
 
   const [fidelitySettings, setFidelitySettings] = useState<FidelitySettingsData>({
     enabled: false,
@@ -401,7 +396,7 @@ export default function TavolyImpostazioniPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) {
-          if (data.telegramSettings) setTelegramSettings(data.telegramSettings);
+          if (data.telegramHub) setTelegramHub(data.telegramHub);
           if (data.fidelitySettings) setFidelitySettings(data.fidelitySettings);
           if (data.takeawaySettings) {
             setTakeaway(data.takeawaySettings);
@@ -424,6 +419,7 @@ export default function TavolyImpostazioniPage() {
               orariSettimanaliConfig: data.orariSettimanaliConfig || f.orariSettimanaliConfig,
               menuShowImages: data.menuShowImages !== undefined ? Boolean(data.menuShowImages) : f.menuShowImages,
               kdsEnabled: resolvedKds,
+              whatsappAbilitato: data.whatsappAbilitato !== undefined ? Boolean(data.whatsappAbilitato) : f.whatsappAbilitato,
               copertiInterni: data.copertiInterni || f.copertiInterni,
               copertiDehors: data.copertiDehors || f.copertiDehors,
               copertiVeranda: data.copertiVeranda || f.copertiVeranda,
@@ -516,6 +512,7 @@ export default function TavolyImpostazioniPage() {
           orariSettimanaliConfig: form.orariSettimanaliConfig,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
+          whatsappAbilitato: form.whatsappAbilitato,
           copertiInterni: form.copertiInterni,
           copertiDehors: form.copertiDehors,
           copertiVeranda: form.copertiVeranda,
@@ -524,7 +521,6 @@ export default function TavolyImpostazioniPage() {
           fasciaPranzo: form.fasciaPranzo,
           tolleranzaRitardoMinuti: form.tolleranzaRitardoMinuti,
           takeawaySettings: takeaway,
-          telegramSettings,
           fidelitySettings,
         }),
       });
@@ -1015,7 +1011,15 @@ export default function TavolyImpostazioniPage() {
             <input
               type="checkbox"
               checked={form.whatsappAbilitato}
-              onChange={(e) => setForm({ ...form, whatsappAbilitato: e.target.checked })}
+              onChange={(e) => {
+                const nextVal = e.target.checked;
+                setForm({ ...form, whatsappAbilitato: nextVal });
+                fetch("/api/impostazioni", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ whatsappAbilitato: nextVal }),
+                }).catch(() => {});
+              }}
               className="w-5 h-5 accent-emerald-600 rounded cursor-pointer"
             />
           </div>
@@ -1026,6 +1030,46 @@ export default function TavolyImpostazioniPage() {
               Gentile &#123;&#123;nome_cliente&#125;&#125;, il tuo tavolo per &#123;&#123;numero_coperti&#125;&#125; persone è confermato per oggi alle ore &#123;&#123;orario&#125;&#125; da Osteria dei Tavoli! Consulta il menù digitale in anteprima: &#123;&#123;link_menu&#125;&#125;
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB TELEGRAM: TELEGRAM HUB & STAFF */}
+      {activeTab === "telegram" && (
+        <div className="space-y-5">
+          <TelegramHubCard hub={telegramHub} />
+        </div>
+      )}
+
+      {/* TAB FIDELITY: RACCOLTA PUNTI & PREMI */}
+      {activeTab === "fidelity" && (
+        <div className="space-y-5">
+          <FidelitySettingsPanel
+            data={fidelitySettings}
+            onChange={(updated) => {
+              const toggled =
+                updated.enabled !== fidelitySettings.enabled ||
+                Boolean(updated.compleanno?.enabled) !== Boolean(fidelitySettings.compleanno?.enabled) ||
+                (updated.rewards?.length || 0) !== (fidelitySettings.rewards?.length || 0);
+              setFidelitySettings(updated);
+              if (toggled) {
+                fetch("/api/impostazioni", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ fidelitySettings: updated }),
+                })
+                  .then(() => {
+                    setFeedback({
+                      type: "success",
+                      text: updated.enabled
+                        ? "Programma Fidelity attivato e salvato!"
+                        : "Programma Fidelity disattivato e salvato.",
+                    });
+                    setTimeout(() => setFeedback(null), 3000);
+                  })
+                  .catch(() => {});
+              }
+            }}
+          />
         </div>
       )}
 
@@ -1428,17 +1472,25 @@ export default function TavolyImpostazioniPage() {
                   htmlFor="menuShowImagesCheckbox" 
                   className="text-xs font-bold text-slate-900 block cursor-pointer"
                 >
-                  Mostra fotografie dei piatti nel menù digitale
+                  Mostra fotografie dei piatti nel menù digitale e nell&apos;asporto
                 </label>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Se attivo, i piatti mostrano la fotografia in evidenza sia sul gestionale che per i clienti. Se disattivato, il menù pubblico si reimposta automaticamente su un layout tipografico elegante stile bistrot/carta d&apos;alta ristorazione senza spazi vuoti.
+                  Se attivo, i piatti mostrano la fotografia in evidenza sia sul gestionale che per i clienti, nel menù digitale e nella pagina Asporto. Se disattivato, il menù pubblico e la pagina Asporto si reimpostano automaticamente su un layout tipografico elegante stile bistrot/carta d&apos;alta ristorazione senza spazi vuoti.
                 </p>
               </div>
               <input
                 id="menuShowImagesCheckbox"
                 type="checkbox"
                 checked={form.menuShowImages}
-                onChange={(e) => setForm({ ...form, menuShowImages: e.target.checked })}
+                onChange={(e) => {
+                  const nextVal = e.target.checked;
+                  setForm({ ...form, menuShowImages: nextVal });
+                  fetch("/api/impostazioni", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ menuShowImages: nextVal }),
+                  }).catch(() => {});
+                }}
                 className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
               />
             </div>

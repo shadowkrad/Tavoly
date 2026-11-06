@@ -2,6 +2,7 @@ import FloatingWhatsAppWidget from "@/components/public/FloatingWhatsAppWidget";
 import type { Metadata } from "next";
 import "./globals.css";
 import { getTenantConfig } from "@/lib/taaaac-core";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +55,19 @@ export default async function RootLayout({
     "--brand-accent": theme.accentColor || "#f97316",
   } as React.CSSProperties;
 
+  // La tessera del cliente ha icona (logo) e manifest propri, impostati dalla sua pagina
+  const eTessera = ((await headers()).get("x-pathname") || "").startsWith("/tessera/");
+
   return (
     <html lang="it" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/api/pwa-icon?size=192" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/api/pwa-icon?size=180" />
-        <link rel="manifest" href="/manifest.webmanifest" />
+        {!eTessera && (
+          <>
+            <link rel="icon" href="/api/pwa-icon?size=192" />
+            <link rel="apple-touch-icon" sizes="180x180" href="/api/pwa-icon?size=180" />
+            <link rel="manifest" href="/manifest.webmanifest" />
+          </>
+        )}
       </head>
       <body style={brandStyle} className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
         {children}

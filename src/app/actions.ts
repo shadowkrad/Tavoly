@@ -1,4 +1,7 @@
 "use server";
+import { normalizePhone, parseDataNascita } from "@/lib/phone";
+import { registraVisitaCliente, cercaClientePerTelefono } from "@/lib/clienti-telefono";
+import { gestisciPuntiSpesa } from "@/lib/fidelity";
 
 import { risolviStatoGiornoTavoly } from "@/lib/festivita-italiane";
 
@@ -155,26 +158,8 @@ export async function createPublicReservationAction(formData: FormData) {
 
     // Aggiornamento o creazione Scheda Cliente (Issue #9)
     try {
-      await prisma.customerProfile.upsert({
-        where: { phoneNumber },
-        create: {
-          phoneNumber,
-          name: customerName,
-          email: email || null,
-          notes: notes || null,
-          visitCount: 1,
-          loyaltyPoints: 10,
-          lastVisitAt: new Date(),
-        },
-        update: {
-          name: customerName,
-          email: email || undefined,
-          notes: notes ? notes : undefined,
-          visitCount: { increment: 1 },
-          loyaltyPoints: { increment: 10 },
-          lastVisitAt: new Date(),
-        },
-      });
+      // Un numero, un cliente (riconosce anche +39, spazi, ecc.). I punti fedelta' arrivano dalla spesa, non dalla prenotazione.
+      await registraVisitaCliente({ telefono: phoneNumber, nome: customerName, email: email || null, note: notes || null });
     } catch {
       // opzionale
     }
@@ -562,20 +547,39 @@ export interface CustomerProfileInput {
   isVip?: boolean;
   notes?: string | null;
   visitCount?: number;
+  /** Ignorato: i punti non si modificano a mano, ogni variazione passa dal registro movimenti. */
   loyaltyPoints?: number;
+  birthDate?: string | null; // "AAAA-MM-GG", facoltativa (buono compleanno)
+  marketingConsent?: boolean;
 }
 
 export async function createOrUpdateCustomerAction(input: CustomerProfileInput) {
   try {
     const name = input.name?.trim();
-    const phoneNumber = input.phoneNumber?.trim();
+    const telefonoInserito = input.phoneNumber?.trim();
 
-    if (!name || !phoneNumber) {
+    if (!name || !telefonoInserito) {
       return { success: false, error: "Nome e Numero di Telefono sono obbligatori" };
     }
 
-    if (phoneNumber.length < 6) {
+    if (telefonoInserito.length < 6) {
       return { success: false, error: "Inserisci un numero di telefono valido" };
+    }
+
+    // Telefono salvato normalizzato (senza +39 e spazi) e mai uguale a quello di un altro cliente, in qualunque formato
+    const phoneNumber = normalizePhone(telefonoInserito) || telefonoInserito;
+    const altro = await cercaClientePerTelefono(telefonoInserito, input.id);
+    if (altro) {
+      return {
+        success: false,
+        error: `Questo numero è già registrato per ${altro.name}`,
+        clienteEsistenteId: altro.id,
+      };
+    }
+
+    const nascita = input.birthDate ? parseDataNascita(input.birthDate) : null;
+    if (input.birthDate && !nascita) {
+      return { success: false, error: "Data di nascita non valida" };
     }
 
     const email = input.email?.trim() || null;
@@ -584,59 +588,23 @@ export async function createOrUpdateCustomerAction(input: CustomerProfileInput) 
     const isVip = Boolean(input.isVip);
     const notes = input.notes?.trim() || null;
     const visitCount = typeof input.visitCount === "number" ? Math.max(1, input.visitCount) : 1;
-    const loyaltyPoints = typeof input.loyaltyPoints === "number" ? Math.max(0, input.loyaltyPoints) : 10;
+    const dati = {
+      name,
+      phoneNumber,
+      email,
+      allergies,
+      favoriteTable,
+      isVip,
+      notes,
+      visitCount,
+      birthDate: nascita,
+      marketingConsent: Boolean(input.marketingConsent),
+    };
 
-    let customer;
-    if (input.id) {
-      // Verifica unicità telefono se modificato
-      const existingPhone = await prisma.customerProfile.findUnique({
-        where: { phoneNumber },
-      });
-      if (existingPhone && existingPhone.id !== input.id) {
-        return { success: false, error: "Un altro cliente ha già questo numero di telefono" };
-      }
-
-      customer = await prisma.customerProfile.update({
-        where: { id: input.id },
-        data: {
-          name,
-          phoneNumber,
-          email,
-          allergies,
-          favoriteTable,
-          isVip,
-          notes,
-          visitCount,
-          loyaltyPoints,
-        },
-      });
-    } else {
-      customer = await prisma.customerProfile.upsert({
-        where: { phoneNumber },
-        create: {
-          name,
-          phoneNumber,
-          email,
-          allergies,
-          favoriteTable,
-          isVip,
-          notes,
-          visitCount,
-          loyaltyPoints,
-          lastVisitAt: new Date(),
-        },
-        update: {
-          name,
-          email,
-          allergies,
-          favoriteTable,
-          isVip,
-          notes,
-          visitCount,
-          loyaltyPoints,
-        },
-      });
-    }
+    // I punti non si toccano da qui: si creano a 0 e poi variano solo dalla spesa, dalla cassa fedelta' e dai premi
+    const customer = input.id
+      ? await prisma.customerProfile.update({ where: { id: input.id }, data: dati })
+      : await prisma.customerProfile.create({ data: { ...dati, loyaltyPoints: 0, lastVisitAt: new Date() } });
 
     revalidatePath("/dashboard/clienti");
     revalidatePath("/dashboard");
@@ -661,13 +629,13 @@ export async function deleteCustomerAction(id: string) {
   }
 }
 
-export async function incrementCustomerVisitsAction(id: string, loyaltyDelta: number = 10) {
+/** Registra una visita (i punti arrivano dalla spesa: il parametro e' mantenuto solo per compatibilita' e ignorato). */
+export async function incrementCustomerVisitsAction(id: string, _loyaltyDelta: number = 0) {
   try {
     const updated = await prisma.customerProfile.update({
       where: { id },
       data: {
         visitCount: { increment: 1 },
-        loyaltyPoints: { increment: loyaltyDelta },
         lastVisitAt: new Date(),
       },
     });
@@ -680,13 +648,12 @@ export async function incrementCustomerVisitsAction(id: string, loyaltyDelta: nu
   }
 }
 
-export async function updateCustomerNotesAction(phoneNumber: string, notes: string, loyaltyDelta: number = 0) {
+export async function updateCustomerNotesAction(phoneNumber: string, notes: string, _loyaltyDelta: number = 0) {
   try {
     const updated = await prisma.customerProfile.update({
       where: { phoneNumber },
       data: {
         notes,
-        ...(loyaltyDelta !== 0 ? { loyaltyPoints: { increment: loyaltyDelta } } : {}),
       },
     });
     revalidatePath("/dashboard/clienti");
@@ -1081,22 +1048,10 @@ export async function createTakeawayOrderAction(data: {
     if (data.phoneNumber && data.phoneNumber.trim().length >= 6) {
       const cleanPhone = data.phoneNumber.trim();
       try {
-        await prisma.customerProfile.upsert({
-          where: { phoneNumber: cleanPhone },
-          create: {
-            phoneNumber: cleanPhone,
-            name: data.customerName.trim(),
-            notes: "Cliente Asporto & Takeaway",
-            visitCount: 1,
-            loyaltyPoints: 10,
-            lastVisitAt: new Date(),
-          },
-          update: {
-            name: data.customerName.trim(),
-            visitCount: { increment: 1 },
-            loyaltyPoints: { increment: 10 },
-            lastVisitAt: new Date(),
-          },
+        await registraVisitaCliente({
+          telefono: cleanPhone,
+          nome: data.customerName.trim(),
+          noteNuovo: "Cliente Asporto & Takeaway",
         });
       } catch (crmErr) {
         console.warn("[CRM Auto-Sync] Errore aggiornamento profilo cliente:", crmErr);
@@ -1153,10 +1108,22 @@ export async function updateTakeawayOrderStatusAction(id: string, rawStatus: str
       return { success: false, error: "Stato ordine non valido" };
     }
 
+    const precedente = await prisma.takeawayOrder.findUnique({ where: { id }, select: { status: true } });
     const order = await prisma.takeawayOrder.update({
       where: { id },
       data: { status },
     });
+    // Fidelity: punti sulla spesa quando l'asporto e' ritirato (storno se viene riaperto)
+    if (precedente && precedente.status !== status) {
+      await gestisciPuntiSpesa({
+        rif: order.id,
+        telefono: order.phoneNumber,
+        importo: order.totalAmount,
+        eraValido: precedente.status === "RITIRATO",
+        oraValido: status === "RITIRATO",
+        etichetta: "Asporto ritirato",
+      });
+    }
 
     if (status === "RITIRATO" && order.email) {
       triggerGoogleReviewBooster({
@@ -1422,6 +1389,20 @@ export async function settleTableBillAction(
       });
     }
 
+    // Fidelity: punti sulla spesa del conto (un movimento per ordine pagato), se il tavolo e' di un cliente con scheda
+    if (primaryRes) {
+      for (const o of openOrders) {
+        await gestisciPuntiSpesa({
+          rif: o.id,
+          telefono: primaryRes.phoneNumber,
+          importo: o.totalAmount,
+          eraValido: false,
+          oraValido: true,
+          etichetta: "Conto tavolo pagato",
+        });
+      }
+    }
+
     for (const res of activeReservations) {
       await prisma.reservation.update({
         where: { id: res.id },
@@ -1492,6 +1473,14 @@ export async function settleSingleTableOrderAction(
         paidAt: new Date(),
         status: "SERVITO",
       },
+    });
+    await gestisciPuntiSpesa({
+      rif: order.id,
+      telefono: order.customerPhone,
+      importo: order.totalAmount,
+      eraValido: false,
+      oraValido: true,
+      etichetta: "Conto tavolo pagato",
     });
 
     revalidatePath("/dashboard");
@@ -2085,33 +2074,3 @@ export async function printTakeawayOrderEscPosAction(takeawayOrderId: string) {
   }
 }
 
-// --- TELEGRAM SETTINGS ACTION ---
-export async function saveTelegramSettingsAction(settings: {
-  enabled: boolean;
-  botToken: string;
-  botUsername?: string;
-  staffChatId: string;
-}) {
-  try {
-    const upserts = [
-      { key: "telegram_enabled", value: String(Boolean(settings.enabled)) },
-      { key: "telegram_bot_token", value: String(settings.botToken || "").trim() },
-      { key: "telegram_bot_username", value: String(settings.botUsername || "").trim() },
-      { key: "telegram_staff_chat_id", value: String(settings.staffChatId || "").trim() },
-    ];
-
-    for (const item of upserts) {
-      await prisma.localSetting.upsert({
-        where: { key: item.key },
-        create: { key: item.key, value: item.value },
-        update: { value: item.value },
-      });
-    }
-
-    revalidatePath("/dashboard/impostazioni");
-    return { success: true };
-  } catch (error) {
-    console.error("Errore salvataggio impostazioni Telegram:", error);
-    return { success: false, error: "Impossibile salvare la configurazione Telegram" };
-  }
-}

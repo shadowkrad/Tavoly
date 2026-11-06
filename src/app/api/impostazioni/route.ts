@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { fetchTenantConfig } from "@/lib/taaaac-client";
 import { parseShowcaseConfig } from "@/lib/showcase-defaults";
 import {
   parseOrariSettimanaliConfig,
   formatOrariSummary,
   OrariSettimanaliConfig,
 } from "@/lib/orari-settimanali";
+
+/**
+ * Telegram è gestito da Taaaac Core: qui si legge solo lo stato (mai token né chat ID).
+ */
+async function getTelegramHub() {
+  try {
+    const cfg = await fetchTenantConfig();
+    return {
+      managedByCore: true,
+      enabled: Boolean(cfg.telegramEnabled),
+      botUsername: cfg.telegramBotUsername || "",
+      staffAlerts: cfg.telegramAutoConfirm !== false,
+      reminder24h: cfg.telegramAutoReminder24h !== false,
+    };
+  } catch {
+    return { managedByCore: true, enabled: false, botUsername: "", staffAlerts: true, reminder24h: true };
+  }
+}
 
 export async function GET() {
   try {
@@ -25,11 +44,8 @@ export async function GET() {
               "address",
               "menu_show_dish_images",
               "kds_enabled",
+              "whatsapp_enabled",
               "showcase_config",
-              "telegram_enabled",
-              "telegram_bot_token",
-              "telegram_bot_username",
-              "telegram_staff_chat_id",
               "fidelity_enabled",
               "fidelity_rules",
               "turni_cena_primo",
@@ -114,6 +130,7 @@ export async function GET() {
       orariSettimanaliConfig: orariConfig,
       menuShowImages: map["menu_show_dish_images"] !== "false",
       kdsEnabled,
+      whatsappAbilitato: map["whatsapp_enabled"] !== "false",
       takeawaySettings,
       showcaseConfig,
       cenaPrimoTurno: map["turni_cena_primo"] || "19:30 - 22:00",
@@ -123,17 +140,14 @@ export async function GET() {
       copertiInterni: map["coperti_interni"] || "45",
       copertiDehors: map["coperti_dehors"] || "30",
       copertiVeranda: map["coperti_veranda"] || "20",
-      telegramSettings: {
-        enabled: map["telegram_enabled"] === "true",
-        botToken: map["telegram_bot_token"] || "",
-        botUsername: map["telegram_bot_username"] || "",
-        staffChatId: map["telegram_staff_chat_id"] || "",
-      },
+      telegramHub: await getTelegramHub(),
       fidelitySettings: {
         enabled: map["fidelity_enabled"] === "true",
         pointsPerEuro: fidelityRules?.pointsPerEuro || 1,
         welcomeBonusPoints: fidelityRules?.welcomeBonusPoints || 10,
         minPointsToRedeem: fidelityRules?.minPointsToRedeem || 50,
+        rewardVoucherMonths: fidelityRules?.rewardVoucherMonths ?? 6,
+        compleanno: fidelityRules?.compleanno,
         rewards: fidelityRules?.rewards || [
           { id: "rew_1", name: "Dolce della Casa in Omaggio", pointsRequired: 50, rewardType: "FREE_ITEM", freeItemName: "Dolce artigianale a scelta" },
           { id: "rew_2", name: "Sconto 10€ sul Conto", pointsRequired: 100, rewardType: "DISCOUNT", discountAmount: 10 },
@@ -165,9 +179,9 @@ export async function PUT(req: NextRequest) {
       orariSettimanaliConfig,
       menuShowImages,
       kdsEnabled,
+      whatsappAbilitato,
       takeawaySettings,
       showcaseConfig,
-      telegramSettings,
       fidelitySettings,
       cenaPrimoTurno,
       cenaSecondoTurno,
@@ -224,11 +238,8 @@ export async function PUT(req: NextRequest) {
       orariConfigStr !== undefined && { key: "orari_settimanali_config", value: orariConfigStr },
       menuShowImages !== undefined && { key: "menu_show_dish_images", value: String(menuShowImages ? "true" : "false") },
       kdsEnabled !== undefined && { key: "kds_enabled", value: String(kdsEnabled ? "true" : "false") },
+      whatsappAbilitato !== undefined && { key: "whatsapp_enabled", value: String(whatsappAbilitato ? "true" : "false") },
       showcaseConfigStr !== undefined && { key: "showcase_config", value: showcaseConfigStr },
-      telegramSettings?.enabled !== undefined && { key: "telegram_enabled", value: String(telegramSettings.enabled) },
-      telegramSettings?.botToken !== undefined && { key: "telegram_bot_token", value: String(telegramSettings.botToken || "") },
-      telegramSettings?.botUsername !== undefined && { key: "telegram_bot_username", value: String(telegramSettings.botUsername || "") },
-      telegramSettings?.staffChatId !== undefined && { key: "telegram_staff_chat_id", value: String(telegramSettings.staffChatId || "") },
       fidelitySettings?.enabled !== undefined && { key: "fidelity_enabled", value: String(fidelitySettings.enabled) },
       fidelitySettings !== undefined && { key: "fidelity_rules", value: JSON.stringify(fidelitySettings) },
       cenaPrimoTurno !== undefined && { key: "turni_cena_primo", value: String(cenaPrimoTurno) },

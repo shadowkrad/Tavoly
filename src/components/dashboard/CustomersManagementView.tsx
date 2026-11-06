@@ -185,7 +185,7 @@ export function CustomersManagementView({
   const handleIncrementVisit = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     startTransition(async () => {
-      await incrementCustomerVisitsAction(id, 10);
+      await incrementCustomerVisitsAction(id, 0);
       router.refresh();
     });
   };
