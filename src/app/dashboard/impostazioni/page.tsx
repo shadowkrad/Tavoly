@@ -299,6 +299,7 @@ export default function TavolyImpostazioniPage() {
   const [form, setForm] = useState({
     nomeRistorante: "Osteria dei Tavoli",
     indirizzo: "Piazza Grande, 12 - 52100 Arezzo (AR)",
+    descrizione: "",
     telefono: "+39 0575 654321",
     email: "prenotazioni@osteriatavoli.it",
     hoursWeekday: "Martedì - Venerdì: 11:00 - 15:00 / 17:00 - 23:00",
@@ -338,24 +339,11 @@ export default function TavolyImpostazioniPage() {
     setSyncingOmnichannel(true);
     setFeedback(null);
     try {
-      const days: ("MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY")[] = [
-        "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
-      ];
-      const cenaStart = form.cenaPrimoTurno.split("-")[0]?.trim() || "19:30";
-      const cenaEnd = form.cenaSecondoTurno.split("-")[1]?.trim() || "23:30";
-      const weeklyHours = days.map((d) => ({
-        dayOfWeek: d,
-        isOpen: true,
-        slots: [
-          { open: form.pranzoInizio || "12:30", close: form.pranzoFine || "15:00" },
-          { open: cenaStart, close: cenaEnd },
-        ],
-      }));
-
       const res = await fetch("/api/sync/channels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ weeklyHours }),
+        // Gli orari inviati ai canali sono sempre quelli ufficiali dell'attivita' (scelti dal server)
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -413,6 +401,7 @@ export default function TavolyImpostazioniPage() {
               email: data.email || f.email,
               telefono: data.telefono || f.telefono,
               indirizzo: data.indirizzo || f.indirizzo,
+              descrizione: data.descrizione !== undefined ? data.descrizione : f.descrizione,
               hoursWeekday: data.hoursWeekday !== undefined ? data.hoursWeekday : f.hoursWeekday,
               hoursWeekend: data.hoursWeekend !== undefined ? data.hoursWeekend : f.hoursWeekend,
               hoursNote: data.hoursNote !== undefined ? data.hoursNote : f.hoursNote,
@@ -498,17 +487,12 @@ export default function TavolyImpostazioniPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // Dati dell'attivita' e orari ufficiali (colori e logo si gestiscono solo in Aspetto & Brand)
           nomeRistorante: form.nomeRistorante,
-          logoUrl: form.logoUrl || "",
-          faviconUrl: form.faviconUrl || "",
-          colorePrimario: form.colorePrimario,
-          coloreAccento: form.coloreAccento,
           email: form.email,
           telefono: form.telefono,
           indirizzo: form.indirizzo,
-          hoursWeekday: form.hoursWeekday,
-          hoursWeekend: form.hoursWeekend,
-          hoursNote: form.hoursNote,
+          descrizione: form.descrizione,
           orariSettimanaliConfig: form.orariSettimanaliConfig,
           menuShowImages: form.menuShowImages,
           kdsEnabled: form.kdsEnabled,
@@ -760,7 +744,27 @@ export default function TavolyImpostazioniPage() {
             </div>
           </div>
 
+          <div className="pt-2 border-t border-slate-100">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Descrizione dell&apos;attività</label>
+            <textarea
+              rows={4}
+              value={form.descrizione}
+              onChange={(e) => setForm({ ...form, descrizione: e.target.value })}
+              placeholder="Racconta in poche righe chi siete e cosa vi rende speciali"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden resize-none"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Nome, indirizzo, telefono, email, descrizione e orari si modificano solo qui: la vetrina li legge da questa scheda
+              (in &quot;Aspetto &amp; Brand&quot; scegli quali mostrare). Colori e logo si gestiscono in &quot;Aspetto &amp; Brand&quot;.
+            </p>
+          </div>
+
           <div className="pt-4 border-t border-slate-200/80">
+            <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+              <strong className="text-slate-700">Orari ufficiali dell&apos;attività:</strong> sono quelli mostrati nella vetrina (fumetto di oggi e piè di pagina)
+              e quelli inviati a Google, Facebook e Instagram. I turni di pranzo/cena per le prenotazioni (scheda Turni &amp; Coperti)
+              e gli orari di ritiro dell&apos;asporto sono separati e non vengono mai mostrati come orario dell&apos;attività.
+            </p>
             <OrariSettimanaliPanel
               initialConfig={form.orariSettimanaliConfig}
               onChange={(newConfig) => {

@@ -25,6 +25,13 @@
 - **Buono compleanno automatico**, una volta per cliente e per anno, con email solo a chi ha dato il consenso. Parte quando si apre la pagina Buoni o da `/api/cron/compleanni`.
 - **Premio punti → buono**: riscattando un premio si scalano i punti e nasce un buono intestato al cliente, nella stessa operazione.
 
+
+### 6. 🏠 Dati dell'Attività e Orari in un Solo Posto
+- **Un solo posto per ogni dato**: nome, indirizzo, telefono, email, descrizione e orari dell'attività si modificano solo in Impostazioni > Ristorante. La vetrina, lo Studio Aspetto e Google, Facebook e Instagram li leggono da lì: niente più copie diverse tra schede.
+- **Orari ufficiali sempre allineati**: il fumetto "Aperto/Chiuso/Apre alle…" di oggi, il piè di pagina e l'invio a Google, Facebook e Instagram usano lo stesso orario giorno per giorno, con i giorni di chiusura. Se cambi il pannello degli orari, la vetrina cambia subito (prima poteva restare il testo vecchio).
+- **Turni tavolo e asporto restano separati**: sono usati solo per prenotazioni e ordini e non vengono mai mostrati o inviati come orario dell'attività. Tolti dalla pagina Orari i campi pranzo/cena che non salvavano nulla.
+- **Colori e logo solo nell'Aspetto**: non si modificano più anche dalle impostazioni generali. Nello Studio, indirizzo, telefono, email, nome e descrizione sono in sola lettura e nella scheda Sezioni si sceglie cosa mostrare (orari, indirizzo, contatti, telefono, email).
+
 ---
 
 ## Novità della Versione 1.1.1 (Patch)

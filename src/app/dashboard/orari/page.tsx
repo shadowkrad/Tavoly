@@ -36,14 +36,6 @@ interface FestivitaNazionale {
 export default function TavolyOrariPage() {
   const [activeTab, setActiveTab] = useState<"settimanali" | "festivita">("settimanali");
 
-  // Orari Ristorante Standard (Pranzo & Cena)
-  const [lunchOpen, setLunchOpen] = useState("12:00");
-  const [lunchClose, setLunchClose] = useState("15:00");
-  const [dinnerOpen, setDinnerOpen] = useState("19:00");
-  const [dinnerClose, setDinnerClose] = useState("23:30");
-  const [savingStandard, setSavingStandard] = useState(false);
-  const [standardFeedback, setStandardFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
   // Festività & Eccezioni
   const [eccezioni, setEccezioni] = useState<EccezioneCalendario[]>([]);
   const [festivitaNazionali, setFestivitaNazionali] = useState<FestivitaNazionale[]>([]);
@@ -239,102 +231,36 @@ export default function TavolyOrariPage() {
         </button>
       </div>
 
-      {/* CONTENUTO TAB 1: ORARI STANDARD RISTORANTE */}
+      {/* CONTENUTO TAB 1: RIMANDO AGLI ORARI UFFICIALI (una sola fonte) */}
       {activeTab === "settimanali" && (
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-emerald-600" />
-                Fasce Orarie Servizi Tavolo (Pranzo e Cena)
+                Dove si impostano gli orari
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Gli orari in cui i clienti possono prenotare un tavolo online o accomodarsi in sala.
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Per evitare orari diversi tra vetrina, Google, Facebook e Instagram, ogni orario ha un solo posto in cui si modifica.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Servizio Pranzo */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs uppercase tracking-wide text-slate-800">Servizio Pranzo</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Attivo</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Apertura</label>
-                    <input
-                      type="time"
-                      value={lunchOpen}
-                      onChange={(e) => setLunchOpen(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Chiusura</label>
-                    <input
-                      type="time"
-                      value={lunchClose}
-                      onChange={(e) => setLunchClose(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Servizio Cena */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs uppercase tracking-wide text-slate-800">Servizio Cena</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Attivo</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Apertura</label>
-                    <input
-                      type="time"
-                      value={dinnerOpen}
-                      onChange={(e) => setDinnerOpen(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Chiusura</label>
-                    <input
-                      type="time"
-                      value={dinnerClose}
-                      onChange={(e) => setDinnerClose(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setSavingStandard(true);
-                  setTimeout(() => {
-                    setSavingStandard(false);
-                    setStandardFeedback({ type: "success", text: "Orari standard aggiornati con successo!" });
-                  }, 400);
-                }}
-                disabled={savingStandard}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Save className="w-3.5 h-3.5" />
-                <span>{savingStandard ? "Salvataggio..." : "Salva Orari Standard"}</span>
-              </button>
-            </div>
-
-            {standardFeedback && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span>{standardFeedback.text}</span>
-              </div>
-            )}
+            <ul className="text-xs text-slate-700 space-y-2 leading-relaxed">
+              <li>
+                <strong>Orario dell&apos;attività</strong> (quello mostrato ai clienti e inviato a Google, Facebook e Instagram):{" "}
+                <a href="/dashboard/impostazioni" className="text-emerald-700 font-semibold underline">Impostazioni &gt; Ristorante</a>.
+              </li>
+              <li>
+                <strong>Turni di pranzo e cena per le prenotazioni</strong> e capienza delle sale:{" "}
+                <a href="/dashboard/impostazioni" className="text-emerald-700 font-semibold underline">Impostazioni &gt; Turni &amp; Coperti</a>.
+              </li>
+              <li>
+                <strong>Orari di ritiro dell&apos;asporto</strong>:{" "}
+                <a href="/dashboard/impostazioni" className="text-emerald-700 font-semibold underline">Impostazioni &gt; Asporto</a>.
+              </li>
+              <li>
+                <strong>Festività, ferie e aperture speciali</strong>: nella scheda &quot;Festività &amp; Date Speciali&quot; qui accanto.
+              </li>
+            </ul>
           </div>
         </div>
       )}

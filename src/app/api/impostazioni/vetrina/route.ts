@@ -2,39 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { parseShowcaseConfig, DEFAULT_TAVOLY_SHOWCASE_CONFIG } from "@/lib/showcase-defaults";
+import { applicaAnagrafica, caricaVetrinaUnificata, leggiImpostazioniAnagrafica } from "@/lib/anagrafica-attivita";
 
 export async function GET() {
   try {
-    const setting = await prisma.localSetting.findUnique({
-      where: { key: "showcase_config" },
-    });
+    // Dati dell'attivita' e orari arrivano da Impostazioni > Ristorante (non si modificano qui);
+    // colori, logo e favicon si modificano solo nello Studio.
+    const { showcase: parsed } = await caricaVetrinaUnificata();
 
-    const parsed = parseShowcaseConfig(setting?.value);
-
-    // Sincronizza anche con restaurant_name, colori e orari se presenti su LocalSetting
     const meta = await prisma.localSetting.findMany({
       where: {
-        key: { in: ["restaurant_name", "color_primary", "color_accent", "brand_logo_url", "brand_favicon_url", "hours_weekday", "hours_weekend", "hours_note"] },
+        key: { in: ["color_primary", "color_accent", "brand_logo_url", "brand_favicon_url"] },
       },
     });
     for (const m of meta) {
-      if (m.key === "restaurant_name" && m.value) parsed.brandName = m.value;
       if (m.key === "color_primary" && m.value) parsed.primaryColor = m.value;
       if (m.key === "color_accent" && m.value) parsed.accentColor = m.value;
       if (m.key === "brand_logo_url") parsed.logoUrl = m.value || null;
       if (m.key === "brand_favicon_url") parsed.faviconUrl = m.value || null;
-      if (m.key === "hours_weekday" && m.value) {
-        if (!parsed.contactInfo) parsed.contactInfo = {};
-        parsed.contactInfo.hoursWeekday = m.value;
-      }
-      if (m.key === "hours_weekend" && m.value) {
-        if (!parsed.contactInfo) parsed.contactInfo = {};
-        parsed.contactInfo.hoursWeekend = m.value;
-      }
-      if (m.key === "hours_note" && m.value) {
-        if (!parsed.contactInfo) parsed.contactInfo = {};
-        parsed.contactInfo.hoursNote = m.value;
-      }
     }
 
     return NextResponse.json(parsed);
@@ -47,7 +32,11 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const showcaseStr = JSON.stringify(body);
+    // Nome, indirizzo, telefono, email, descrizione e orari non si modificano dallo Studio:
+    // si riallineano sempre a quelli di Impostazioni > Ristorante.
+    const { map, orari } = await leggiImpostazioniAnagrafica();
+    const unified = applicaAnagrafica(parseShowcaseConfig(JSON.stringify(body)), map, orari);
+    const showcaseStr = JSON.stringify(unified);
 
     await prisma.localSetting.upsert({
       where: { key: "showcase_config" },
@@ -55,13 +44,6 @@ export async function PUT(req: NextRequest) {
       update: { value: showcaseStr },
     });
 
-    if (body.brandName && typeof body.brandName === "string" && body.brandName.trim().length > 0) {
-      await prisma.localSetting.upsert({
-        where: { key: "restaurant_name" },
-        create: { key: "restaurant_name", value: body.brandName.trim() },
-        update: { value: body.brandName.trim() },
-      });
-    }
     if (body.primaryColor) {
       await prisma.localSetting.upsert({
         where: { key: "color_primary" },

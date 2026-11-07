@@ -121,17 +121,6 @@ export async function getTenantConfig(): Promise<TenantConfigResponse> {
     if (map["contact_email"] && map["contact_email"].trim().length > 0) {
       localEmail = map["contact_email"].trim();
     }
-    if (map["showcase_config"]) {
-      try {
-        const sc = JSON.parse(map["showcase_config"]);
-        if (sc?.contactInfo?.phone && sc.contactInfo.phone.trim().length > 0) {
-          localPhone = sc.contactInfo.phone.trim();
-        }
-        if (sc?.contactInfo?.email && sc.contactInfo.email.trim().length > 0) {
-          localEmail = sc.contactInfo.email.trim();
-        }
-      } catch {}
-    }
   } catch {
     // silenzioso se db in inizializzazione
   }

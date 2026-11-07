@@ -403,12 +403,13 @@ export default function ShowcaseVisualStudio() {
                   <input
                     type="text"
                     value={config.brandName || ""}
-                    onChange={(e) => setConfig({ ...config, brandName: e.target.value })}
+                    readOnly title="Si modifica in Impostazioni > Ristorante"
                     placeholder="es. MECO non solo pizza!"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold cursor-not-allowed"
                   />
                   <p className="text-[10px] text-slate-400 mt-1">
                     Nome visualizzato nella barra superiore del sito, nella scheda del browser e nei promemoria WhatsApp.
+                    Si modifica in <strong>Impostazioni &gt; Ristorante</strong>.
                   </p>
                 </div>
 
@@ -1071,15 +1072,16 @@ export default function ShowcaseVisualStudio() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Descrizione Piatti & Locale</label>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Descrizione dell&apos;attività</label>
                   <textarea
                     rows={4}
                     value={config.about.description}
-                    onChange={(e) =>
-                      setConfig({ ...config, about: { ...config.about, description: e.target.value } })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-hidden resize-none"
+                    readOnly title="Si modifica in Impostazioni > Ristorante"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs cursor-not-allowed resize-none"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Si modifica in <strong>Impostazioni &gt; Ristorante</strong>; qui la vetrina la mostra così com&apos;è.
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-200 space-y-3">
@@ -1428,20 +1430,19 @@ export default function ShowcaseVisualStudio() {
                     <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Posizione &amp; Location</span>
                   </h4>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    L&apos;indirizzo è quello di <strong>Impostazioni &gt; Ristorante</strong>: qui scegli solo se mostrarlo
+                    (scheda &quot;Sezioni&quot;) e aggiungi la nota su parcheggio e accessibilità.
+                  </p>
                   <div className="space-y-2">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-600 mb-1">Indirizzo Completo</label>
                       <input
                         type="text"
                         value={config.contactInfo?.address || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), address: e.target.value },
-                          })
-                        }
+                        readOnly title="Si modifica in Impostazioni > Ristorante"
                         placeholder="Via Dante Alighieri, 74/R, 52010 Capolona (AR)"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                        className="w-full text-xs px-2.5 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-not-allowed"
                       />
                     </div>
                     <div>
@@ -1528,22 +1529,21 @@ export default function ShowcaseVisualStudio() {
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                   <h4 className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Recapiti & Assistenza</span>
+                    <span>Recapiti &amp; Assistenza</span>
                   </h4>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    Telefono ed email sono quelli di <strong>Impostazioni &gt; Ristorante</strong>: qui scegli solo se mostrarli
+                    (scheda &quot;Sezioni&quot;) e aggiungi la nota sui tempi di risposta.
+                  </p>
                   <div className="space-y-2">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-600 mb-1">Telefono / WhatsApp</label>
                       <input
                         type="text"
                         value={config.contactInfo?.phone || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), phone: e.target.value },
-                          })
-                        }
+                        readOnly title="Si modifica in Impostazioni > Ristorante"
                         placeholder="+39 0575 969736"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                        className="w-full text-xs px-2.5 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-not-allowed"
                       />
                     </div>
                     <div>
@@ -1551,14 +1551,9 @@ export default function ShowcaseVisualStudio() {
                       <input
                         type="email"
                         value={config.contactInfo?.email || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            contactInfo: { ...(config.contactInfo || DEFAULT_TAVOLY_CONTACT_INFO), email: e.target.value },
-                          })
-                        }
+                        readOnly title="Si modifica in Impostazioni > Ristorante"
                         placeholder="info@meco.taaaac.eu"
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
+                        className="w-full text-xs px-2.5 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-not-allowed"
                       />
                     </div>
                     <div>
@@ -1603,7 +1598,11 @@ export default function ShowcaseVisualStudio() {
                     { key: "showGallery", label: "Galleria Foto Sala & Cucina", desc: "Griglia immagini atmosfera e mise en place" },
                     { key: "showServices", label: "Sezione Esperienze & Momenti", desc: "Colazioni, pranzi veloci, aperitivi e cene" },
                     { key: "showAbout", label: "Filosofia & La Nostra Cucina", desc: "Descrizione passione artigianale e citazione" },
-                    { key: "showHours", label: "Orari di Apertura & Dove Siamo", desc: "Dettaglio turni, mappa e recapiti" },
+                    { key: "showHours", label: "Orari di Apertura", desc: "Orari ufficiali dell'attività: fumetto di oggi in alto e piè di pagina (si impostano in Impostazioni > Ristorante)" },
+                    { key: "showAddress", label: "Indirizzo", desc: "Mostra l'indirizzo dell'attività (da Impostazioni > Ristorante)" },
+                    { key: "showContact", label: "Contatti (telefono ed email)", desc: "Mostra il riquadro dei recapiti; sotto scegli quali" },
+                    { key: "showPhone", label: "Telefono / WhatsApp", desc: "Mostra il numero di telefono nel riquadro dei contatti" },
+                    { key: "showEmail", label: "Email", desc: "Mostra l'email nel riquadro dei contatti" },
                     { key: "showLocationMap", label: "Mappa / Pianta del Locale", desc: "Mostra la piantina o la mappa interattiva nella sezione posizione" },
                   ].map((s) => (
                     <label
