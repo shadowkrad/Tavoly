@@ -1609,7 +1609,7 @@ export default function ShowcaseVisualStudio() {
                       key={s.key}
                       className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer"
                     >
-                      <div>
+                      <div className="min-w-0 pr-3">
                         <div className="text-xs font-bold text-slate-900">{s.label}</div>
                         <div className="text-[10px] text-slate-500">{s.desc}</div>
                       </div>
@@ -1628,7 +1628,7 @@ export default function ShowcaseVisualStudio() {
                               : {}),
                           })
                         }
-                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                        className="w-5 h-5 shrink-0 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                       />
                     </label>
                   ))}
