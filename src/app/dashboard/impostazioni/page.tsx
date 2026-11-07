@@ -1127,7 +1127,7 @@ export default function TavolyImpostazioniPage() {
                 checked={form.kdsEnabled}
                 disabled={kdsSaving}
                 onChange={(e) => handleToggleKds(e.target.checked)}
-                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
+                className="shrink-0 w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
               />
             </div>
 
@@ -1202,7 +1202,7 @@ export default function TavolyImpostazioniPage() {
                 checked={takeaway.enabled}
                 disabled={takeawaySaving}
                 onChange={(e) => handleToggleTakeaway(e.target.checked)}
-                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
+                className="shrink-0 w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
               />
             </div>
           </div>
@@ -1282,7 +1282,7 @@ export default function TavolyImpostazioniPage() {
                       type="checkbox"
                       checked={takeaway.lunchEnabled}
                       onChange={(e) => setTakeaway({ ...takeaway, lunchEnabled: e.target.checked })}
-                      className="w-4 h-4 text-emerald-600 rounded"
+                      className="shrink-0 w-5 h-5 text-emerald-600 rounded"
                     />
                     <span className="font-semibold text-slate-600">Abilitato</span>
                   </label>
@@ -1320,7 +1320,7 @@ export default function TavolyImpostazioniPage() {
                       type="checkbox"
                       checked={takeaway.dinnerEnabled}
                       onChange={(e) => setTakeaway({ ...takeaway, dinnerEnabled: e.target.checked })}
-                      className="w-4 h-4 text-emerald-600 rounded"
+                      className="shrink-0 w-5 h-5 text-emerald-600 rounded"
                     />
                     <span className="font-semibold text-slate-600">Abilitato</span>
                   </label>
