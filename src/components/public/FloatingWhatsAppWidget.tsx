@@ -20,13 +20,13 @@ export default function FloatingWhatsAppWidget({
   const [isHovered, setIsHovered] = useState(false);
   const pathname = usePathname();
 
-  // Mostra il pallino WhatsApp solo sulle pagine pubbliche (vetrina, menù, prenotazione, asporto)
-  if (
-    pathname?.startsWith("/dashboard") ||
-    pathname?.startsWith("/cucina") ||
-    pathname?.startsWith("/login") ||
-    pathname?.startsWith("/maintenance-login")
-  ) {
+  // Il pallino WhatsApp serve solo nella vetrina pubblica: in ogni altra pagina (dashboard, admin, login,
+  // tessera, buoni, aree interne) non compare. Pagine nuove: nascosto per default.
+  const inVetrina = pathname === "/" ||
+    pathname?.startsWith("/menu") ||
+    pathname?.startsWith("/asporto") ||
+    pathname?.startsWith("/prenotazione");
+  if (!inVetrina) {
     return null;
   }
 

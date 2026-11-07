@@ -2,6 +2,7 @@
 
 ## Novità della Versione 1.1.2 (Patch)
 
+- Il pallino WhatsApp compare solo nella vetrina pubblica del sito: non piu' nelle pagine interne, nelle tessere e nei buoni dei clienti (prima bastava una pagina non prevista per vederlo).
 ### 1. 🖼️ Foto dei Piatti Coerenti nel Menù e nell'Asporto
 - **Un solo interruttore per le foto**: disattivando "Mostra fotografie dei piatti", le foto spariscono sia dal menù digitale sia dalla pagina Asporto, che prima le mostrava comunque.
 - **Più facile da trovare**: l'etichetta in Impostazioni ora dice "nel menù digitale e nell'asporto" e nella sezione Asporto del gestionale c'è una nota che indica dove si attiva o disattiva.
