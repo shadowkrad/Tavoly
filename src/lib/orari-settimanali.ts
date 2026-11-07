@@ -163,6 +163,57 @@ export function parseOrariSettimanaliConfig(
   return base;
 }
 
+/** Testo dell'orario di un singolo giorno ("Chiuso", "16:00 - 23:30", "11:00 - 15:00 / 17:00 - 23:00"). */
+export function testoOrarioGiorno(day: OrarioGiornoConfig): string {
+  if (!day.aperto) return "Chiuso";
+  if (day.modalita === "SPEZZATO") {
+    return `${day.oraInizio1} - ${day.oraFine1} / ${day.oraInizio2} - ${day.oraFine2}`;
+  }
+  return `${day.oraInizio1} - ${day.oraFine1}`;
+}
+
+const ORDINE_GIORNI: GiornoSettimanaId[] = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
+
+/** Una nota che si limita a ripetere "Lunedi chiuso" e simili e' ridondante: i giorni chiusi sono gia' ricavati dagli orari. */
+function notaSoloChiusura(nota: string): boolean {
+  return /^\s*(luned|marted|mercoled|gioved|venerd|sabato|domenica)[^,;()]*chius[oi]\s*$/i.test(nota);
+}
+
+/** Nota libera dell'esercente (senza le ripetizioni dei giorni di chiusura). */
+export function notaOrariPersonalizzata(config: OrariSettimanaliConfig): string {
+  const n = config.noteOrari?.trim() || "";
+  return n && !notaSoloChiusura(n) ? n : "";
+}
+
+export interface RigaOrario {
+  label: string;
+  orario: string;
+  chiuso: boolean;
+}
+
+/** Orari raggruppati per giorni consecutivi uguali (es. "Mercoledi - Venerdi: 11:00 - 15:00 / 17:00 - 23:00"). */
+export function raggruppaOrari(config: OrariSettimanaliConfig): RigaOrario[] {
+  const righe: Array<{ da: OrarioGiornoConfig; a: OrarioGiornoConfig; orario: string; chiuso: boolean }> = [];
+  for (const id of ORDINE_GIORNI) {
+    const g = config.giorni[id];
+    const orario = testoOrarioGiorno(g);
+    const ultima = righe[righe.length - 1];
+    if (ultima && ultima.orario === orario) {
+      ultima.a = g;
+    } else {
+      righe.push({ da: g, a: g, orario, chiuso: !g.aperto });
+    }
+  }
+  if (righe.length === 1) {
+    return [{ label: "Tutti i giorni", orario: righe[0].orario, chiuso: righe[0].chiuso }];
+  }
+  return righe.map((r) => ({
+    label: r.da.id === r.a.id ? r.da.label : `${r.da.label} - ${r.a.label}`,
+    orario: r.orario,
+    chiuso: r.chiuso,
+  }));
+}
+
 /**
  * Genera le 3 stringhe di riepilogo da visualizzare in Vetrina e nel footer
  */
@@ -173,14 +224,7 @@ export function formatOrariSummary(config: OrariSettimanaliConfig): {
 } {
   const g = config.giorni;
 
-  // Formatta singolo giorno
-  const formatGiorno = (day: OrarioGiornoConfig) => {
-    if (!day.aperto) return "Chiuso";
-    if (day.modalita === "SPEZZATO") {
-      return `${day.oraInizio1} - ${day.oraFine1} / ${day.oraInizio2} - ${day.oraFine2}`;
-    }
-    return `${day.oraInizio1} - ${day.oraFine1}`;
-  };
+  const formatGiorno = testoOrarioGiorno;
 
   // Controlla se Mar-Ven hanno gli stessi orari
   const marText = formatGiorno(g.mar);
@@ -210,14 +254,12 @@ export function formatOrariSummary(config: OrariSettimanaliConfig): {
     .filter((day) => !day.aperto)
     .map((day) => day.label);
 
-  let note = config.noteOrari?.trim() || "";
+  // Giorni di chiusura sempre ricavati dagli orari; la nota libera dell'esercente si aggiunge solo se dice altro
+  const notaLibera = notaOrariPersonalizzata(config);
+  let note = notaLibera;
   if (giorniChiusi.length > 0) {
     const chiusuraStr = `${giorniChiusi.join(", ")} chiuso`;
-    if (!note) {
-      note = chiusuraStr;
-    } else if (!note.toLowerCase().includes("chiuso")) {
-      note = `${chiusuraStr} (${note})`;
-    }
+    note = notaLibera ? `${chiusuraStr} (${notaLibera})` : chiusuraStr;
   }
 
   return {

@@ -6,6 +6,8 @@ import { ShowcaseNavbar } from "@/components/public/ShowcaseNavbar";
 import { PublicBookingWidget, PublicShiftData } from "@/components/public/PublicBookingWidget";
 import { getTakeawaySettings } from "@/lib/takeaway-server";
 import { parseShowcaseConfig, DEFAULT_HERO_COVER_IMAGE } from "@/lib/showcase-defaults";
+import { caricaVetrinaUnificata } from "@/lib/anagrafica-attivita";
+import { testoOrarioGiorno, raggruppaOrari, notaOrariPersonalizzata, GiornoSettimanaId } from "@/lib/orari-settimanali";
 import {
   UtensilsCrossed,
   Coffee,
@@ -66,7 +68,7 @@ export default async function PublicShowcasePage() {
   const now = new Date();
   const todayDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(now);
 
-  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, showcaseSetting, hoursSettings, todayExceptions] = await Promise.all([
+  const [tenantConfig, rawShifts, todayReservations, takeawaySettings, vetrinaUnificata, todayExceptions] = await Promise.all([
     getTenantConfig(),
     prisma.serviceShift.findMany({
       where: { isActive: true },
@@ -81,14 +83,8 @@ export default async function PublicShowcasePage() {
       },
     }).catch(() => []),
     getTakeawaySettings(),
-    prisma.localSetting.findUnique({
-      where: { key: "showcase_config" },
-    }).catch(() => null),
-    prisma.localSetting.findMany({
-      where: {
-        key: { in: ["hours_weekday", "hours_weekend", "hours_note"] },
-      },
-    }).catch(() => []),
+    // Vetrina + dati dell'attivita' + orari ufficiali (fonte unica: Impostazioni > Ristorante)
+    caricaVetrinaUnificata().catch(() => null),
     prisma.eccezioneCalendario.findMany({
       where: {
         data: todayDateStr,
@@ -97,15 +93,8 @@ export default async function PublicShowcasePage() {
   ]);
 
   const { theme } = tenantConfig;
-  const showcase = parseShowcaseConfig(showcaseSetting?.value);
-
-  // Sincronizza orari ufficiali da LocalSetting se presenti
-  for (const h of hoursSettings) {
-    if (!showcase.contactInfo) showcase.contactInfo = {};
-    if (h.key === "hours_weekday" && h.value) showcase.contactInfo.hoursWeekday = h.value;
-    if (h.key === "hours_weekend" && h.value) showcase.contactInfo.hoursWeekend = h.value;
-    if (h.key === "hours_note" && h.value) showcase.contactInfo.hoursNote = h.value;
-  }
+  const showcase = vetrinaUnificata?.showcase ?? parseShowcaseConfig(undefined);
+  const orariUfficiali = vetrinaUnificata?.orari.config;
 
   const heroCoverUrl = showcase.hero.coverImageUrl || DEFAULT_HERO_COVER_IMAGE;
   const hasHeroCover = Boolean(heroCoverUrl && heroCoverUrl.trim().length > 0);
@@ -154,7 +143,16 @@ export default async function PublicShowcasePage() {
   const currentMin = parseInt(timeParts.find((p) => p.type === "minute")?.value || "0", 10);
   const currentMinutes = currentHour * 60 + currentMin;
 
-  let todayScheduleText = isWeekend ? weekendHours : weekdayHours;
+  // Orario di oggi dalla configurazione settimanale ufficiale (giorno per giorno)
+  const weekdayShort = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Europe/Rome" }).format(now);
+  const ID_GIORNO: Record<string, GiornoSettimanaId> = {
+    Mon: "lun", Tue: "mar", Wed: "mer", Thu: "gio", Fri: "ven", Sat: "sab", Sun: "dom",
+  };
+  const giornoOggi = orariUfficiali?.giorni[ID_GIORNO[weekdayShort] || "lun"];
+  const righeOrari = orariUfficiali ? raggruppaOrari(orariUfficiali) : [];
+  const notaOrari = orariUfficiali ? notaOrariPersonalizzata(orariUfficiali) : hoursNote;
+
+  let todayScheduleText = giornoOggi ? testoOrarioGiorno(giornoOggi) : isWeekend ? weekendHours : weekdayHours;
   let isDayClosed = false;
   let closedReason = "";
 
@@ -169,16 +167,10 @@ export default async function PublicShowcasePage() {
       todayScheduleText = `${todayException.orarioApertura} - ${todayException.orarioChiusura}`;
     }
   } else {
-    // 2. Controllo Riposo Settimanale Ordinario
-    const ferialiLower = weekdayLabel.toLowerCase();
-    const noteLower = hoursNote.toLowerCase();
-    if (
-      dayOfWeekName === "lunedì" &&
-      !ferialiLower.includes("lunedì") &&
-      (ferialiLower.includes("martedì") || noteLower.includes("lunedì"))
-    ) {
+    // 2. Riposo settimanale ordinario (giorno segnato come chiuso negli orari ufficiali)
+    if (giornoOggi && !giornoOggi.aperto) {
       isDayClosed = true;
-      closedReason = hoursNote || "Chiuso per Riposo Settimanale";
+      closedReason = "Chiuso per Riposo Settimanale";
       todayScheduleText = closedReason;
     }
   }
@@ -234,6 +226,12 @@ export default async function PublicShowcasePage() {
   const hasHeroNote = Boolean(heroNoteTitle || heroNoteDesc);
 
   const showActivityHours = showcase.sections?.showHours !== false;
+  const mostraIndirizzo = showcase.sections?.showAddress !== false;
+  const mostraTelefono = showcase.sections?.showPhone !== false;
+  const mostraEmail = showcase.sections?.showEmail !== false;
+  const mostraContatti = showcase.sections?.showContact !== false && (mostraTelefono || mostraEmail);
+  const colonneInfo = (showActivityHours ? 1 : 0) + (mostraIndirizzo ? 1 : 0) + (mostraContatti ? 1 : 0);
+  const classeColonneInfo = colonneInfo >= 3 ? "md:grid-cols-3" : colonneInfo === 2 ? "md:grid-cols-2" : "md:grid-cols-1";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -397,6 +395,16 @@ export default async function PublicShowcasePage() {
                         <div className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                           {todayScheduleText}
                         </div>
+                        {righeOrari.length > 0 ? (
+                          <div className="pt-2 border-t border-slate-200/70 space-y-1 text-[11px] text-slate-500">
+                            {righeOrari.map((r) => (
+                              <div key={r.label} className="flex items-baseline justify-between gap-3">
+                                <span className="font-semibold text-slate-700 text-left">{r.label}</span>
+                                <span className="text-right">{r.orario}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
                         <div className="pt-2 border-t border-slate-200/70 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
                           <div className="text-left truncate">
                             <span className="font-semibold block text-slate-700 truncate">{weekdayLabel}</span>
@@ -407,6 +415,7 @@ export default async function PublicShowcasePage() {
                             <span className="truncate block">{weekendHours}</span>
                           </div>
                         </div>
+                        )}
                       </div>
                     )}
 
@@ -585,9 +594,9 @@ export default async function PublicShowcasePage() {
       </section>
 
       {/* Orari & Dove Siamo */}
-      {(showcase.sections.showHours || showcase.sections.showContact !== false) && (
+      {(colonneInfo > 0 || Boolean(showcase.sections?.showLocationMap)) && (
         <section id="contatti" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`taaaac-card bg-white p-8 grid grid-cols-1 ${showcase.sections.showHours ? "md:grid-cols-3" : "md:grid-cols-2"} gap-8`}>
+          <div className={`taaaac-card bg-white p-8 grid grid-cols-1 ${classeColonneInfo} gap-8 ${colonneInfo === 0 ? "hidden" : ""}`}>
             {showcase.sections.showHours && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -599,19 +608,25 @@ export default async function PublicShowcasePage() {
                   </h4>
                 </div>
                 <div className="text-xs text-slate-600 space-y-1 pl-13">
-                  {showcase.contactInfo?.hoursWeekday && (
-                    <p><strong>{showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.split(":")[0] + ":" : "Lunedì - Venerdì:"}</strong> {showcase.contactInfo.hoursWeekday.includes(":") ? showcase.contactInfo.hoursWeekday.substring(showcase.contactInfo.hoursWeekday.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekday}</p>
-                  )}
-                  {showcase.contactInfo?.hoursWeekend && (
-                    <p><strong>{showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.split(":")[0] + ":" : "Sabato e Domenica:"}</strong> {showcase.contactInfo.hoursWeekend.includes(":") ? showcase.contactInfo.hoursWeekend.substring(showcase.contactInfo.hoursWeekend.indexOf(":") + 1).trim() : showcase.contactInfo.hoursWeekend}</p>
-                  )}
-                  {showcase.contactInfo?.hoursNote && (
-                    <p className="text-slate-400">{showcase.contactInfo.hoursNote}</p>
+                  {righeOrari.length > 0 ? (
+                    <>
+                      {righeOrari.map((r) => (
+                        <p key={r.label}><strong>{r.label}:</strong> {r.orario}</p>
+                      ))}
+                      {notaOrari && <p className="text-slate-400">{notaOrari}</p>}
+                    </>
+                  ) : (
+                    <>
+                      {showcase.contactInfo?.hoursWeekday && <p>{showcase.contactInfo.hoursWeekday}</p>}
+                      {showcase.contactInfo?.hoursWeekend && <p>{showcase.contactInfo.hoursWeekend}</p>}
+                      {showcase.contactInfo?.hoursNote && <p className="text-slate-400">{showcase.contactInfo.hoursNote}</p>}
+                    </>
                   )}
                 </div>
               </div>
             )}
 
+            {mostraIndirizzo && (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -626,7 +641,9 @@ export default async function PublicShowcasePage() {
                 )}
               </div>
             </div>
+            )}
 
+            {mostraContatti && (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -637,13 +654,18 @@ export default async function PublicShowcasePage() {
                 </h4>
               </div>
               <div className="text-xs text-slate-600 space-y-1 pl-13">
-                <p><strong>Telefono / WhatsApp:</strong> {showcase.contactInfo?.phone || tenantConfig.contact?.phone || "+39 0575 654321"}</p>
-                <p><strong>Email:</strong> {showcase.contactInfo?.email || tenantConfig.contact?.email || "info@osteriatavoli.it"}</p>
+                {mostraTelefono && (
+                  <p><strong>Telefono / WhatsApp:</strong> {showcase.contactInfo?.phone || tenantConfig.contact?.phone || "+39 0575 654321"}</p>
+                )}
+                {mostraEmail && (
+                  <p><strong>Email:</strong> {showcase.contactInfo?.email || tenantConfig.contact?.email || "info@osteriatavoli.it"}</p>
+                )}
                 {(showcase.contactInfo?.responseNote !== undefined ? showcase.contactInfo.responseNote : "Rispondiamo rapidamente durante gli orari di servizio.") && (
                   <p className="text-slate-400">{showcase.contactInfo?.responseNote || "Rispondiamo rapidamente durante gli orari di servizio."}</p>
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {Boolean(showcase.sections?.showLocationMap) && (

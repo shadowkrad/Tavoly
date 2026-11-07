@@ -95,6 +95,10 @@ export interface ShowcaseConfig {
     showTakeawayCta: boolean;
     showMenuLink?: boolean;
     showLocationMap?: boolean;
+    /** Mostra nella vetrina l'indirizzo/telefono/email impostati in Impostazioni > Ristorante */
+    showAddress?: boolean;
+    showPhone?: boolean;
+    showEmail?: boolean;
   };
 
   // Esperienze & Momenti Personalizzabili
@@ -238,6 +242,9 @@ export const DEFAULT_TAVOLY_SHOWCASE_CONFIG: ShowcaseConfig = {
     showTakeawayCta: true,
     showMenuLink: true,
     showLocationMap: true,
+    showAddress: true,
+    showPhone: true,
+    showEmail: true,
   },
 
   experiences: DEFAULT_TAVOLY_EXPERIENCES,

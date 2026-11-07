@@ -3,11 +3,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { fetchTenantConfig } from "@/lib/taaaac-client";
 import { parseShowcaseConfig } from "@/lib/showcase-defaults";
-import {
-  parseOrariSettimanaliConfig,
-  formatOrariSummary,
-  OrariSettimanaliConfig,
-} from "@/lib/orari-settimanali";
+import { formatOrariSummary, OrariSettimanaliConfig } from "@/lib/orari-settimanali";
+import { applicaAnagrafica, ricavaOrariUfficiali, riallineaVetrinaSalvata } from "@/lib/anagrafica-attivita";
 
 /**
  * Telegram è gestito da Taaaac Core: qui si legge solo lo stato (mai token né chat ID).
@@ -46,6 +43,7 @@ export async function GET() {
               "kds_enabled",
               "whatsapp_enabled",
               "showcase_config",
+              "business_description",
               "fidelity_enabled",
               "fidelity_rules",
               "turni_cena_primo",
@@ -79,32 +77,19 @@ export async function GET() {
     const { getTakeawaySettings } = await import("@/lib/takeaway-server");
     const takeawaySettings = await getTakeawaySettings();
 
-    const showcaseConfig = parseShowcaseConfig(map["showcase_config"]);
-    if (map["restaurant_name"]) showcaseConfig.brandName = map["restaurant_name"];
+    // Orari ufficiali e dati dell'attivita': UNA sola fonte (questa scheda). I testi sono sempre
+    // ricavati dalla configurazione settimanale, la vetrina li legge da qui.
+    const orariUff = ricavaOrariUfficiali(map, (cache as any)?.rispettaFestivitaNazionali);
+    const showcaseConfig = applicaAnagrafica(parseShowcaseConfig(map["showcase_config"]), map, orariUff);
     if (map["brand_logo_url"]) showcaseConfig.logoUrl = map["brand_logo_url"];
     if (map["brand_favicon_url"]) showcaseConfig.faviconUrl = map["brand_favicon_url"];
     if (map["color_primary"]) showcaseConfig.primaryColor = map["color_primary"];
     if (map["color_accent"]) showcaseConfig.accentColor = map["color_accent"];
 
-    const orariConfig: OrariSettimanaliConfig = parseOrariSettimanaliConfig(
-      map["orari_settimanali_config"],
-      map["hours_weekday"],
-      map["hours_weekend"],
-      map["hours_note"],
-      (cache as any)?.rispettaFestivitaNazionali
-    );
-
-    const summaries = formatOrariSummary(orariConfig);
-    const hoursWeekday = map["hours_weekday"] || summaries.hoursWeekday;
-    const hoursWeekend = map["hours_weekend"] || summaries.hoursWeekend;
-    const hoursNote = map["hours_note"] !== undefined ? map["hours_note"] : summaries.hoursNote;
-
-    if (!showcaseConfig.contactInfo) {
-      showcaseConfig.contactInfo = {};
-    }
-    showcaseConfig.contactInfo.hoursWeekday = hoursWeekday;
-    showcaseConfig.contactInfo.hoursWeekend = hoursWeekend;
-    showcaseConfig.contactInfo.hoursNote = hoursNote;
+    const orariConfig: OrariSettimanaliConfig = orariUff.config;
+    const hoursWeekday = orariUff.hoursWeekday;
+    const hoursWeekend = orariUff.hoursWeekend;
+    const hoursNote = orariUff.hoursNote;
 
     let fidelityRules = null;
     try {
@@ -124,6 +109,7 @@ export async function GET() {
       email: map["contact_email"] || "prenotazioni@osteriatavoli.it",
       telefono: map["contact_phone"] || "+39 0575 654321",
       indirizzo: map["address"] || "Piazza Grande, 12 - 52100 Arezzo (AR)",
+      descrizione: showcaseConfig.about.description,
       hoursWeekday,
       hoursWeekend,
       hoursNote,
@@ -173,6 +159,7 @@ export async function PUT(req: NextRequest) {
       email,
       telefono,
       indirizzo,
+      descrizione,
       hoursWeekday,
       hoursWeekend,
       hoursNote,
@@ -196,10 +183,12 @@ export async function PUT(req: NextRequest) {
     let orariConfigStr: string | undefined = undefined;
     if (orariSettimanaliConfig) {
       orariConfigStr = JSON.stringify(orariSettimanaliConfig);
+      // I testi degli orari derivano SEMPRE dalla configurazione settimanale: quelli rimandati
+      // dalla pagina (anche se vecchi) vengono ignorati.
       const summaries = formatOrariSummary(orariSettimanaliConfig);
-      if (hoursWeekday === undefined) hoursWeekday = summaries.hoursWeekday;
-      if (hoursWeekend === undefined) hoursWeekend = summaries.hoursWeekend;
-      if (hoursNote === undefined) hoursNote = summaries.hoursNote;
+      hoursWeekday = summaries.hoursWeekday;
+      hoursWeekend = summaries.hoursWeekend;
+      hoursNote = summaries.hoursNote;
 
       // Aggiorna anche TenantLocalCache per rispettaFestivitaNazionali
       if (orariSettimanaliConfig.rispettaFestivitaNazionali !== undefined) {
@@ -232,6 +221,7 @@ export async function PUT(req: NextRequest) {
       email !== undefined && { key: "contact_email", value: String(email) },
       telefono !== undefined && { key: "contact_phone", value: String(telefono) },
       indirizzo !== undefined && { key: "address", value: String(indirizzo) },
+      descrizione !== undefined && { key: "business_description", value: String(descrizione) },
       hoursWeekday !== undefined && { key: "hours_weekday", value: String(hoursWeekday) },
       hoursWeekend !== undefined && { key: "hours_weekend", value: String(hoursWeekend) },
       hoursNote !== undefined && { key: "hours_note", value: String(hoursNote) },
@@ -259,20 +249,12 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    if (hoursWeekday !== undefined || hoursWeekend !== undefined || hoursNote !== undefined) {
-      const currentShowcase = await prisma.localSetting.findUnique({
-        where: { key: "showcase_config" },
-      });
-      const parsedSc = parseShowcaseConfig(showcaseConfigStr || currentShowcase?.value);
-      if (!parsedSc.contactInfo) parsedSc.contactInfo = {};
-      if (hoursWeekday !== undefined) parsedSc.contactInfo.hoursWeekday = String(hoursWeekday);
-      if (hoursWeekend !== undefined) parsedSc.contactInfo.hoursWeekend = String(hoursWeekend);
-      if (hoursNote !== undefined) parsedSc.contactInfo.hoursNote = String(hoursNote);
-      await prisma.localSetting.upsert({
-        where: { key: "showcase_config" },
-        create: { key: "showcase_config", value: JSON.stringify(parsedSc) },
-        update: { value: JSON.stringify(parsedSc) },
-      });
+    // Allinea la copia salvata della vetrina ai dati dell'attivita' appena salvati
+    const toccaAnagrafica = [nomeRistorante, indirizzo, telefono, email, descrizione, orariConfigStr, showcaseConfigStr].some(
+      (v) => v !== undefined
+    );
+    if (toccaAnagrafica) {
+      await riallineaVetrinaSalvata();
     }
 
     if (takeawaySettings) {
