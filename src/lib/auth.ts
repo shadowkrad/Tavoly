@@ -57,6 +57,19 @@ export async function clearStaffSession(): Promise<void> {
   cookieStore.delete(MAINTENANCE_COOKIE_NAME);
 }
 
+/**
+ * La password di prova "Admin123!" vale SOLO in sviluppo e nelle demo (Vercel / IS_DEMO).
+ * In produzione sul server del cliente non esiste: si entra solo con la password o il PIN impostati nell'ambiente.
+ */
+function passwordDiProvaConsentita(): boolean {
+  return (
+    process.env.NODE_ENV !== "production" ||
+    process.env.IS_DEMO === "true" ||
+    process.env.NEXT_PUBLIC_IS_DEMO === "true" ||
+    Boolean(process.env.VERCEL)
+  );
+}
+
 export function verifyStaffPasswordOrPin(input: string): boolean {
   if (!input) return false;
   const trimmed = input.trim();
@@ -66,7 +79,7 @@ export function verifyStaffPasswordOrPin(input: string): boolean {
     process.env.INITIAL_ADMIN_PIN,
     process.env.ADMIN_PIN,
     process.env.STAFF_PIN,
-    "Admin123!",
+    ...(passwordDiProvaConsentita() ? ["Admin123!"] : []),
   ].filter(Boolean) as string[];
 
   return validSecrets.some((s) => s.trim() === trimmed);
