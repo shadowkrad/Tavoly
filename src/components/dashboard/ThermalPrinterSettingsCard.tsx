@@ -227,7 +227,7 @@ export default function ThermalPrinterSettingsCard() {
               type="checkbox"
               checked={config.buzzer}
               onChange={(e) => setConfig((prev) => ({ ...prev, buzzer: e.target.checked }))}
-              className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+              className="shrink-0 w-5 h-5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
             />
             <div>
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -253,7 +253,7 @@ export default function ThermalPrinterSettingsCard() {
             type="checkbox"
             checked={config.autoPrintTable}
             onChange={(e) => setConfig((prev) => ({ ...prev, autoPrintTable: e.target.checked }))}
-            className="w-4 h-4 mt-0.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+            className="shrink-0 w-5 h-5 mt-0.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
           />
           <div>
             <span className="font-bold text-slate-900">Stampa automatica su nuova comanda tavolo</span>
@@ -268,7 +268,7 @@ export default function ThermalPrinterSettingsCard() {
             type="checkbox"
             checked={config.autoPrintTakeaway}
             onChange={(e) => setConfig((prev) => ({ ...prev, autoPrintTakeaway: e.target.checked }))}
-            className="w-4 h-4 mt-0.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+            className="shrink-0 w-5 h-5 mt-0.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
           />
           <div>
             <span className="font-bold text-slate-900">Stampa automatica su nuovo ordine asporto / takeaway</span>
