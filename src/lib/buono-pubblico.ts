@@ -1,8 +1,8 @@
 import QRCode from "qrcode";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { leggiBrand } from "@/lib/brand-locale";
 import { ETICHETTA_MOTIVO, descriviValore, statoEffettivo } from "@/lib/buoni";
+import { caricaCartaGrafica } from "@/lib/carta-grafica-server";
 
 /** Indirizzo pubblico del sito, ricavato dalla richiesta (dietro proxy usa l'host inoltrato). */
 export async function origineDaRichiesta(): Promise<string> {
@@ -20,10 +20,12 @@ export async function caricaBuonoPubblico(token: string) {
   if (!token || token.length < 16) return null;
   const b = await prisma.giftCard.findUnique({ where: { tokenPubblico: token } });
   if (!b) return null;
-  const brand = await leggiBrand();
   const origine = await origineDaRichiesta();
   const link = `${origine}/buono/${token}`;
-  const qr = await QRCode.toDataURL(link, { margin: 1, width: 360, errorCorrectionLevel: "M" });
+  const [qr, cartaGrafica] = await Promise.all([
+    QRCode.toDataURL(link, { margin: 1, width: 360, errorCorrectionLevel: "M" }),
+    caricaCartaGrafica(origine),
+  ]);
   return {
     id: b.id,
     codice: b.codice,
@@ -38,16 +40,18 @@ export async function caricaBuonoPubblico(token: string) {
     dataScadenza: b.dataScadenza,
     stato: statoEffettivo(b),
     destinatario: b.beneficiarioNome || null,
+    acquirente: b.acquirenteNome || null,
     messaggio: b.beneficiarioMessaggio || null,
     link,
     qr,
+    cartaGrafica,
     brand: {
-      nome: brand.nome,
-      logoUrl: brand.logoUrl,
-      accento: brand.accento,
-      secondario: brand.primario,
-      indirizzo: brand.indirizzo,
-      telefono: brand.telefono,
+      nome: cartaGrafica.attivita.nome,
+      logoUrl: cartaGrafica.attivita.logoUrl,
+      accento: cartaGrafica.config.coloreScuro,
+      secondario: cartaGrafica.config.coloreChiaro,
+      indirizzo: [cartaGrafica.attivita.indirizzo, cartaGrafica.attivita.citta].filter(Boolean).join(" "),
+      telefono: cartaGrafica.attivita.telefono,
     },
   };
 }
