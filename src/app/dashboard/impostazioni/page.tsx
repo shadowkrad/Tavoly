@@ -1024,7 +1024,7 @@ export default function TavolyImpostazioniPage() {
                   body: JSON.stringify({ whatsappAbilitato: nextVal }),
                 }).catch(() => {});
               }}
-              className="w-5 h-5 accent-emerald-600 rounded cursor-pointer"
+              className="shrink-0 w-5 h-5 accent-emerald-600 rounded cursor-pointer"
             />
           </div>
 
@@ -1495,7 +1495,7 @@ export default function TavolyImpostazioniPage() {
                     body: JSON.stringify({ menuShowImages: nextVal }),
                   }).catch(() => {});
                 }}
-                className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
+                className="shrink-0 w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-1"
               />
             </div>
           </div>
