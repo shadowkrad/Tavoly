@@ -7,6 +7,7 @@ import { PublicBookingWidget, PublicShiftData } from "@/components/public/Public
 import { getTakeawaySettings } from "@/lib/takeaway-server";
 import { parseShowcaseConfig, DEFAULT_HERO_COVER_IMAGE } from "@/lib/showcase-defaults";
 import { caricaVetrinaUnificata } from "@/lib/anagrafica-attivita";
+import { urlImmagineVetrina } from "@/lib/showcase-asset";
 import { testoOrarioGiorno, raggruppaOrari, notaOrariPersonalizzata, GiornoSettimanaId } from "@/lib/orari-settimanali";
 import {
   UtensilsCrossed,
@@ -96,7 +97,8 @@ export default async function PublicShowcasePage() {
   const showcase = vetrinaUnificata?.showcase ?? parseShowcaseConfig(undefined);
   const orariUfficiali = vetrinaUnificata?.orari.config;
 
-  const heroCoverUrl = showcase.hero.coverImageUrl || DEFAULT_HERO_COVER_IMAGE;
+  const rawHeroCoverUrl = showcase.hero.coverImageUrl || DEFAULT_HERO_COVER_IMAGE;
+  const heroCoverUrl = urlImmagineVetrina(rawHeroCoverUrl, "hero");
   const hasHeroCover = Boolean(heroCoverUrl && heroCoverUrl.trim().length > 0);
   const overlayOpacity = showcase.hero.overlayOpacity ?? 75;
 
@@ -463,14 +465,14 @@ export default async function PublicShowcasePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {showcase.gallery.images.map((img) => (
+            {showcase.gallery.images.map((img, idx) => (
               <div
-                key={img.id}
+                key={img.id || idx}
                 className="group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/90 shadow-xs aspect-4/3"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={img.url}
+                  src={urlImmagineVetrina(img.url, "gallery", img.id || String(idx))}
                   alt={img.caption || "Ristorante"}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -733,7 +735,7 @@ export default async function PublicShowcasePage() {
                       <div className="p-4 bg-slate-100/60 flex flex-col items-center justify-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={rawEmbed}
+                          src={urlImmagineVetrina(rawEmbed, "map")}
                           alt="Pianta del locale"
                           className="w-full max-h-96 object-contain rounded-xl"
                         />

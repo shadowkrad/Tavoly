@@ -7,6 +7,7 @@ import { PublicShiftData } from "@/components/public/PublicBookingWidget";
 import { BookingOrTakeawayContainer } from "@/components/public/BookingOrTakeawayContainer";
 import { getTakeawaySettings } from "@/lib/takeaway-server";
 import { PublicTakeawayDish } from "@/components/public/PublicTakeawayWidget";
+import { urlImmagineVetrina } from "@/lib/showcase-asset";
 import { ArrowLeft, Sparkles, UtensilsCrossed } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -127,7 +128,7 @@ export default async function PrenotazioneTavoloPage() {
     category: d.category,
     price: d.price,
     description: d.description,
-    imageUrl: d.imageUrl,
+    imageUrl: d.imageUrl ? urlImmagineVetrina(d.imageUrl, "dish", d.id) : null,
     allergens: d.allergens || "[]",
   }));
 

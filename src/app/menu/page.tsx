@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getTenantConfig } from "@/lib/taaaac-core";
 import { PublicMenuView } from "@/components/public/PublicMenuView";
 import { MenuItemData } from "@/components/dashboard/MenuItemModal";
+import { urlImmagineVetrina } from "@/lib/showcase-asset";
 import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function PublicMenuPage({ searchParams }: PageProps) {
     category: m.category,
     price: m.price,
     description: m.description,
-    imageUrl: m.imageUrl,
+    imageUrl: m.imageUrl ? urlImmagineVetrina(m.imageUrl, "dish", m.id) : null,
     allergens: m.allergens,
     isAvailable: m.isAvailable,
     isTakeaway: m.isTakeaway ?? true,
@@ -59,7 +60,7 @@ export default async function PublicMenuPage({ searchParams }: PageProps) {
       showImages={showImages}
       restaurantName={tenantConfig.theme.restaurantName}
       tagline={tenantConfig.theme.tagline}
-      logoUrl={tenantConfig.theme.logoUrl}
+      logoUrl={urlImmagineVetrina(tenantConfig.theme.logoUrl, "logo")}
       tableNumber={tableNumber}
     />
   );
