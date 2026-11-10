@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { impDaBrand } from "@/lib/brand-locale";
 import { prisma } from "@/lib/prisma";
+import { calcolaHashLogoTessera } from "@/lib/pwa-icon-version";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const imp = await impDaBrand();
   const nome = imp?.brandName || "Tessera fedeltà";
   const accento = imp?.accentColor || "#d97706";
+  const v = calcolaHashLogoTessera(imp?.logoUrl, accento, nome);
   const base = `/tessera/${token}`;
 
   return NextResponse.json(
@@ -28,8 +30,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
       background_color: "#ffffff",
       theme_color: accento,
       icons: [
-        { src: `${base}/icona?size=192`, sizes: "192x192", type: "image/png", purpose: "any" },
-        { src: `${base}/icona?size=512`, sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: `${base}/icona?size=192&v=${v}`, sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: `${base}/icona?size=512&v=${v}`, sizes: "512x512", type: "image/png", purpose: "any" },
       ],
     },
     { headers: { "Content-Type": "application/manifest+json", "Cache-Control": "public, max-age=300" } }

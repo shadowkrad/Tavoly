@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { UtensilsCrossed, Lock, CalendarCheck } from "lucide-react";
 import { TenantConfigResponse } from "@/types/taaaac";
+import { urlImmagineVetrina } from "@/lib/showcase-asset";
 
 interface ShowcaseNavbarProps {
   tenantConfig: TenantConfigResponse;
@@ -12,16 +13,17 @@ interface ShowcaseNavbarProps {
 export function ShowcaseNavbar({ tenantConfig }: ShowcaseNavbarProps) {
   const { theme } = tenantConfig;
   const brandName = theme.restaurantName || "Tavoly";
+  const logoSrc = urlImmagineVetrina(theme.logoUrl, "logo");
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
         {/* Brand & Name */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 group">
-          {theme.logoUrl ? (
+          {logoSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={theme.logoUrl}
+              src={logoSrc}
               alt={brandName}
               className="h-8 sm:h-10 w-auto max-w-[120px] sm:max-w-[160px] object-contain rounded-xl shrink-0"
             />

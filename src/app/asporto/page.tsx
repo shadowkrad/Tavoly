@@ -8,6 +8,7 @@ import {
   PublicTakeawayDish,
 } from "@/components/public/PublicTakeawayWidget";
 import { getTakeawaySettings } from "@/lib/takeaway-server";
+import { urlImmagineVetrina } from "@/lib/showcase-asset";
 import {
   ArrowLeft,
   ShoppingBag,
@@ -43,7 +44,7 @@ export default async function AsportoPage() {
     category: d.category,
     price: d.price,
     description: d.description,
-    imageUrl: d.imageUrl,
+    imageUrl: d.imageUrl ? urlImmagineVetrina(d.imageUrl, "dish", d.id) : null,
     allergens: d.allergens || "[]",
   }));
 
