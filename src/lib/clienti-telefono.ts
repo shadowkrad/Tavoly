@@ -19,7 +19,7 @@ export async function cercaClientePerTelefono(raw: string, escludiId?: string): 
   const segnaposto = varianti.map(() => "?").join(",");
   const righe = (await prisma.$queryRawUnsafe(
     `SELECT "id", "name", "phoneNumber" FROM "CustomerProfile"
-     WHERE "phoneNumber" != 'CANCELLATO'
+     WHERE "phoneNumber" NOT LIKE 'CANCELLATO%'
        AND replace(replace(replace(replace(replace(replace("phoneNumber", ' ', ''), '-', ''), '.', ''), '(', ''), ')', ''), '+', '') IN (${segnaposto})
        ${escludiId ? 'AND "id" != ?' : ""}
      LIMIT 1`,

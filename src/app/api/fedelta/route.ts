@@ -23,7 +23,7 @@ export async function GET() {
       prisma.movimentoPunti.count({ where: { tipo: "RISCATTO", origine: "PREMIO" } }),
       prisma.movimentoPunti.count({ where: { tipo: "ACCREDITO", createdAt: { gte: inizioMese } } }),
       prisma.customerProfile.findMany({
-        where: { phoneNumber: { not: "CANCELLATO" } },
+        where: { NOT: { phoneNumber: { startsWith: "CANCELLATO" } } },
         select: { id: true, name: true, phoneNumber: true, email: true, loyaltyPoints: true, lastVisitAt: true, createdAt: true },
         orderBy: [{ loyaltyPoints: "desc" }, { name: "asc" }],
         take: 100,

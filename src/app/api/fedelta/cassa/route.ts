@@ -21,7 +21,7 @@ async function trovaClienti(q: string) {
   }
   return prisma.customerProfile.findMany({
     where: {
-      phoneNumber: { not: "CANCELLATO" },
+      NOT: { phoneNumber: { startsWith: "CANCELLATO" } },
       name: { contains: testo },
     },
     orderBy: [{ name: "asc" }],

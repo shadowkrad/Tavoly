@@ -8,6 +8,7 @@ export default async function TavolyClientiPage() {
     await Promise.all([
       prisma.customerProfile
         .findMany({
+          where: { NOT: { phoneNumber: { startsWith: "CANCELLATO" } } },
           orderBy: [{ isVip: "desc" }, { visitCount: "desc" }, { lastVisitAt: "desc" }],
         })
         .catch((err) => {

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const righe = await prisma.customerProfile.findMany({
     where: {
-      phoneNumber: { not: "CANCELLATO" },
+      NOT: { phoneNumber: { startsWith: "CANCELLATO" } },
       ...(ricerca
         ? { OR: [{ name: { contains: ricerca } }, ...(cifre.length >= 3 ? [{ phoneNumber: { contains: cifre } }] : [])] }
         : {}),
