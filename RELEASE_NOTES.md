@@ -11,6 +11,9 @@
 ### 2. ⚡ Apertura Istantanea della Vetrina Pubblica, Menù e Asporto
 - **Immagini servite con cache dedicata (`/api/showcase-asset`)**: il logo della barra superiore, la foto di copertina, le immagini della galleria, la piantina del locale e le foto dei piatti non vengono più incorporate come pesanti stringhe testuali (`data:image/...`) dentro l'HTML della pagina, ma vengono servite da un indirizzo dedicato con versione (`&v=`) e cache lunga. Il peso della pagina principale scende da oltre 2 MB a poche decine di KB, rendendo immediata l'apertura da smartphone.
 
+### 🔄 Sincronizzazione Canali Più Chiara
+- **Sincronizzazione canali più chiara**: se il servizio centrale non risponde per un momento, la scheda dice "stato non disponibile, riprova tra poco" invece di far credere che Google e Facebook non siano collegati, e non blocca la sincronizzazione.
+
 #### 💡 Guida per Aggiornare l'Icona già Salvata sulla Schermata Home dello Smartphone
 Le app web (PWA) già aggiunte in precedenza sulla schermata Home del telefono conservano la vecchia icona perché i sistemi operativi mobili (iOS Safari e Android Chrome) salvano l'immagine in una memoria permanente del telefono al momento del primo salvataggio. Per vedere subito la nuova icona ad alta definizione:
 1. **Su iPhone (Safari)**:
@@ -19,6 +22,7 @@ Le app web (PWA) già aggiunte in precedenza sulla schermata Home del telefono c
 2. **Su Android (Chrome)**:
    - Tieni premuto il dito sulla vecchia icona nella schermata Home e trascinala su **Rimuovi** / **Disinstalla**.
    - Apri **Chrome**, visita l'indirizzo del gestionale (o della tua tessera fedeltà), tocca il menu **⋮** in alto a destra e seleziona **Aggiungi a schermata Home** (oppure **Installa app**).
+
 
 ---
 
