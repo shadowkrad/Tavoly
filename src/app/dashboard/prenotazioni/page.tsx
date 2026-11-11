@@ -35,7 +35,7 @@ export default async function TavolyPrenotazioniPage() {
       include: { area: true },
       orderBy: [{ area: { orderIndex: "asc" } }, { number: "asc" }],
     }),
-    prisma.customerProfile.findMany({}),
+    prisma.customerProfile.findMany({ where: { NOT: { phoneNumber: { startsWith: "CANCELLATO" } } } }),
   ]);
 
   // Lookup profili clienti

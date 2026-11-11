@@ -87,7 +87,7 @@ export async function eseguiBuoniCompleanno(opz?: { oggi?: Date; host?: string |
   const demo = eAmbienteDemo(opz?.host);
 
   const righe = await prisma.customerProfile.findMany({
-    where: { birthDate: { not: null }, phoneNumber: { not: "CANCELLATO" } },
+    where: { birthDate: { not: null }, NOT: { phoneNumber: { startsWith: "CANCELLATO" } } },
     select: { id: true, name: true, email: true, birthDate: true, marketingConsent: true },
   });
   const clienti = righe.map((r) => ({

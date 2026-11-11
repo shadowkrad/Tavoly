@@ -43,7 +43,7 @@ export default async function DashboardPage() {
     prisma.serviceShift.findMany({
       orderBy: { orderIndex: "asc" },
     }),
-    prisma.customerProfile.findMany({}),
+    prisma.customerProfile.findMany({ where: { NOT: { phoneNumber: { startsWith: "CANCELLATO" } } } }),
     prisma.takeawayOrder.findMany({
       orderBy: { createdAt: "desc" },
     }),
