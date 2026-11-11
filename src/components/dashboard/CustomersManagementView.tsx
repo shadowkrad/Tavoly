@@ -1,5 +1,6 @@
 "use client";
 
+import { numeroPerWhatsApp } from "@/lib/phone";
 import React, { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import {
@@ -205,7 +206,7 @@ export function CustomersManagementView({
 
   const openWhatsApp = (customer: CustomerProfileData, e: React.MouseEvent) => {
     e.stopPropagation();
-    const cleanPhone = customer.phoneNumber.replace(/[^0-9+]/g, "");
+    const cleanPhone = numeroPerWhatsApp(customer.phoneNumber);
     const msg = encodeURIComponent(
       `Gentile ${customer.name},\nLa ringraziamo per essere un ospite di ${restaurantName}.\nPer qualsiasi richiesta o per prenotare il Suo tavolo preferito, siamo sempre a Sua completa disposizione!\nA presto dallo Staff.`
     );
