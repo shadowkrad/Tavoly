@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
+import Link from "next/link";
 import {
   X,
   User,
@@ -116,12 +117,10 @@ export function CustomerModal({
   isOpen,
   customer,
   tables = [],
-  initialTab = "PROFILE",
   history = null,
   onClose,
   onSuccess,
 }: CustomerModalProps) {
-  const [activeTab, setActiveTab] = useState<"PROFILE" | "HISTORY">(initialTab);
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -163,9 +162,8 @@ export function CustomerModal({
       setBirthDate("");
       setMarketingConsent(false);
     }
-    setActiveTab(customer?.id ? initialTab : "PROFILE");
     setError(null);
-  }, [customer, isOpen, initialTab]);
+  }, [customer, isOpen]);
 
   if (!isOpen) return null;
 
@@ -230,8 +228,8 @@ export function CustomerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-6 my-8">
+    <div className="fixed inset-0 z-[60] !mt-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
@@ -246,10 +244,12 @@ export function CustomerModal({
             </div>
             <div>
               <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                {customer?.id ? "Modifica Scheda Ospite" : "Nuovo Ospite / Cliente"}
+                {customer?.id ? `Storico: ${name || "Ospite"}` : "Nuovo Ospite / Cliente"}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Profilo CRM completo con preferenze di sala e intolleranze alimentari.
+                {customer?.id
+                  ? "Riepilogo rapido di prenotazioni e ordini (per modificare i dati apri la Scheda)."
+                  : "Profilo CRM completo con preferenze di sala e intolleranze alimentari."}
               </p>
             </div>
           </div>
@@ -262,41 +262,6 @@ export function CustomerModal({
           </button>
         </div>
 
-        {customer?.id && (
-          <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
-            <button
-              type="button"
-              onClick={() => setActiveTab("PROFILE")}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === "PROFILE"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <User className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Anagrafica & Preferenze</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("HISTORY")}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === "HISTORY"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Receipt className="w-3.5 h-3.5 text-amber-600" />
-              <span>
-                Storico Prenotazioni & Comande (
-                {(history?.reservations.length || 0) +
-                  (history?.tableOrders.length || 0) +
-                  (history?.takeawayOrders.length || 0)}
-                )
-              </span>
-            </button>
-          </div>
-        )}
-
         {error && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -304,7 +269,7 @@ export function CustomerModal({
           </div>
         )}
 
-        {activeTab === "HISTORY" && customer?.id ? (
+        {customer?.id ? (
           <div className="space-y-5 max-h-[65vh] overflow-y-auto pr-1">
             {/* Riepilogo Storico Cliente */}
             <div className="grid grid-cols-3 gap-3">
@@ -489,7 +454,14 @@ export function CustomerModal({
               </div>
             )}
 
-            <div className="flex justify-end pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <Link
+                href={`/dashboard/clienti/${customer.id}`}
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors"
+              >
+                Apri e Modifica Scheda →
+              </Link>
               <button
                 type="button"
                 onClick={onClose}

@@ -15,7 +15,6 @@ import {
   FileText,
   MessageCircle,
   Plus,
-  Edit3,
   Trash2,
   Calendar,
   Copy,
@@ -236,6 +235,7 @@ export function CustomersManagementView({
   };
 
   return (
+    <>
     <div className="space-y-6">
       {/* Page Title & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -631,20 +631,6 @@ export function CustomersManagementView({
                       </span>
                     </button>
 
-                    {/* Modifica */}
-                    <button
-                      type="button"
-                      title="Modifica scheda"
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setModalInitialTab("PROFILE");
-                        setIsModalOpen(true);
-                      }}
-                      className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-
                     {/* Elimina */}
                     <button
                       type="button"
@@ -666,23 +652,24 @@ export function CustomersManagementView({
           })}
         </div>
       )}
-
-      {/* Modal Inserimento / Modifica Cliente */}
-      <CustomerModal
-        isOpen={isModalOpen}
-        customer={selectedCustomer}
-        tables={tableSuggestions}
-        initialTab={modalInitialTab}
-        history={selectedCustomer ? historyByCustomerId[selectedCustomer.id] || null : null}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedCustomer(null);
-          setModalInitialTab("PROFILE");
-        }}
-        onSuccess={() => {
-          router.refresh();
-        }}
-      />
     </div>
+
+    {/* Modal Nuovo Ospite / Anteprima Storico */}
+    <CustomerModal
+      isOpen={isModalOpen}
+      customer={selectedCustomer}
+      tables={tableSuggestions}
+      initialTab={modalInitialTab}
+      history={selectedCustomer ? historyByCustomerId[selectedCustomer.id] || null : null}
+      onClose={() => {
+        setIsModalOpen(false);
+        setSelectedCustomer(null);
+        setModalInitialTab("PROFILE");
+      }}
+      onSuccess={() => {
+        router.refresh();
+      }}
+    />
+    </>
   );
 }
