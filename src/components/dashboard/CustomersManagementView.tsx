@@ -429,7 +429,7 @@ export function CustomersManagementView({
       ) : (
         <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
           {/* VISTA MOBILE: RIGHE COMPATTE */}
-          <div className="md:hidden divide-y divide-slate-100">
+          <div className="xl:hidden divide-y divide-slate-100">
             {filteredCustomers.map((c) => {
               const hasAllergies = Boolean(c.allergies && c.allergies.trim());
               const hasFavoriteTable = Boolean(c.favoriteTable && c.favoriteTable.trim());
@@ -440,11 +440,11 @@ export function CustomersManagementView({
               const totalSpent = historyByCustomerId[c.id]?.totalSpent || 0;
 
               return (
-                <div key={c.id} className="p-4 space-y-2.5 hover:bg-slate-50/70 transition-colors">
+                <div key={c.id} className="px-5 py-5 space-y-4 hover:bg-slate-50/70 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="font-bold text-sm text-slate-900">{c.name}</h3>
+                        <h3 className="font-semibold text-base text-slate-900">{c.name}</h3>
                         {c.isVip && (
                           <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
                             <Star className="w-2.5 h-2.5 fill-current text-amber-600" />
@@ -452,7 +452,7 @@ export function CustomersManagementView({
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-xs">
+                      <div className="flex items-center gap-2 mt-1.5 text-sm">
                         <a href={`tel:${c.phoneNumber}`} className="font-mono font-semibold text-emerald-700">
                           {c.phoneNumber}
                         </a>
@@ -490,15 +490,15 @@ export function CustomersManagementView({
                   </div>
 
                   {(hasFavoriteTable || hasAllergies || (c.notes && c.notes.trim())) && (
-                    <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
                       {hasFavoriteTable && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-semibold">
                           <MapPin className="w-3 h-3 text-blue-600" />
                           {c.favoriteTable}
                         </span>
                       )}
                       {hasAllergies && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 font-semibold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-50 text-rose-800 border border-rose-200 font-semibold">
                           <AlertTriangle className="w-3 h-3 text-rose-600" />
                           {c.allergies}
                         </span>
@@ -512,11 +512,11 @@ export function CustomersManagementView({
                   )}
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={(e) => openWhatsApp(c, e)}
-                        className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                        className="h-9 px-3 inline-flex items-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                       >
                         <MessageCircle className="w-3 h-3 text-emerald-600" />
                         WhatsApp
@@ -525,13 +525,13 @@ export function CustomersManagementView({
                         type="button"
                         onClick={(e) => handleIncrementVisit(c.id, e)}
                         disabled={isPending}
-                        className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        className="h-9 px-3 inline-flex items-center rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer disabled:opacity-50"
                       >
                         <Plus className="w-3 h-3 text-blue-600" />
                         +1 Cena
                       </button>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -539,7 +539,7 @@ export function CustomersManagementView({
                           setModalInitialTab("HISTORY");
                           setIsModalOpen(true);
                         }}
-                        className="px-2 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                        className="h-9 px-3 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
                       >
                         <Receipt className="w-3 h-3 text-amber-600" />
                         {historyCount}
@@ -571,18 +571,18 @@ export function CustomersManagementView({
           </div>
 
           {/* VISTA DESKTOP: TABELLA A RIGHE */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50/80 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200">
+          <div className="hidden xl:block overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600 border-separate border-spacing-0 whitespace-nowrap">
+              <thead className="bg-slate-50 text-xs font-semibold text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="px-5 py-3">Ospite</th>
-                  <th className="px-5 py-3">Contatti</th>
-                  <th className="px-5 py-3">Tavolo &amp; Allergeni</th>
-                  <th className="px-5 py-3">Visite &amp; Fedeltà</th>
-                  <th className="px-5 py-3 text-right">Azioni</th>
+                  <th className="px-4 py-4 font-semibold">Ospite</th>
+                  <th className="px-4 py-4 font-semibold">Contatti</th>
+                  <th className="px-4 py-4 font-semibold">Tavolo &amp; Allergeni</th>
+                  <th className="px-4 py-4 font-semibold">Visite &amp; Fedeltà</th>
+                  <th className="px-4 py-4 text-right font-semibold">Azioni</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="[&>tr]:border-b [&>tr]:border-slate-100 [&>tr:last-child]:border-0">
                 {filteredCustomers.map((c) => {
                   const hasAllergies = Boolean(c.allergies && c.allergies.trim());
                   const hasFavoriteTable = Boolean(c.favoriteTable && c.favoriteTable.trim());
@@ -601,10 +601,10 @@ export function CustomersManagementView({
                       }`}
                     >
                       {/* Ospite */}
-                      <td className="px-5 py-3.5 align-top">
-                        <div className="flex items-start gap-2.5">
+                      <td className="px-4 py-5 align-middle">
+                        <div className="flex items-center gap-3">
                           <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
                               c.isVip
                                 ? "bg-amber-100 text-amber-900 border border-amber-300"
                                 : "bg-emerald-100 text-emerald-800"
@@ -614,7 +614,7 @@ export function CustomersManagementView({
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-semibold text-slate-900">{c.name}</span>
+                              <span className="font-semibold text-slate-900 text-[15px]">{c.name}</span>
                               {c.isVip && (
                                 <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
                                   <Star className="w-2.5 h-2.5 fill-current text-amber-600" />
@@ -623,7 +623,7 @@ export function CustomersManagementView({
                               )}
                             </div>
                             {hasNotes && (
-                              <p className="text-[11px] text-slate-400 truncate max-w-[230px] mt-0.5" title={c.notes || ""}>
+                              <p className="text-xs text-slate-400 truncate max-w-[170px] mt-1" title={c.notes || ""}>
                                 📝 {c.notes}
                               </p>
                             )}
@@ -632,11 +632,11 @@ export function CustomersManagementView({
                       </td>
 
                       {/* Contatti */}
-                      <td className="px-5 py-3.5 align-top">
+                      <td className="px-4 py-5 align-middle">
                         <div className="flex items-center gap-1.5">
                           <a
                             href={`tel:${c.phoneNumber}`}
-                            className="text-xs text-emerald-700 font-mono font-bold hover:underline"
+                            className="text-sm text-emerald-700 font-mono font-semibold hover:underline"
                           >
                             {c.phoneNumber}
                           </a>
@@ -656,35 +656,35 @@ export function CustomersManagementView({
                         {c.email && (
                           <a
                             href={`mailto:${c.email}`}
-                            className="text-[11px] text-slate-500 hover:text-slate-700 block truncate max-w-[210px] mt-0.5"
+                            className="text-xs text-slate-500 hover:text-slate-700 block truncate max-w-[170px] mt-1.5"
                           >
                             {c.email}
                           </a>
                         )}
-                        <div className="text-[10px] text-slate-400 mt-0.5">
+                        <div className="text-xs text-slate-400 mt-1.5">
                           Ultima visita: {formatDate(c.lastVisitAt)}
                         </div>
                       </td>
 
                       {/* Tavolo & Allergeni */}
-                      <td className="px-5 py-3.5 align-top space-y-1">
+                      <td className="px-4 py-5 align-middle space-y-2 whitespace-normal min-w-[150px]">
                         {hasFavoriteTable ? (
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
                             <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
                             <span>{c.favoriteTable}</span>
                           </div>
                         ) : (
-                          <div className="text-[11px] text-slate-400">Tavolo standard</div>
+                          <div className="text-xs text-slate-400">Tavolo standard</div>
                         )}
                         {hasAllergies ? (
                           <div>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-semibold">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
                               <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
                               <span>{c.allergies}</span>
                             </span>
                           </div>
                         ) : (
-                          <div className="text-[11px] text-emerald-600 flex items-center gap-1">
+                          <div className="text-xs text-emerald-600 flex items-center gap-1.5">
                             <Check className="w-3 h-3" />
                             <span>Nessun allergene</span>
                           </div>
@@ -692,30 +692,30 @@ export function CustomersManagementView({
                       </td>
 
                       {/* Visite & Fedeltà */}
-                      <td className="px-5 py-3.5 align-top">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <td className="px-4 py-5 align-middle">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             {c.visitCount} Cene
                           </span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                             {c.loyaltyPoints} pt
                           </span>
                         </div>
                         {totalSpent > 0 && (
-                          <div className="text-[11px] font-bold text-amber-800 mt-1">
+                          <div className="text-xs font-semibold text-amber-800 mt-2">
                             Spesa: € {totalSpent.toFixed(2)}
                           </div>
                         )}
                       </td>
 
                       {/* Azioni */}
-                      <td className="px-5 py-3.5 align-top text-right">
-                        <div className="inline-flex items-center justify-end gap-1">
+                      <td className="px-4 py-5 align-middle text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
                             title="Apri WhatsApp"
                             onClick={(e) => openWhatsApp(c, e)}
-                            className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                            className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-emerald-700 border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </button>
@@ -724,7 +724,7 @@ export function CustomersManagementView({
                             title="Registra +1 Cena"
                             onClick={(e) => handleIncrementVisit(c.id, e)}
                             disabled={isPending}
-                            className="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-[11px] inline-flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                            className="h-9 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-semibold text-xs inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
                           >
                             <Plus className="w-3 h-3" />
                             <span>1 Cena</span>
@@ -737,14 +737,14 @@ export function CustomersManagementView({
                               setModalInitialTab("HISTORY");
                               setIsModalOpen(true);
                             }}
-                            className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                            className="h-9 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold text-xs inline-flex items-center gap-1.5 cursor-pointer"
                           >
                             <Receipt className="w-3 h-3 text-amber-600" />
                             <span>{historyCount}</span>
                           </button>
                           <Link
                             href={`/dashboard/clienti/${c.id}`}
-                            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors"
+                            className="h-9 px-3 inline-flex items-center rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors"
                             title="Apri scheda completa, tessera punti e modifica dati"
                           >
                             Scheda →
@@ -754,7 +754,7 @@ export function CustomersManagementView({
                             title="Elimina scheda"
                             disabled={deletingId === c.id || isPending}
                             onClick={(e) => handleDeleteCustomer(c.id, c.name, e)}
-                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
+                            className="h-9 w-9 ml-1 inline-flex items-center justify-center rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
                           >
                             {deletingId === c.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
