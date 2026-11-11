@@ -157,6 +157,9 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
       ...(b.notes !== undefined ? { notes: String(b.notes || "").trim() || null } : {}),
       ...(nascita !== undefined ? { birthDate: nascita } : {}),
       ...(b.marketingConsent !== undefined ? { marketingConsent: Boolean(b.marketingConsent) } : {}),
+      ...(b.visitCount !== undefined
+        ? { visitCount: Math.max(0, Math.floor(Number(b.visitCount) || 0)) }
+        : {}),
     },
   });
 

@@ -7,6 +7,18 @@ import { AlertTriangle, Calendar, Receipt, Star } from "lucide-react";
 import { classificaTelefono, ETICHETTA_TELEFONO, puoRicevereMessaggi } from "@/lib/phone";
 import ClienteFedeltaPanel from "@/components/dashboard/ClienteFedeltaPanel";
 
+const ALLERGENI_RAPIDI = [
+  "Senza Glutine (Celiachia)",
+  "Senza Lattosio",
+  "No Crostacei / Molluschi",
+  "No Frutta a Guscio",
+  "No Uova",
+  "No Pesce",
+  "No Soia",
+  "Vegetariano",
+  "Vegano",
+];
+
 type Messaggio = { tipo: "ok" | "errore"; testo: string; clienteEsistenteId?: string } | null;
 
 function giorniAlCompleanno(dataNascita?: string | null): number | null {
@@ -71,6 +83,7 @@ export default function TavolyClienteDetailPage({ params }: { params: Promise<{ 
           notes: cliente.notes || "",
           birthDate: cliente.birthDate ? String(cliente.birthDate).slice(0, 10) : null,
           marketingConsent: Boolean(cliente.marketingConsent),
+          visitCount: Math.max(0, Number(cliente.visitCount ?? 0)),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -78,6 +91,7 @@ export default function TavolyClienteDetailPage({ params }: { params: Promise<{ 
         setCliente((prev: any) => ({
           ...prev,
           phoneNumber: data.cliente?.phoneNumber ?? prev.phoneNumber,
+          visitCount: data.cliente?.visitCount ?? prev.visitCount,
         }));
         setMessaggio({ tipo: "ok", testo: "Dati cliente salvati." });
       } else {
@@ -116,6 +130,25 @@ export default function TavolyClienteDetailPage({ params }: { params: Promise<{ 
       </div>
     );
   }
+
+  const toggleAllergene = (chip: string) => {
+    if (!cliente) return;
+    const current = String(cliente.allergies || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const exists = current.some((s) => s.toLowerCase() === chip.toLowerCase());
+    const updated = exists
+      ? current.filter((s) => s.toLowerCase() !== chip.toLowerCase())
+      : [...current, chip];
+    setCliente({ ...cliente, allergies: updated.join(", ") });
+  };
+
+  const haAllergene = (chip: string) =>
+    String(cliente?.allergies || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .includes(chip.toLowerCase());
 
   const tipoTel = classificaTelefono(cliente.phoneNumber);
   const riceveMessaggi = puoRicevereMessaggi(cliente.phoneNumber);
@@ -249,8 +282,27 @@ export default function TavolyClienteDetailPage({ params }: { params: Promise<{ 
               className={campo}
             />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className={etichetta}>Allergeni &amp; Intolleranze</label>
+            <div className="flex flex-wrap gap-1.5 mt-1.5 mb-2">
+              {ALLERGENI_RAPIDI.map((chip) => {
+                const attivo = haAllergene(chip);
+                return (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => toggleAllergene(chip)}
+                    className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                      attivo
+                        ? "bg-amber-600 text-white shadow-xs"
+                        : "bg-amber-50 text-slate-700 border border-amber-200 hover:bg-amber-100"
+                    }`}
+                  >
+                    {chip} {attivo ? "✓" : "+"}
+                  </button>
+                );
+              })}
+            </div>
             <input
               type="text"
               value={cliente.allergies || ""}
@@ -258,6 +310,36 @@ export default function TavolyClienteDetailPage({ params }: { params: Promise<{ 
               onChange={(e) => setCliente({ ...cliente, allergies: e.target.value })}
               className={campo}
             />
+          </div>
+          <div>
+            <label className={etichetta}>Numero cene / visite</label>
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() =>
+                  setCliente({ ...cliente, visitCount: Math.max(0, Number(cliente.visitCount ?? 0) - 1) })
+                }
+                className="w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min={0}
+                value={cliente.visitCount ?? 0}
+                onChange={(e) =>
+                  setCliente({ ...cliente, visitCount: Math.max(0, parseInt(e.target.value) || 0) })
+                }
+                className="w-20 text-center border border-slate-200 rounded-lg py-1.5 text-sm font-bold text-slate-900"
+              />
+              <button
+                type="button"
+                onClick={() => setCliente({ ...cliente, visitCount: Number(cliente.visitCount ?? 0) + 1 })}
+                className="w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
 
