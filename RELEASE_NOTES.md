@@ -2,6 +2,10 @@
 
 ## Novità della Versione 1.1.3 (Patch)
 
+### 👤 CRM & Scheda Ospite Unificata in Stile Schedly con Gestione Punti e Invio Tessera
+- **Nuova scheda dettaglio ospite (`/dashboard/clienti/[id]`) e endpoint `/api/clienti/[id]` (`GET`/`PUT`/`DELETE`)**: introdotta anche su Tavoly la pagina scheda cliente completa, collegata direttamente dal pulsante **Scheda →** nella lista CRM (`CustomersManagementView`). Include anagrafica completa, preferenze sala/tavolo, allergeni, flag VIP, consenso marketing, anonimizzazione GDPR, buoni attivi e storico prenotazioni/comande/asporto.
+- **Gestione punti nel profilo e invio manuale tessera (`ClienteFedeltaPanel`)**: dalla scheda ospite è possibile accreditare punti o riscattare premi tramite `/api/fedelta/cassa`, aprire/copiare il link della tessera digitale (`/tessera/[token]`) e generare il testo precompilato per inviare manualmente la scheda punti via **WhatsApp (`wa.me`)** o **Email (`mailto:`)**.
+
 ### 1. 📱 Icona dell'App e della Scheda Browser Sempre Nitida e Aggiornata
 - **Priorità corretta (`faviconUrl` → `logoUrl`)**: corretta l'inversione che in Tavoly faceva prevalere il logo esteso sulla favicon dedicata; ora se l'attività ha caricato un'icona specifica viene usata quella, altrimenti il logo.
 - **Aggiornamento immediato al cambio logo/icona**: ogni volta che il titolare aggiorna l'icona o il logo del locale, l'indirizzo dell'icona nella pagina e nel manifesto PWA include automaticamente un codice di versione univoco (`&v=`). In questo modo browser e smartphone scaricano subito la nuova immagine senza restare bloccati sulla vecchia copia in memoria.

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useTransition } from "react";
+import Link from "next/link";
 import {
   Users,
   UserPlus,
@@ -600,7 +601,15 @@ export function CustomersManagementView({
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap justify-end">
+                    <Link
+                      href={`/dashboard/clienti/${c.id}`}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                      title="Apri scheda completa, tessera punti e invio"
+                    >
+                      <span>Scheda →</span>
+                    </Link>
+
                     {/* Storico Prenotazioni & Comande */}
                     <button
                       type="button"
