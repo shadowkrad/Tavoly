@@ -167,11 +167,20 @@ export async function syncOmnichannelChannels(params: {
         signal: AbortSignal.timeout(8000),
       });
 
-      const data = await res.json();
-      if (res.ok && data.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      let data: any = null;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.warn("[Tavoly Sync Client] Risposta non-JSON da Core:", text.slice(0, 100));
+        data = { ok: false, error: "Servizio centrale temporaneamente occupato" };
+      }
+
+      if (res.ok && data?.ok) {
         return { ok: true, summary: data.summary, channels: data.channels };
       } else {
-        lastError = data.error || `HTTP ${res.status}`;
+        lastError = data?.error || `HTTP ${res.status}`;
       }
     } catch (err: any) {
       lastError = err.message || "Errore di connessione Core";
