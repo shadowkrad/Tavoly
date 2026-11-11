@@ -1,5 +1,6 @@
 "use client";
 
+import { numeroPerWhatsApp } from "@/lib/phone";
 import React, { useState, useRef, useTransition, useEffect } from "react";
 import {
   Users,
@@ -750,7 +751,7 @@ export function TableCanvasBoard({
                         </div>
                       </div>
                       <a
-                        href={`https://wa.me/${activeRes.phoneNumber.replace(/[^0-9]/g, "")}`}
+                        href={`https://wa.me/${numeroPerWhatsApp(activeRes.phoneNumber)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"

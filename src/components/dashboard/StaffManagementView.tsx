@@ -1,5 +1,6 @@
 "use client";
 
+import { numeroPerWhatsApp } from "@/lib/phone";
 import React, { useState, useMemo, useTransition } from "react";
 import {
   Users,
@@ -456,7 +457,7 @@ export function StaffManagementView({
                           <span className="font-mono">{member.phone}</span>
                         </span>
                         <a
-                          href={`https://wa.me/${member.phone.replace(/[^0-9]/g, "")}`}
+                          href={`https://wa.me/${numeroPerWhatsApp(member.phone)}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
