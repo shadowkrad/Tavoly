@@ -403,7 +403,7 @@ export function CustomersManagementView({
         </div>
       </div>
 
-      {/* Customer Cards Grid */}
+      {/* Customer List: Mobile Compact Rows + Desktop Table */}
       {filteredCustomers.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-xs">
           <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
@@ -427,64 +427,224 @@ export function CustomersManagementView({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredCustomers.map((c) => {
-            const hasAllergies = Boolean(c.allergies && c.allergies.trim());
-            const hasFavoriteTable = Boolean(c.favoriteTable && c.favoriteTable.trim());
-            const hasNotes = Boolean(c.notes && c.notes.trim());
+        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+          {/* VISTA MOBILE: RIGHE COMPATTE */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filteredCustomers.map((c) => {
+              const hasAllergies = Boolean(c.allergies && c.allergies.trim());
+              const hasFavoriteTable = Boolean(c.favoriteTable && c.favoriteTable.trim());
+              const historyCount =
+                (historyByCustomerId[c.id]?.reservations.length || 0) +
+                (historyByCustomerId[c.id]?.tableOrders.length || 0) +
+                (historyByCustomerId[c.id]?.takeawayOrders.length || 0);
+              const totalSpent = historyByCustomerId[c.id]?.totalSpent || 0;
 
-            return (
-              <div
-                key={c.id}
-                className={`bg-white border rounded-2xl p-5 shadow-xs transition-all flex flex-col justify-between space-y-4 ${
-                  c.isVip
-                    ? "border-amber-300 ring-1 ring-amber-300/40 hover:shadow-md"
-                    : "border-slate-200/90 hover:border-slate-300"
-                }`}
-              >
-                {/* Header Card: Avatar + Name + Badges */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {/* Avatar */}
-                      <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-xs ${
-                          c.isVip
-                            ? "bg-amber-100 text-amber-900 border border-amber-300"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {c.isVip ? "⭐" : c.name.charAt(0).toUpperCase()}
+              return (
+                <div key={c.id} className="p-4 space-y-2.5 hover:bg-slate-50/70 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-bold text-sm text-slate-900">{c.name}</h3>
+                        {c.isVip && (
+                          <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5 fill-current text-amber-600" />
+                            VIP
+                          </span>
+                        )}
                       </div>
-
-                      {/* Name & Phone */}
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="font-bold text-base text-slate-900 leading-tight">
-                            {c.name}
-                          </h3>
-                          {c.isVip && (
-                            <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md flex items-center gap-0.5">
-                              <Star className="w-2.5 h-2.5 fill-current text-amber-600" />
-                              VIP
-                            </span>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-xs">
+                        <a href={`tel:${c.phoneNumber}`} className="font-mono font-semibold text-emerald-700">
+                          {c.phoneNumber}
+                        </a>
+                        <button
+                          type="button"
+                          title="Copia numero"
+                          onClick={(e) => handleCopyPhone(c.phoneNumber, e)}
+                          className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer"
+                        >
+                          {copiedPhone === c.phoneNumber ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
                           )}
-                        </div>
+                        </button>
+                      </div>
+                      {c.email && <div className="text-[11px] text-slate-400 truncate">{c.email}</div>}
+                    </div>
 
-                        {/* Phone with click to call & copy */}
-                        <div className="flex items-center gap-2 mt-1">
+                    <div className="text-right shrink-0 space-y-1">
+                      <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {c.visitCount} Cene
+                      </span>
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          {c.loyaltyPoints} pt
+                        </span>
+                        {totalSpent > 0 && (
+                          <span className="text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            € {totalSpent.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {(hasFavoriteTable || hasAllergies || (c.notes && c.notes.trim())) && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                      {hasFavoriteTable && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
+                          <MapPin className="w-3 h-3 text-blue-600" />
+                          {c.favoriteTable}
+                        </span>
+                      )}
+                      {hasAllergies && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 font-semibold">
+                          <AlertTriangle className="w-3 h-3 text-rose-600" />
+                          {c.allergies}
+                        </span>
+                      )}
+                      {c.notes && c.notes.trim() && (
+                        <span className="text-slate-500 truncate max-w-full">
+                          📝 {c.notes}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => openWhatsApp(c, e)}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                      >
+                        <MessageCircle className="w-3 h-3 text-emerald-600" />
+                        WhatsApp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleIncrementVisit(c.id, e)}
+                        disabled={isPending}
+                        className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      >
+                        <Plus className="w-3 h-3 text-blue-600" />
+                        +1 Cena
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCustomer(c);
+                          setModalInitialTab("HISTORY");
+                          setIsModalOpen(true);
+                        }}
+                        className="px-2 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <Receipt className="w-3 h-3 text-amber-600" />
+                        {historyCount}
+                      </button>
+                      <Link
+                        href={`/dashboard/clienti/${c.id}`}
+                        className="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-bold text-[11px]"
+                      >
+                        Scheda →
+                      </Link>
+                      <button
+                        type="button"
+                        disabled={deletingId === c.id || isPending}
+                        onClick={(e) => handleDeleteCustomer(c.id, c.name, e)}
+                        className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                        title="Elimina scheda"
+                      >
+                        {deletingId === c.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* VISTA DESKTOP: TABELLA A RIGHE */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600">
+              <thead className="bg-slate-50/80 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-3">Ospite</th>
+                  <th className="px-5 py-3">Contatti</th>
+                  <th className="px-5 py-3">Tavolo &amp; Allergeni</th>
+                  <th className="px-5 py-3">Visite &amp; Fedeltà</th>
+                  <th className="px-5 py-3 text-right">Azioni</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredCustomers.map((c) => {
+                  const hasAllergies = Boolean(c.allergies && c.allergies.trim());
+                  const hasFavoriteTable = Boolean(c.favoriteTable && c.favoriteTable.trim());
+                  const hasNotes = Boolean(c.notes && c.notes.trim());
+                  const historyCount =
+                    (historyByCustomerId[c.id]?.reservations.length || 0) +
+                    (historyByCustomerId[c.id]?.tableOrders.length || 0) +
+                    (historyByCustomerId[c.id]?.takeawayOrders.length || 0);
+                  const totalSpent = historyByCustomerId[c.id]?.totalSpent || 0;
+
+                  return (
+                    <tr
+                      key={c.id}
+                      className={`transition-colors ${
+                        c.isVip ? "bg-amber-50/20 hover:bg-amber-50/40" : "hover:bg-slate-50/70"
+                      }`}
+                    >
+                      {/* Ospite */}
+                      <td className="px-5 py-3.5 align-top">
+                        <div className="flex items-start gap-2.5">
+                          <div
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                              c.isVip
+                                ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                : "bg-emerald-100 text-emerald-800"
+                            }`}
+                          >
+                            {c.isVip ? "⭐" : c.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-slate-900">{c.name}</span>
+                              {c.isVip && (
+                                <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
+                                  <Star className="w-2.5 h-2.5 fill-current text-amber-600" />
+                                  VIP
+                                </span>
+                              )}
+                            </div>
+                            {hasNotes && (
+                              <p className="text-[11px] text-slate-400 truncate max-w-[230px] mt-0.5" title={c.notes || ""}>
+                                📝 {c.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Contatti */}
+                      <td className="px-5 py-3.5 align-top">
+                        <div className="flex items-center gap-1.5">
                           <a
                             href={`tel:${c.phoneNumber}`}
-                            className="text-xs text-slate-500 font-mono font-semibold flex items-center gap-1 hover:text-emerald-700 transition-colors"
+                            className="text-xs text-emerald-700 font-mono font-bold hover:underline"
                           >
-                            <Phone className="w-3 h-3 text-emerald-600" />
-                            <span>{c.phoneNumber}</span>
+                            {c.phoneNumber}
                           </a>
                           <button
                             type="button"
                             title="Copia numero"
                             onClick={(e) => handleCopyPhone(c.phoneNumber, e)}
-                            className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                            className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 cursor-pointer"
                           >
                             {copiedPhone === c.phoneNumber ? (
                               <Check className="w-3 h-3 text-emerald-600" />
@@ -493,163 +653,123 @@ export function CustomersManagementView({
                             )}
                           </button>
                         </div>
-
                         {c.email && (
                           <a
                             href={`mailto:${c.email}`}
-                            className="text-[11px] text-slate-400 flex items-center gap-1 hover:text-slate-600 transition-colors mt-0.5 truncate max-w-[200px]"
+                            className="text-[11px] text-slate-500 hover:text-slate-700 block truncate max-w-[210px] mt-0.5"
                           >
-                            <Mail className="w-3 h-3" />
-                            <span className="truncate">{c.email}</span>
+                            {c.email}
                           </a>
                         )}
-                      </div>
-                    </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          Ultima visita: {formatDate(c.lastVisitAt)}
+                        </div>
+                      </td>
 
-                    {/* Visite, Punti & Spesa Storica Pills */}
-                    <div className="text-right space-y-1 shrink-0">
-                      <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                        {c.visitCount} Cene
-                      </span>
-                      <div>
-                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 inline-block">
-                          {c.loyaltyPoints} Punti
-                        </span>
-                      </div>
-                      {(historyByCustomerId[c.id]?.totalSpent || 0) > 0 && (
-                        <div>
-                          <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 inline-block">
-                            € {historyByCustomerId[c.id].totalSpent.toFixed(2)}
+                      {/* Tavolo & Allergeni */}
+                      <td className="px-5 py-3.5 align-top space-y-1">
+                        {hasFavoriteTable ? (
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold">
+                            <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                            <span>{c.favoriteTable}</span>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-slate-400">Tavolo standard</div>
+                        )}
+                        {hasAllergies ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-semibold">
+                              <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
+                              <span>{c.allergies}</span>
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-emerald-600 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            <span>Nessun allergene</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Visite & Fedeltà */}
+                      <td className="px-5 py-3.5 align-top">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {c.visitCount} Cene
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            {c.loyaltyPoints} pt
                           </span>
                         </div>
-                      )}
-                    </div>
-                  </div>
+                        {totalSpent > 0 && (
+                          <div className="text-[11px] font-bold text-amber-800 mt-1">
+                            Spesa: € {totalSpent.toFixed(2)}
+                          </div>
+                        )}
+                      </td>
 
-                  {/* Informazioni di Sala & Allergeni */}
-                  <div className="space-y-2 pt-1 text-xs">
-                    {/* Tavolo Preferito */}
-                    {hasFavoriteTable && (
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700 font-semibold">
-                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>Tavolo preferito: <strong>{c.favoriteTable}</strong></span>
-                      </div>
-                    )}
-
-                    {/* BOX ALLERGENI & INTOLLERANZE (Evidenziato per sicurezza di sala) */}
-                    {hasAllergies ? (
-                      <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-0.5">
-                        <div className="flex items-center gap-1.5 font-bold text-[11px] uppercase tracking-wider text-rose-700">
-                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          <span>Intolleranze & Allergeni Segnalati</span>
+                      {/* Azioni */}
+                      <td className="px-5 py-3.5 align-top text-right">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            title="Apri WhatsApp"
+                            onClick={(e) => openWhatsApp(c, e)}
+                            className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title="Registra +1 Cena"
+                            onClick={(e) => handleIncrementVisit(c.id, e)}
+                            disabled={isPending}
+                            className="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-[11px] inline-flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>1 Cena</span>
+                          </button>
+                          <button
+                            type="button"
+                            title="Anteprima Storico Prenotazioni & Comande"
+                            onClick={() => {
+                              setSelectedCustomer(c);
+                              setModalInitialTab("HISTORY");
+                              setIsModalOpen(true);
+                            }}
+                            className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <Receipt className="w-3 h-3 text-amber-600" />
+                            <span>{historyCount}</span>
+                          </button>
+                          <Link
+                            href={`/dashboard/clienti/${c.id}`}
+                            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors"
+                            title="Apri scheda completa, tessera punti e modifica dati"
+                          >
+                            Scheda →
+                          </Link>
+                          <button
+                            type="button"
+                            title="Elimina scheda"
+                            disabled={deletingId === c.id || isPending}
+                            onClick={(e) => handleDeleteCustomer(c.id, c.name, e)}
+                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {deletingId === c.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
                         </div>
-                        <p className="font-semibold text-xs text-rose-900 pl-5">
-                          {c.allergies}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-50/50 border border-slate-100 text-[11px] text-slate-400 flex items-center gap-1.5">
-                        <Check className="w-3 h-3 text-emerald-500" />
-                        <span>Nessun allergene noto segnalato</span>
-                      </div>
-                    )}
-
-                    {/* Note di Sala */}
-                    {hasNotes && (
-                      <div className="p-2.5 rounded-xl bg-amber-50/50 border border-amber-200/70 text-slate-700 text-xs space-y-0.5">
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-amber-800">
-                          <FileText className="w-3 h-3 text-amber-600" />
-                          <span>Note di Sala & Preferenze</span>
-                        </div>
-                        <p className="text-slate-600">{c.notes}</p>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                      <span>Ultima visita:</span>
-                      <span className="font-semibold text-slate-600">
-                        {formatDate(c.lastVisitAt)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Azioni Rapide */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    {/* WhatsApp */}
-                    <button
-                      type="button"
-                      title="Apri WhatsApp"
-                      onClick={(e) => openWhatsApp(c, e)}
-                      className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>WhatsApp</span>
-                    </button>
-
-                    {/* +1 Visita rapida */}
-                    <button
-                      type="button"
-                      title="Registra +1 Cena e +10 Punti"
-                      onClick={(e) => handleIncrementVisit(c.id, e)}
-                      disabled={isPending}
-                      className="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-blue-600" />
-                      <span>+1 Cena</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-1 flex-wrap justify-end">
-                    <Link
-                      href={`/dashboard/clienti/${c.id}`}
-                      className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                      title="Apri scheda completa, tessera punti e invio"
-                    >
-                      <span>Scheda →</span>
-                    </Link>
-
-                    {/* Storico Prenotazioni & Comande */}
-                    <button
-                      type="button"
-                      title="Apri Storico Prenotazioni, Comande & Pagamenti"
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setModalInitialTab("HISTORY");
-                        setIsModalOpen(true);
-                      }}
-                      className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Receipt className="w-3.5 h-3.5 text-amber-600" />
-                      <span>
-                        Storico (
-                        {(historyByCustomerId[c.id]?.reservations.length || 0) +
-                          (historyByCustomerId[c.id]?.tableOrders.length || 0) +
-                          (historyByCustomerId[c.id]?.takeawayOrders.length || 0)}
-                        )
-                      </span>
-                    </button>
-
-                    {/* Elimina */}
-                    <button
-                      type="button"
-                      title="Elimina scheda"
-                      disabled={deletingId === c.id || isPending}
-                      onClick={(e) => handleDeleteCustomer(c.id, c.name, e)}
-                      className="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {deletingId === c.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
