@@ -1,5 +1,7 @@
 "use client";
 
+import { useTenantConfig } from "@/components/providers/TenantConfigProvider";
+import { TAAAAC_ADDONS } from "@/lib/taaaac-client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
@@ -153,6 +155,52 @@ const TABS: TabItem[] = [
   },
 ];
 
+// Le sezioni delle impostazioni sono raccolte in pochi gruppi: meno voci, tutto più vicino
+interface GruppoImpostazioni {
+  id: string;
+  label: string;
+  shortDescription: string;
+  iconComponent: React.ElementType;
+  tabs: SettingsTab[];
+}
+
+const GRUPPI_BASE: { id: string; label: string; shortDescription: string; tabs: SettingsTab[] }[] = [
+  { id: "attivita", label: "Attività", shortDescription: "Sede, orari, turni e coperti", tabs: ["ristorante", "turni"] },
+  { id: "notifiche", label: "Notifiche", shortDescription: "Email, WhatsApp e Telegram", tabs: ["email", "whatsapp", "telegram"] },
+  { id: "cucina", label: "Cucina e asporto", shortDescription: "Monitor cucina, asporto, stampante", tabs: ["cucina", "asporto", "stampante"] },
+  { id: "fidelity", label: "Fidelity e buoni", shortDescription: "Punti, buoni e biglietti", tabs: ["fidelity", "carta-grafica"] },
+  { id: "aspetto", label: "Aspetto", shortDescription: "Logo, colori e vetrina", tabs: ["aspetto"] },
+  { id: "dispositivi", label: "Dispositivi", shortDescription: "Palmari e accessi", tabs: ["dispositivi"] },
+];
+
+// Fidelity e buoni compaiono solo se almeno una di queste espansioni e' attiva dal Portale; altrimenti
+// l'editor dei biglietti da visita resta sotto "Aspetto".
+function costruisciGruppi(isAddonActive: (id: any) => boolean): GruppoImpostazioni[] {
+  const loyalty = isAddonActive(TAAAAC_ADDONS.LOYALTY_CARD);
+  const buoni = isAddonActive(TAAAAC_ADDONS.GIFT_CARDS);
+  const fidelityAttivo = loyalty || buoni;
+  const risultato: GruppoImpostazioni[] = [];
+  for (const g of GRUPPI_BASE) {
+    let tabs = [...g.tabs];
+    let label = g.label;
+    if (g.id === "fidelity") {
+      if (!fidelityAttivo) continue;
+      tabs = tabs.filter((t) => (t === "fidelity" ? loyalty : true));
+      label = loyalty && buoni ? "Fidelity e buoni" : loyalty ? "Fidelity" : "Buoni e biglietti";
+    }
+    if (g.id === "aspetto" && !fidelityAttivo) tabs.push("carta-grafica");
+    const prima = TABS.find((t) => t.id === tabs[0]);
+    risultato.push({
+      id: g.id,
+      label,
+      shortDescription: g.shortDescription,
+      iconComponent: prima?.iconComponent || Settings,
+      tabs,
+    });
+  }
+  return risultato;
+}
+
 interface NumberStepperProps {
   value: number | string;
   min?: number;
@@ -235,7 +283,15 @@ function NumberStepper({
 }
 
 export default function TavolyImpostazioniPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("ristorante");
+  const { isAddonActive } = useTenantConfig();
+  const gruppi = costruisciGruppi(isAddonActive);
+  const [activeGroup, setActiveGroup] = useState<string>("attivita");
+  const gruppoAttivo = gruppi.find((g) => g.id === activeGroup) || gruppi[0];
+  const inGruppo = (t: SettingsTab) => gruppoAttivo.tabs.includes(t);
+  const titoloSezione = (t: SettingsTab) =>
+    gruppoAttivo.tabs.length > 1 ? (
+      <h2 className="text-base font-semibold text-slate-900 pt-2">{TABS.find((x) => x.id === t)?.label}</h2>
+    ) : null;
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [kdsSaving, setKdsSaving] = useState(false);
@@ -531,33 +587,24 @@ export default function TavolyImpostazioniPage() {
     }
   };
 
-  const currentTab = TABS.find((t) => t.id === activeTab);
-  const ActiveIcon = currentTab?.iconComponent || UtensilsCrossed;
+  const ActiveIcon = gruppoAttivo.iconComponent;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+    <div className="space-y-6 max-w-6xl mx-auto pb-24 lg:pb-12">
       {/* Intestazione Principale */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">
-            <span>🍽️ Gestione Ristorazione</span>
-            <span>•</span>
-            <span>Configurazione Sale & Coperti</span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <Settings className="w-7 h-7 text-emerald-600" />
             Impostazioni Tavoly
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Configura orari di servizio, capienza massima coperti, palmari PWA e notifiche.
-          </p>
         </div>
 
-        {activeTab !== "aspetto" && (
+        {!gruppoAttivo.tabs.every((t) => t === "aspetto") && (
           <button
             onClick={() => handleSave()}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm rounded-xl shadow-xs shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-60"
+            className="hidden lg:inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm rounded-xl shadow-xs shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-60"
           >
             {saving ? (
               <>
@@ -573,6 +620,18 @@ export default function TavolyImpostazioniPage() {
           </button>
         )}
       </div>
+
+      {!gruppoAttivo.tabs.every((t) => t === "aspetto") && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-white/95 border-t border-slate-200">
+          <button
+            onClick={() => handleSave()}
+            disabled={saving}
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 text-white font-semibold text-sm rounded-xl disabled:opacity-60"
+          >
+            {saving ? "Salvataggio..." : "Salva modifiche"}
+          </button>
+        </div>
+      )}
 
       {/* Feedback Alert */}
       {feedback && (
@@ -612,11 +671,11 @@ export default function TavolyImpostazioniPage() {
               </div>
               <select
                 id="settings-tab-select"
-                value={activeTab}
-                onChange={(e) => setActiveTab(e.target.value as SettingsTab)}
+                value={gruppoAttivo.id}
+                onChange={(e) => setActiveGroup(e.target.value)}
                 className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none cursor-pointer"
               >
-                {TABS.map((tab) => (
+                {gruppi.map((tab) => (
                   <option key={tab.id} value={tab.id} className="bg-white text-slate-800 py-1">
                     {tab.label} — {tab.shortDescription}
                   </option>
@@ -640,14 +699,14 @@ export default function TavolyImpostazioniPage() {
               className="flex flex-col gap-1.5 pt-2"
               aria-label="Sezioni Impostazioni Tavoly"
             >
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
+              {gruppi.map((tab) => {
+                const isActive = gruppoAttivo.id === tab.id;
                 const IconComp = tab.iconComponent;
                 return (
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => setActiveGroup(tab.id)}
                     className={`group flex items-center justify-between w-full p-2.5 sm:p-3 rounded-xl text-left transition-all cursor-pointer ${
                       isActive
                         ? "bg-emerald-50 text-emerald-950 font-semibold border border-emerald-200/80 shadow-xs"
@@ -689,27 +748,12 @@ export default function TavolyImpostazioniPage() {
 
         {/* COLONNA DESTRA: PANNELLO CONTENUTI */}
         <main className="lg:col-span-8 xl:col-span-9 space-y-6">
-          {/* Header contestuale scheda attiva */}
-          {currentTab && (
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
-                  <ActiveIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900">
-                    {currentTab.label}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">{currentTab.description}</p>
-                </div>
-              </div>
-            </div>
-          )}
 
       {/* CONTENUTO SCHEDE */}
 
       {/* TAB 1: RISTORANTE & SEDE */}
-      {activeTab === "ristorante" && (
+      {inGruppo("ristorante") && titoloSezione("ristorante")}
+      {inGruppo("ristorante") && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -788,7 +832,8 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB 2: TURNI & COPERTI */}
-      {activeTab === "turni" && (
+      {inGruppo("turni") && titoloSezione("turni")}
+      {inGruppo("turni") && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-6">
           <div>
             <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
@@ -1005,14 +1050,16 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB 3: EMAIL & PRENOTAZIONI */}
-      {activeTab === "email" && (
+      {inGruppo("email") && titoloSezione("email")}
+      {inGruppo("email") && (
         <div className="space-y-4">
           <EmailSettingsCard />
         </div>
       )}
 
       {/* TAB 4: WHATSAPP & TAVOLI */}
-      {activeTab === "whatsapp" && (
+      {inGruppo("whatsapp") && titoloSezione("whatsapp")}
+      {inGruppo("whatsapp") && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
           <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200">
             <div>
@@ -1047,14 +1094,16 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB TELEGRAM: TELEGRAM HUB & STAFF */}
-      {activeTab === "telegram" && (
+      {inGruppo("telegram") && titoloSezione("telegram")}
+      {inGruppo("telegram") && (
         <div className="space-y-5">
           <TelegramHubCard hub={telegramHub} />
         </div>
       )}
 
       {/* TAB FIDELITY: RACCOLTA PUNTI & PREMI */}
-      {activeTab === "fidelity" && (
+      {inGruppo("fidelity") && titoloSezione("fidelity")}
+      {inGruppo("fidelity") && (
         <div className="space-y-5">
           <FidelitySettingsPanel
             data={fidelitySettings}
@@ -1087,7 +1136,8 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB CUCINA: MONITOR CUCINA (KDS) */}
-      {activeTab === "cucina" && (
+      {inGruppo("cucina") && titoloSezione("cucina")}
+      {inGruppo("cucina") && (
         <div className="space-y-5">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
@@ -1189,7 +1239,8 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB ASPORTO: REGOLE & CAPACITÀ TAKEAWAY */}
-      {activeTab === "asporto" && (
+      {inGruppo("asporto") && titoloSezione("asporto")}
+      {inGruppo("asporto") && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
@@ -1451,21 +1502,24 @@ export default function TavolyImpostazioniPage() {
       )}
 
       {/* TAB STAMPANTE TERMICA ESC/POS */}
-      {activeTab === "stampante" && (
+      {inGruppo("stampante") && titoloSezione("stampante")}
+      {inGruppo("stampante") && (
         <div className="space-y-4">
           <ThermalPrinterSettingsCard />
         </div>
       )}
 
       {/* TAB 5: DISPOSITIVI & PALMARI PWA */}
-      {activeTab === "dispositivi" && (
+      {inGruppo("dispositivi") && titoloSezione("dispositivi")}
+      {inGruppo("dispositivi") && (
         <div className="space-y-4">
           <RegisteredDevicesCard />
         </div>
       )}
 
       {/* TAB 6: ASPETTO & BRAND (SHOWCASE VISUAL STUDIO) */}
-      {activeTab === "aspetto" && (
+      {inGruppo("aspetto") && titoloSezione("aspetto")}
+      {inGruppo("aspetto") && (
         <div className="space-y-6">
           <ShowcaseVisualStudio />
 
@@ -1510,7 +1564,8 @@ export default function TavolyImpostazioniPage() {
           </div>
         </div>
       )}
-      {activeTab === "carta-grafica" && (
+      {inGruppo("carta-grafica") && titoloSezione("carta-grafica")}
+      {inGruppo("carta-grafica") && (
         <div className="space-y-6">
           <EditorCartaGrafica />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import NotificationBell from "@/components/dashboard/NotificationBell";
@@ -22,6 +22,7 @@ import {
   ExternalLink,
   ChevronRight,
   ChefHat,
+  ChevronDown,
 } from "lucide-react";
 import SidebarPwaInstall from "@/components/dashboard/SidebarPwaInstall";
 
@@ -32,14 +33,37 @@ interface NavLinkItem {
   badge?: string;
 }
 
-const baseNavLinks: NavLinkItem[] = [
-  { href: "/dashboard", label: "Mappa Tavoli", icon: LayoutGrid },
-  { href: "/dashboard/prenotazioni", label: "Prenotazioni & Turni", icon: CalendarDays },
-  { href: "/dashboard/staff", label: "Staff & Camerieri", icon: ChefHat },
-  { href: "/dashboard/menu", label: "Menù Digitale QR", icon: UtensilsCrossed },
-  { href: "/dashboard/asporto", label: "Asporto & Delivery", icon: ShoppingBag },
-  { href: "/dashboard/clienti", label: "Clienti (CRM)", icon: Users },
+interface NavGroup {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  items: NavLinkItem[];
+}
+
+// Le voci proprie del modulo sono raccolte in due gruppi apribili: il menu mostra meno cose insieme
+const baseNavGroups: NavGroup[] = [
+  {
+    id: "sala",
+    label: "Sala",
+    icon: LayoutGrid,
+    items: [
+      { href: "/dashboard", label: "Mappa tavoli", icon: LayoutGrid },
+      { href: "/dashboard/prenotazioni", label: "Prenotazioni e turni", icon: CalendarDays },
+      { href: "/dashboard/staff", label: "Staff e camerieri", icon: ChefHat },
+    ],
+  },
+  {
+    id: "cucina",
+    label: "Cucina e asporto",
+    icon: UtensilsCrossed,
+    items: [
+      { href: "/dashboard/menu", label: "Menù digitale QR", icon: UtensilsCrossed },
+      { href: "/dashboard/asporto", label: "Asporto e delivery", icon: ShoppingBag },
+    ],
+  },
 ];
+
+const clientiLink: NavLinkItem = { href: "/dashboard/clienti", label: "Clienti", icon: Users };
 
 const addonNavLinks = [
   {
@@ -83,23 +107,26 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
 
   const activeAddons = addonNavLinks.filter((item) => isAddonActive(item.addonId));
 
-  const navLinks = useMemo(() => {
-    const links = [...baseNavLinks];
-    if (kdsEnabled) {
-      links.push({
-        href: "/dashboard/cucina",
-        label: "Monitor Cucina (KDS)",
-        icon: ChefHat,
-        badge: "KDS",
-      });
-    }
-    return links;
+  const navGroups = useMemo<NavGroup[]>(() => {
+    return baseNavGroups.map((g) =>
+      g.id === "cucina" && kdsEnabled
+        ? { ...g, items: [...g.items, { href: "/dashboard/cucina", label: "Monitor cucina", icon: ChefHat }] }
+        : g
+    );
   }, [kdsEnabled]);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
+
+  // Gruppi apribili: si apre da solo quello della pagina in cui ti trovi
+  const [aperti, setAperti] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const g = navGroups.find((gr) => gr.items.some((i) => isActive(i.href)));
+    if (g) setAperti((prev) => (prev[g.id] ? prev : { ...prev, [g.id]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, navGroups]);
 
   return (
     <>
@@ -150,61 +177,72 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
           </div>
         </div>
 
-        {/* User Card */}
-        <div className="px-3 py-2.5 mx-3 my-3 bg-emerald-900/60 rounded-2xl border border-emerald-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-black flex items-center justify-center shrink-0 shadow-xs">
-            🍝
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-white truncate">
-              {config?.nomeAttivita || "Trattoria San Marco"}
-            </p>
-            <p className="text-[10px] text-emerald-200 font-mono">Sala & Ristorazione</p>
-          </div>
+        {/* Nome attività */}
+        <div className="px-4 py-3 border-b border-emerald-800/60">
+          <p className="text-sm font-semibold text-white truncate">{config?.nomeAttivita || "La tua attività"}</p>
         </div>
 
         {/* Links Navigation */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 px-3 pb-1">
-            Servizio di Sala
-          </p>
-          {navLinks.map((link) => {
-            const active = isActive(link.href);
-            const Icon = link.icon;
+          {navGroups.map((g) => {
+            const GIcon = g.icon;
+            const apertoG = Boolean(aperti[g.id]);
+            const haAttiva = g.items.some((i) => isActive(i.href));
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  active
-                    ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30"
-                    : "text-emerald-200 hover:bg-emerald-900 hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{link.label}</span>
-                </div>
-                {link.badge && (
-                  <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-500 text-slate-950">
-                    {link.badge}
+              <div key={g.id}>
+                <button
+                  type="button"
+                  onClick={() => setAperti((prev) => ({ ...prev, [g.id]: !apertoG }))}
+                  aria-expanded={apertoG}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
+                    haAttiva && !apertoG ? "bg-emerald-900 text-white" : "text-emerald-100 hover:bg-emerald-900 hover:text-white"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <GIcon className="w-4 h-4 shrink-0" />
+                    {g.label}
                   </span>
+                  <ChevronDown className={`w-4 h-4 text-emerald-300 transition-transform ${apertoG ? "rotate-180" : ""}`} />
+                </button>
+                {apertoG && (
+                  <div className="mt-0.5 mb-1 ml-4 pl-3 border-l border-emerald-800/80 space-y-0.5">
+                    {g.items.map((link) => {
+                      const active = isActive(link.href);
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            active ? "bg-emerald-600 text-white font-semibold" : "text-emerald-200 hover:bg-emerald-900 hover:text-white"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              </Link>
+              </div>
             );
           })}
 
+          <Link
+            href={clientiLink.href}
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              isActive(clientiLink.href) ? "bg-emerald-600 text-white" : "text-emerald-100 hover:bg-emerald-900 hover:text-white"
+            }`}
+          >
+            <Users className="w-4 h-4 shrink-0" />
+            {clientiLink.label}
+          </Link>
+
           {/* Add-ons Section */}
           {activeAddons.length > 0 && (
-            <div className="pt-4 pb-1 px-3">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center justify-between mb-1">
-                <span>Moduli Attivi</span>
-                <span className="text-emerald-200 font-extrabold text-[9px] bg-emerald-900 border border-emerald-700 px-1.5 py-0.2 rounded-full">
-                  ⚡ Taaaac
-                </span>
-              </div>
-              <div className="space-y-1 mt-1 -mx-3">
+            <div className="pt-4 pb-1">
+              <p className="text-xs font-semibold text-emerald-300 px-3 pb-1">Moduli attivi</p>
+              <div className="space-y-0.5">
                 {activeAddons.map((item) => {
                   const active = isActive(item.href);
                   const Icon = item.icon;
@@ -213,19 +251,12 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                        active
-                          ? "bg-emerald-600 text-white font-bold"
-                          : "text-emerald-200 hover:bg-emerald-900 hover:text-white"
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                        active ? "bg-emerald-600 text-white" : "text-emerald-100 hover:bg-emerald-900 hover:text-white"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span>{item.label}</span>
-                      </div>
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-900 text-emerald-200 border border-emerald-700/60">
-                        {item.badge}
-                      </span>
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -233,22 +264,16 @@ export default function DashboardSidebar({ kdsEnabled = false }: DashboardSideba
             </div>
           )}
 
-          {/* Core Footer Section */}
           <div className="pt-4 pb-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 px-3 pb-1">
-              Configurazione
-            </p>
-                        <Link
+            <Link
               href="/dashboard/impostazioni"
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                isActive("/dashboard/impostazioni")
-                  ? "bg-emerald-600 text-white font-bold"
-                  : "text-emerald-200 hover:bg-emerald-900 hover:text-white"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                isActive("/dashboard/impostazioni") ? "bg-emerald-600 text-white" : "text-emerald-100 hover:bg-emerald-900 hover:text-white"
               }`}
             >
               <Settings className="w-4 h-4 shrink-0" />
-              <span>Impostazioni Sala</span>
+              <span>Impostazioni</span>
             </Link>
           </div>
         </nav>

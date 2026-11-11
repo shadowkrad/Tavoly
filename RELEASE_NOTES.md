@@ -2,6 +2,10 @@
 
 ## Novità della Versione 1.1.3 (Patch)
 
+### 🧭 Menu Gestionale e Impostazioni Riorganizzati in Gruppi
+- **Menu laterale più ordinato (`DashboardSidebar.tsx`)**: le voci operative sono organizzate in gruppi apribili (*Sala*, *Menu*, ecc.) con apertura automatica della sezione attiva.
+- **Impostazioni raggruppate per area e salvataggio comodo su mobile (`/dashboard/impostazioni`)**: le schede sono riunite in 6 gruppi chiari (*Attività*, *Notifiche*, *Cucina e asporto*, *Fidelity e buoni*, *Aspetto*, *Dispositivi*) con barra fissa **Salva modifiche** in basso da smartphone.
+
 ### 👤 CRM & Scheda Ospite Unificata in Stile Schedly con Gestione Punti e Invio Tessera
 - **Nuova scheda dettaglio ospite (`/dashboard/clienti/[id]`) e endpoint `/api/clienti/[id]` (`GET`/`PUT`/`DELETE`)**: introdotta anche su Tavoly la pagina scheda cliente completa, collegata direttamente dal pulsante **Scheda →** nella lista CRM (`CustomersManagementView`). Include anagrafica completa, preferenze sala/tavolo, allergeni, flag VIP, consenso marketing, anonimizzazione GDPR, buoni attivi e storico prenotazioni/comande/asporto.
 - **Gestione punti nel profilo e invio manuale tessera (`ClienteFedeltaPanel`)**: dalla scheda ospite è possibile accreditare punti o riscattare premi tramite `/api/fedelta/cassa`, aprire/copiare il link della tessera digitale (`/tessera/[token]`) e generare il testo precompilato per inviare manualmente la scheda punti via **WhatsApp (`wa.me`)** o **Email (`mailto:`)**.
