@@ -23,6 +23,15 @@ interface Attivita {
 }
 
 type FormatoId = "STORIA" | "POST" | "VOLANTINO";
+type StileId = "GLASS" | "MODERN" | "SPLIT";
+const STILI: Array<{ id: StileId; nome: string }> = [
+  { id: "GLASS", nome: "✨ Elegante" },
+  { id: "MODERN", nome: "📱 Social" },
+  { id: "SPLIT", nome: "📄 Volantino" },
+];
+// Elenchi di font con ripiego sicuro: se Montserrat/Playfair non sono sul dispositivo si usano quelli di sistema.
+const FONT_TITOLO = "'Playfair Display', 'Cinzel', Georgia, 'Times New Roman', serif";
+const FONT_CORPO = "'Montserrat', 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif";
 const FORMATI: Record<FormatoId, { nome: string; w: number; h: number; ratio: "1:1" | "9:16" | "3:4"; hint: string }> = {
   STORIA: { nome: "Storia", w: 1080, h: 1920, ratio: "9:16", hint: "Stati WhatsApp, Storie Instagram e Facebook" },
   POST: { nome: "Post", w: 1080, h: 1080, ratio: "1:1", hint: "Feed Instagram, Facebook, Google" },
@@ -74,6 +83,7 @@ export default function StudioGrafico({ settore, presets }: { settore: string; p
   const [att, setAtt] = useState<Attivita | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
   const [formato, setFormato] = useState<FormatoId>("POST");
+  const [stile, setStile] = useState<StileId>("GLASS");
   const [titolo, setTitolo] = useState(presets[0]?.titolo || "");
   const [sottotitolo, setSottotitolo] = useState(presets[0]?.sottotitolo || "");
   const [badge, setBadge] = useState(presets[0]?.badge || "");
@@ -210,12 +220,50 @@ export default function StudioGrafico({ settore, presets }: { settore: string; p
   }
 
   const big = f.w >= 1240 ? 1.15 : 1;
-  const titoloRighe = righe(titolo.toUpperCase(), formato === "STORIA" ? 16 : 20, 4);
-  const sottoRighe = righe(sottotitolo, formato === "STORIA" ? 30 : 38, 3);
+  const story = formato === "STORIA";
+  const split = stile === "SPLIT";
+  const safeTop = story ? 220 : 70; // evita la barra in alto delle storie
+  const safeBottom = story ? 260 : 70; // evita la casella "Rispondi" in basso
+  const dimT = (split ? 76 : story ? 92 : 80) * big;
+  const dimS = (split ? 36 : story ? 40 : 34) * big;
+  const titoloRighe = righe(titolo.toUpperCase(), split || story ? 16 : 20, split ? 3 : 4);
+  const sottoRighe = righe(sottotitolo, split || story ? 30 : 38, 3);
   const nomeRiga = righe(att?.nome || "", 30, 2);
   const contatti = [att?.indirizzo, att?.citta, att?.telefono ? `Tel. ${att.telefono}` : ""].filter(Boolean).join(" · ");
-  const yTitolo = f.h * 0.3;
-  const dimT = 92 * big;
+  const hTit = titoloRighe.length * dimT * 1.1;
+  const hSub = sottoRighe.length * dimS * 1.25;
+  const logoSize = story ? 180 : 120;
+  const wBadge = Math.min(660, 100 + badge.length * 34);
+  const yNome = f.h - safeBottom - 140;
+  const yContatti = f.h - safeBottom - 40;
+  const qrY = f.h - safeBottom - 250;
+  const ombraTesto = split ? undefined : "url(#txt-shadow)";
+
+  // Blocco centrale (stili Elegante e Social): logo, titolo, testo, badge; si rimpicciolisce se non entra
+  const gapL = logo ? logoSize + 28 : 0;
+  const contentH = gapL + hTit + (hSub ? hSub + 26 : 0) + (badge ? 136 : 0);
+  const pad = stile === "GLASS" ? 56 : 0;
+  const boxH = contentH + pad * 2;
+  const cw = f.w - 180;
+  const availTop = safeTop;
+  const availH = Math.max(300, f.h - safeBottom - 270 - availTop);
+  const sc = Math.min(1, availH / Math.max(1, boxH));
+  const boxTop = availTop + (availH - boxH * sc) / 2;
+  const yT0 = pad + gapL;
+  const yS0 = yT0 + hTit + 14;
+  const yB = yT0 + hTit + (hSub ? hSub + 26 : 0) + 40 + 48;
+
+  // Stile Volantino: foto in alto, fascia colorata in basso
+  const h1 = f.h * (formato === "POST" ? 0.46 : 0.5);
+
+  const badgePill = (cx: number, cy: number) => (
+    <g transform={`translate(${cx}, ${cy})`} filter="url(#card-shadow)">
+      <rect x={-wBadge / 2} y={-48} width={wBadge} height={96} rx={48} fill="url(#gold-badge)" stroke="#ffffff" strokeWidth="2" strokeOpacity="0.45" />
+      <text textAnchor="middle" y={14} fontSize={46 * big} fontWeight="900" fill="#0f172a" fontFamily={FONT_CORPO} letterSpacing="1">
+        {badge.slice(0, 22)}
+      </text>
+    </g>
+  );
 
   return (
     <div className="space-y-5">
@@ -236,6 +284,17 @@ export default function StudioGrafico({ settore, presets }: { settore: string; p
             ))}
           </div>
           <p className="text-xs text-slate-500">{f.hint}</p>
+          <div className="flex flex-wrap gap-2">
+            {STILI.map((x) => (
+              <button
+                key={x.id}
+                onClick={() => setStile(x.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${stile === x.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-700 border-slate-200"}`}
+              >
+                {x.nome}
+              </button>
+            ))}
+          </div>
           <div className="bg-slate-100 rounded-2xl p-3 flex justify-center">
             <svg
               ref={svgRef}
@@ -249,45 +308,91 @@ export default function StudioGrafico({ settore, presets }: { settore: string; p
                   <stop offset="0" stopColor={colA} />
                   <stop offset="1" stopColor={colB} />
                 </linearGradient>
+                <linearGradient id="vignette-ai" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#000" stopOpacity="0.65" />
+                  <stop offset="0.25" stopColor="#000" stopOpacity="0.2" />
+                  <stop offset="0.6" stopColor="#000" stopOpacity="0.25" />
+                  <stop offset="1" stopColor="#000" stopOpacity="0.88" />
+                </linearGradient>
+                <linearGradient id="gold-badge" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#fbbf24" />
+                  <stop offset="1" stopColor="#d97706" />
+                </linearGradient>
+                <filter id="txt-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.8" />
+                </filter>
+                <filter id="card-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="8" stdDeviation="16" floodColor="#000" floodOpacity="0.45" />
+                </filter>
+                <clipPath id="clip-foto">
+                  <rect x="0" y="0" width={f.w} height={h1} />
+                </clipPath>
               </defs>
+
               <rect width={f.w} height={f.h} fill="url(#sg)" />
-              {sfondoAI && <image href={sfondoAI} x="0" y="0" width={f.w} height={f.h} preserveAspectRatio="xMidYMid slice" />}
-              {sfondoAI && <rect width={f.w} height={f.h} fill="#000" opacity="0.38" />}
-              {logo && <image href={logo} x={f.w / 2 - 90} y={f.h * 0.06} width="180" height="180" preserveAspectRatio="xMidYMid meet" />}
-              {titoloRighe.map((r, i) => (
-                <text key={i} x={f.w / 2} y={yTitolo + (logo ? 150 : 40) + i * dimT * 1.1} textAnchor="middle" fontSize={dimT} fontWeight="900" fill="#fff" fontFamily="Georgia, 'Times New Roman', serif">
-                  {r}
-                </text>
-              ))}
-              {sottoRighe.map((r, i) => (
-                <text key={i} x={f.w / 2} y={yTitolo + (logo ? 150 : 40) + titoloRighe.length * dimT * 1.1 + 40 + i * 50 * big} textAnchor="middle" fontSize={40 * big} fill="#f1f5f9" fontFamily="Arial, Helvetica, sans-serif">
-                  {r}
-                </text>
-              ))}
-              {badge && (
-                <g transform={`translate(${f.w / 2}, ${f.h * 0.66})`}>
-                  <rect x={-Math.min(300, 30 + badge.length * 22)} y={-52} width={Math.min(600, 60 + badge.length * 44)} height={104} rx={52} fill="#fbbf24" />
-                  <text textAnchor="middle" y={16} fontSize={52 * big} fontWeight="900" fill="#1e293b" fontFamily="Arial, Helvetica, sans-serif">
-                    {badge.slice(0, 22)}
-                  </text>
+              {sfondoAI && !split && <image href={sfondoAI} x="0" y="0" width={f.w} height={f.h} preserveAspectRatio="xMidYMid slice" />}
+              {sfondoAI && !split && (stile === "MODERN" ? <rect width={f.w} height={f.h} fill="url(#vignette-ai)" /> : <rect width={f.w} height={f.h} fill="#000" opacity="0.22" />)}
+
+              {split && (
+                <g>
+                  {sfondoAI && (
+                    <g clipPath="url(#clip-foto)">
+                      <image href={sfondoAI} x="0" y="0" width={f.w} height={h1} preserveAspectRatio="xMidYMid slice" />
+                    </g>
+                  )}
+                  <rect x="0" y={h1} width={f.w} height={f.h - h1} fill={colA} />
+                  <rect x="0" y={h1} width={f.w} height="8" fill="url(#gold-badge)" />
+                  {logo && <image href={logo} x="70" y={safeTop} width={logoSize} height={logoSize} preserveAspectRatio="xMidYMid meet" />}
+                  {badge && badgePill(70 + wBadge / 2, h1)}
+                  {titoloRighe.map((r, i) => (
+                    <text key={i} x="70" y={h1 + 78 + dimT * 0.85 + i * dimT * 1.1} fontSize={dimT} fontWeight="900" fill="#fff" fontFamily={FONT_TITOLO} letterSpacing="2">
+                      {r}
+                    </text>
+                  ))}
+                  {sottoRighe.map((r, i) => (
+                    <text key={i} x="70" y={h1 + 78 + dimT * 0.85 + titoloRighe.length * dimT * 1.1 + 6 + i * dimS * 1.25} fontSize={dimS} fill="#f1f5f9" fontFamily={FONT_CORPO}>
+                      {r}
+                    </text>
+                  ))}
                 </g>
               )}
+
+              {!split && (
+                <g transform={`translate(${f.w / 2}, ${boxTop}) scale(${sc})`}>
+                  {stile === "GLASS" && (
+                    <rect x={-cw / 2} y="0" width={cw} height={boxH} rx="36" fill="rgba(15,23,42,0.72)" stroke="rgba(255,255,255,0.22)" strokeWidth="2" filter="url(#card-shadow)" />
+                  )}
+                  {logo && <image href={logo} x={-logoSize / 2} y={pad} width={logoSize} height={logoSize} preserveAspectRatio="xMidYMid meet" />}
+                  {titoloRighe.map((r, i) => (
+                    <text key={i} x="0" y={yT0 + dimT * 0.85 + i * dimT * 1.1} textAnchor="middle" fontSize={dimT} fontWeight="900" fill="#fff" fontFamily={FONT_TITOLO} letterSpacing="2" filter={ombraTesto}>
+                      {r}
+                    </text>
+                  ))}
+                  {sottoRighe.map((r, i) => (
+                    <text key={i} x="0" y={yS0 + dimS + i * dimS * 1.25} textAnchor="middle" fontSize={dimS} fill="#f1f5f9" fontFamily={FONT_CORPO} filter={ombraTesto}>
+                      {r}
+                    </text>
+                  ))}
+                  {badge && badgePill(0, yB)}
+                </g>
+              )}
+
               {mostraQr && att?.qrVetrinaDataUrl && (
-                <g>
-                  <rect x={f.w - 250} y={f.h - 330} width="200" height="200" rx="14" fill="#fff" />
-                  <image href={att.qrVetrinaDataUrl} x={f.w - 240} y={f.h - 320} width="180" height="180" />
-                  <text x={f.w - 150} y={f.h - 98} textAnchor="middle" fontSize="28" fill="#fff" fontFamily="Arial, Helvetica, sans-serif">
-                    Prenota / scopri
+                <g transform={`translate(${f.w - 260}, ${qrY})`} filter="url(#card-shadow)">
+                  <rect x="0" y="0" width="200" height="230" rx="20" fill="#ffffff" />
+                  <image href={att.qrVetrinaDataUrl} x="15" y="15" width="170" height="170" />
+                  <text x="100" y="210" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f172a" fontFamily={FONT_CORPO}>
+                    INQUADRA E PRENOTA
                   </text>
                 </g>
               )}
               {nomeRiga.map((r, i) => (
-                <text key={i} x="70" y={f.h - 230 + i * 56} fontSize="48" fontWeight="800" fill="#fff" fontFamily="Georgia, 'Times New Roman', serif">
+                <text key={i} x="70" y={yNome + i * 56} fontSize="48" fontWeight="800" fill="#fff" fontFamily={FONT_TITOLO} letterSpacing="1" filter={ombraTesto}>
                   {r}
                 </text>
               ))}
               {contatti && (
-                <text x="70" y={f.h - 120} fontSize="28" fill="#e2e8f0" fontFamily="Arial, Helvetica, sans-serif">
+                <text x="70" y={yContatti + (nomeRiga.length - 1) * 56} fontSize="28" fill="#e2e8f0" fontFamily={FONT_CORPO} filter={ombraTesto}>
                   {contatti.slice(0, mostraQr ? 48 : 70)}
                 </text>
               )}
