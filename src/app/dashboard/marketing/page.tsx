@@ -23,6 +23,17 @@ export default function TavolyMarketingPage() {
           </p>
         </div>
 
+        <a
+          href="/dashboard/marketing/studio"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 hover:bg-indigo-100 transition-colors"
+        >
+          <div>
+            <p className="font-bold text-sm text-indigo-900">🎨 Nuovo: Studio Grafico</p>
+            <p className="text-xs text-indigo-700 mt-0.5">Crea locandine, post e storie con il tuo logo e il QR per prenotare.</p>
+          </div>
+          <span className="text-indigo-700 font-bold text-sm">Apri →</span>
+        </a>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
             <h3 className="font-bold text-sm text-slate-900">Serata Degustazione Giovedì Pesce</h3>

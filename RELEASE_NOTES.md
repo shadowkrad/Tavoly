@@ -1,5 +1,15 @@
 # 🚀 Tavoly — Release Notes
 
+## Novità della Versione 1.2.0 (Minor)
+
+### 🎨 Studio Grafico per le tue promozioni
+- **Nuova pagina Studio Grafico** nella sezione Marketing: crei locandine, post e storie in pochi secondi, con il tuo logo, i tuoi contatti e il QR code che porta alle prenotazioni.
+- **Idee pronte** per il tuo settore: scegli, cambia testo e prezzo quando vuoi e vedi subito l'anteprima.
+- **Sfondo professionale creato dall'intelligenza artificiale** (con un limite giornaliero), oppure colori pronti se preferisci.
+- **Scarica l'immagine** per Instagram, Facebook e WhatsApp, oppure **stampa il volantino A4**.
+
+---
+
 ## Novità della Versione 1.1.6 (Hotfix / Patch)
 
 ### 🔖 Allineamento di versione
